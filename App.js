@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, Button } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Progress from 'react-native-progress';
 import { Audio } from 'expo-av';
+import { WebView } from 'react-native-webview';
 
 function PlayComp(){
   const soundObject = new Audio.Sound();
@@ -95,12 +96,71 @@ function Example() {
 }
 
 
+function WebStaff() {
+
+  var ref_out = null;
+  const [foo, setFoo] = useState(0)
+  const [url, setUrl] = useState('what');
+  console.log('Refreshing web stuff');
+
+  return(
+    <View style={{flex: 2}}>
+    <Text>{url}</Text>
+    <Button title="get url"
+            onPress={() => {
+              ref_out.injectJavaScript("document.getElementById('movie_player').click()");
+              console.log('This is what I wanted to see' + foo);
+            }}>
+    </Button>
+    <WebView
+      ref={ref => (ref_out = ref)}
+      style={{width: 300, marginTop: 20}}
+      source={{
+        uri: 'https://www.youtube.com/watch?v=DCfShptiyVo',
+      }}
+      injectedJavaScript={`
+        (function() {
+          function wrap(fn) {
+            return function wrapper() {
+              var res = fn.apply(this, arguments);
+              // window.ReactNativeWebView.postMessage(window.location.href);
+              window.addEventListener('load', function() {
+                // window.ReactNativeWebView.postMessage($.toString());
+                window.ReactNativeWebView.postMessage(window.location.href);
+                // document.getElementById('movie_player').click();
+              });
+              return res;
+            }
+          }
+          window.location.assign = wrap(window.location.assign);
+          history.pushState = wrap(history.pushState);
+          history.replaceState = wrap(history.replaceState);
+          window.addEventListener('popstate', function() {
+            // window.ReactNativeWebView.postMessage($.toString());
+            window.ReactNativeWebView.postMessage(window.location.href);
+            // document.getElementById('movie_player').click();
+          });
+        })();
+
+        true;
+        `}
+      onMessage={({nativeEvent: state}) => {
+        setUrl(state.data);
+        ref_out.injectJavaScript("document.getElementById('movie_player').click()");
+        console.log(state.data);
+      }}
+    />
+    </View>
+  );
+}
+
 export default function App() {
   return (
     <View style={styles.container}>
-      <Text>Hello World</Text>
-      <Example/>
-      <PlayComp/>
+    <WebStaff/>
+    <Text>Hello World</Text>
+    <Example/>
+    <PlayComp/>
     </View>
   );
 }
