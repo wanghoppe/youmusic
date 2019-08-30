@@ -5,6 +5,12 @@ import * as Progress from 'react-native-progress';
 import { Audio } from 'expo-av';
 import { WebView } from 'react-native-webview';
 
+import Amplify, { Storage, Auth } from 'aws-amplify';
+import awsconfig from './aws-exports';
+Amplify.configure(awsconfig);
+
+var base64 = require('base-64');
+
 function PlayComp(){
   const soundObject = new Audio.Sound();
   console.log('Refreshing PlayComp');
@@ -24,7 +30,7 @@ function PlayComp(){
                     shouldDuckAndroid : true,
                     playThroughEarpieceAndroid : false,
                   });
-                  await soundObject.loadAsync({uri: FileSystem.documentDirectory + 'file_example_MP3_5MG.mp3'});
+                  await soundObject.loadAsync({uri: FileSystem.documentDirectory + 'nb.mp3'});
                   await soundObject.playAsync();
                 } catch (error) {
                   console.log(error);
@@ -85,6 +91,52 @@ function Example() {
                 downloadResumable.downloadAsync()
                 .then(() => {setFin('file_example_MP3_5MG.mp3 Downloaded')});
                 setVis(true);
+              }}>
+      </Button>
+      <Button title="upload"
+              onPress={async () => {
+                const user = await Auth.signIn('wanghp000@gmail.com', 'whp960923');
+                if (user.challengeName === 'NEW_PASSWORD_REQUIRED'){
+                  const loggedUser = await Auth.completeNewPassword(
+                    user, 'whp960923'
+                  )
+                };
+                // console.log(user);
+
+                info = await Auth.currentUserInfo();
+                console.log(info);
+
+                // const response = await FileSystem.readAsStringAsync(FileSystem.documentDirectory + 'file_example_MP3_5MG.mp3',
+                //                 {encoding: FileSystem.EncodingType.Base64});
+                // var blob = base64.decode(response);
+                // // const response = await fetch(FileSystem.documentDirectory + 'file_example_MP3_5MG.mp3');
+                // // const blob = await response.blob();
+                //
+                // console.log(blob);
+                // var result =  await Storage.put('test.mp3', blob, {
+                //     progressCallback(progress){
+                //         console.log(`Uploaded: ${progress.loaded}/ ${progress.total}`);
+                //   },
+                //   level: 'private'
+                // });
+                var result =  await Storage.get('Lady Gaga, Bradley Cooper - Shallow (A Star Is Born)-bo_efYhYU2A.mp3', {
+                    progressCallback(progress){
+                        console.log(`Downloaded: ${progress.loaded}/ ${progress.total}`);
+                  }
+                });
+                setVis(true);
+                const downloadResumable = FileSystem.createDownloadResumable(
+                  result,
+                  FileSystem.documentDirectory + 'nb.mp3',
+                  {},
+                  (downloadProgress) => {
+                    const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
+                    setProg(progress);
+                  }
+                );
+                var xx = await downloadResumable.downloadAsync()
+                setFin('nb.mp3 Downloaded');
+                console.log(result);
               }}>
       </Button>
       <Text>{progress}</Text>
