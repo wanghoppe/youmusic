@@ -9,7 +9,6 @@ import Amplify, { Storage, Auth } from 'aws-amplify';
 import awsconfig from './aws-exports';
 Amplify.configure(awsconfig);
 
-var base64 = require('base-64');
 
 function PlayComp(){
   const soundObject = new Audio.Sound();
@@ -43,7 +42,7 @@ function PlayComp(){
 }
 
 
-function Example() {
+function Example(props) {
   // Declare a new state variable, which we'll call "count"
   const [count, setCount] = useState(0);
   const [sample, setSam] = useState('');
@@ -64,7 +63,7 @@ function Example() {
   // console.log(TrackPlayer);
   console.log('dfsafasdfdasdasds dddddddddddddddddddddddddddf                dddddddddddddd')
   if (visible){
-    test1 = <Progress.Circle
+    test1 = <Progress.Bar
       progress={progress}
       size={200}
       unfilledColor="#fff"
@@ -79,6 +78,7 @@ function Example() {
   return (
     <View>
       <Text>You clicked {count} times</Text>
+      <Text> {props.title} </Text>
       <Button title="Learn More"
               onPress={() => setCount(count + 1)}>
       </Button>
@@ -93,19 +93,22 @@ function Example() {
                 setVis(true);
               }}>
       </Button>
-      <Button title="upload"
-              onPress={async () => {
+      <Button title="log in"
+              onPress = {async () => {
                 const user = await Auth.signIn('wanghp000@gmail.com', 'whp960923');
                 if (user.challengeName === 'NEW_PASSWORD_REQUIRED'){
                   const loggedUser = await Auth.completeNewPassword(
                     user, 'whp960923'
                   )
                 };
-                // console.log(user);
-
                 info = await Auth.currentUserInfo();
                 console.log(info);
+              }}
+      >
+      </Button>
 
+      <Button title="upload"
+              onPress={async () => {
                 // const response = await FileSystem.readAsStringAsync(FileSystem.documentDirectory + 'file_example_MP3_5MG.mp3',
                 //                 {encoding: FileSystem.EncodingType.Base64});
                 // var blob = base64.decode(response);
@@ -119,12 +122,14 @@ function Example() {
                 //   },
                 //   level: 'private'
                 // });
-                var result =  await Storage.get('Lady Gaga, Bradley Cooper - Shallow (A Star Is Born)-bo_efYhYU2A.mp3', {
+                var result =  await Storage.get(props.title, {
                     progressCallback(progress){
                         console.log(`Downloaded: ${progress.loaded}/ ${progress.total}`);
-                  }
+                  },
+                  level: 'private'
                 });
                 setVis(true);
+                console.log('132: this is the url: ', result);
                 const downloadResumable = FileSystem.createDownloadResumable(
                   result,
                   FileSystem.documentDirectory + 'nb.mp3',
@@ -148,7 +153,7 @@ function Example() {
 }
 
 
-function WebStaff() {
+function WebStaff(props) {
 
   var ref_out = null;
   const [foo, setFoo] = useState(0)
@@ -160,45 +165,48 @@ function WebStaff() {
     <Text>{url}</Text>
     <Button title="get url"
             onPress={() => {
-              ref_out.injectJavaScript("document.getElementById('movie_player').click()");
-              console.log('This is what I wanted to see' + foo);
+              ref_out.injectJavaScript("window.ReactNativeWebView.postMessage(window.location.href);");
+            }}>
+    </Button>
+    <Button title="Submit"
+            onPress={async () => {
+              console.log("this is url" + url);
+              const you_id = url.match(/http.:\/\/www|m.youtube.com.*\?*v=([^&]*).*/)[1];
+              const info = await Auth.currentUserInfo();
+              const user_id = info.id;
+
+
+              if (you_id == null){
+                console.log('Line 173: failed matching');
+                throw new Error('Whoops!');
+              }
+
+              response = await fetch('https://vxmaikxa2m.execute-api.us-west-2.amazonaws.com/beta/trans', {
+                method: 'POST',
+                headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  you_id: you_id,
+                  user_id: user_id
+                })
+              });
+
+              res_json = await response.json();
+              console.log(res_json);
+              props.setTitle(res_json.download)
+
             }}>
     </Button>
     <WebView
       ref={ref => (ref_out = ref)}
       style={{width: 300, marginTop: 20}}
       source={{
-        uri: 'https://www.youtube.com/watch?v=DCfShptiyVo',
+        uri: 'https://www.youtube.com',
       }}
-      injectedJavaScript={`
-        (function() {
-          function wrap(fn) {
-            return function wrapper() {
-              var res = fn.apply(this, arguments);
-              // window.ReactNativeWebView.postMessage(window.location.href);
-              window.addEventListener('load', function() {
-                // window.ReactNativeWebView.postMessage($.toString());
-                window.ReactNativeWebView.postMessage(window.location.href);
-                // document.getElementById('movie_player').click();
-              });
-              return res;
-            }
-          }
-          window.location.assign = wrap(window.location.assign);
-          history.pushState = wrap(history.pushState);
-          history.replaceState = wrap(history.replaceState);
-          window.addEventListener('popstate', function() {
-            // window.ReactNativeWebView.postMessage($.toString());
-            window.ReactNativeWebView.postMessage(window.location.href);
-            // document.getElementById('movie_player').click();
-          });
-        })();
-
-        true;
-        `}
       onMessage={({nativeEvent: state}) => {
         setUrl(state.data);
-        ref_out.injectJavaScript("document.getElementById('movie_player').click()");
         console.log(state.data);
       }}
     />
@@ -207,11 +215,15 @@ function WebStaff() {
 }
 
 export default function App() {
+
+  const [title, setTitle] = useState('');
+
+
   return (
     <View style={styles.container}>
-    <WebStaff/>
+    <WebStaff setTitle = {setTitle}/>
     <Text>Hello World</Text>
-    <Example/>
+    <Example title = {title}/>
     <PlayComp/>
     </View>
   );
