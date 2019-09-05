@@ -11,16 +11,13 @@
     "aws-amplify": "^1.1.36",
     "aws-amplify-react-native": "^2.1.16",
     "aws-sdk": "^2.516.0",
-    "base-64": "^0.1.0",
     "expo": "^34.0.1",
     "expo-av": "^6.0.0",
     "react": "16.8.3",
     "react-art": "^16.9.0",
     "react-dom": "^16.8.6",
     "react-native": "https://github.com/expo/react-native/archive/sdk-34.0.0.tar.gz",
-    "react-native-audio-jack": "^1.0.3",
     "react-native-progress": "^3.6.0",
-    "react-native-web": "^0.11.4",
     "react-native-webview": "^5.12.1"
   },
   "devDependencies": {

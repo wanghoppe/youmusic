@@ -1,9 +1,10 @@
 import React, {useState} from 'react';
-import { StyleSheet, Text, View, Button } from 'react-native';
+import { StyleSheet, Text, View, Button, TextInput, ScrollView, KeyboardAvoidingView, StatusBar } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Progress from 'react-native-progress';
 import { Audio } from 'expo-av';
 import { WebView } from 'react-native-webview';
+import Constants from 'expo-constants';
 
 import Amplify, { Storage, Auth } from 'aws-amplify';
 import awsconfig from './aws-exports';
@@ -24,7 +25,7 @@ function PlayComp(){
                     staysActiveInBackground: true,
                     allowsRecordingIOS: false,
                     interruptionModeIOS : Audio.INTERRUPTION_MODE_IOS_MIX_WITH_OTHERS,
-                    playsInSilentModeIOS : false,
+                    playsInSilentModeIOS : true,
                     interruptionModeAndroid : Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
                     shouldDuckAndroid : true,
                     playThroughEarpieceAndroid : false,
@@ -214,26 +215,55 @@ function WebStaff(props) {
   );
 }
 
+function LoginView(props){
+  const [username, setUsername] = useState('Email');
+  const [pw, setPw] = useState('Password')
+
+  return(
+    <View style={props.style}>
+      <KeyboardAvoidingView style={props.style} behavior="padding" enabled>
+        <Text style={{fontSize: 25}}>Username: </Text>
+        <TextInput
+            onChangeText={text => setUsername(text)}
+            placeholder={'Email'}
+          />
+        <Text style={{fontSize: 25}}>Password: </Text>
+        <TextInput
+            onChangeText={text => setPw(text)}
+            placeholder={'Password'}
+          />
+      </KeyboardAvoidingView>
+    </View>
+  );
+}
+
 export default function App() {
 
   const [title, setTitle] = useState('');
 
 
+  // return (
+  //   <View style={styles.container}>
+  //   <WebStaff setTitle = {setTitle}/>
+  //   <Text>Hello World</Text>
+  //   <Example title = {title}/>
+  //   <PlayComp/>
+  //   </View>
+  // );
   return (
-    <View style={styles.container}>
-    <WebStaff setTitle = {setTitle}/>
-    <Text>Hello World</Text>
-    <Example title = {title}/>
-    <PlayComp/>
-    </View>
-  );
+
+        <LoginView/>
+    );
 }
 
 const styles = StyleSheet.create({
+  statusBar: {
+    backgroundColor: "#C2185B",
+    height: Constants.statusBarHeight,
+  },
   container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    height: Constants.statusBarHeight,
+    backgroundColor: '#C2185B',
+    alignItems: 'center'
   },
 });
