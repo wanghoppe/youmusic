@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { StyleSheet, Text, View, Button, TextInput, ScrollView, KeyboardAvoidingView, StatusBar } from 'react-native';
+import {Alert, StyleSheet, Text, View, Button, TextInput, ScrollView, KeyboardAvoidingView, StatusBar } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Progress from 'react-native-progress';
 import { Audio } from 'expo-av';
@@ -8,6 +8,12 @@ import Constants from 'expo-constants';
 
 import Amplify, { Storage, Auth } from 'aws-amplify';
 import awsconfig from './aws-exports';
+
+const color = {light_pup: '#cc7a9b',
+                dard_pup: '#c91860',
+                light_gre: '#9fd6bf'}
+
+
 Amplify.configure(awsconfig);
 
 
@@ -240,7 +246,11 @@ function LoginView(props){
 export default function App() {
 
   const [title, setTitle] = useState('');
-
+  const [username, setUsername] = useState('Email');
+  const [pw, setPw] = useState('Password')
+  const [need_confirm, setConfirm] = useState(false);
+  const [save_user, setUser] = useState(null);
+  var pwText;
 
   // return (
   //   <View style={styles.container}>
@@ -250,20 +260,103 @@ export default function App() {
   //   <PlayComp/>
   //   </View>
   // );
-  return (
+  if (need_confirm){
+    button1 = (
+      <Button title={"SET PASSWORD"}
+        onPress={
+          async () => {
+              const loggedUser = await Auth.completeNewPassword(
+                save_user, pw
+              )
+            }
+          }/>
+    );
+    pwText = (<Text style={{fontSize: 25, color: color.dard_pup}}>New Password:</Text>)
+  } else {
+    button1 = (
+      <Button title={"LOG IN"}
+        onPress={
+          async () => {
+            const user = await Auth.signIn(username, pw);
+            if (user.challengeName === 'NEW_PASSWORD_REQUIRED'){
+              Alert.alert('Please set new password')
+              setUser(user);
+              setConfirm(true);
+            }else{
+              console.log(user);
+              const get_user = await Auth.currentUserInfo();
+              console.log(get_user)
+            };
+          }
+        }/>
+    )
+    pwText = (<Text style={{fontSize: 25, color: color.dard_pup}}>Password:</Text>)
+  }
 
-        <LoginView/>
+
+  return (
+    <View style={{flex:1}}>
+      <View style={styles.statusBar}/>
+      <View style={styles.afterStatus}>
+        <View flex={1} style={styles.container}>
+          <Text style = {{fontSize:30, color: color.dard_pup}}>Log In</Text>
+        </View>
+        <KeyboardAvoidingView flex={3} style={styles.container} behavior="padding">
+          <View flex={2} style={ styles.container } flexDirection={'row'}>
+            <View flex={2}/>
+            <View style={{flex: 8}}>
+              <View style={styles.wrapText} marginBottom = {15}>
+                <Text style={{fontSize: 25, color: color.dard_pup}}>Username: </Text>
+              </View>
+              <View style={styles.wrapText} marginBottom = {40}>
+                <TextInput
+                    onChangeText={text => setUsername(text)}
+                    placeholder={'Email'}
+                    fontSize= {20}
+                />
+              </View>
+              <View style={styles.wrapText} marginBottom = {15}>
+                {pwText}
+              </View>
+              <View style={styles.wrapText}>
+                <TextInput
+                    onChangeText={text => setPw(text)}
+                    placeholder={'Password'}
+                    fontSize= {20}
+                />
+              </View>
+            </View>
+          </View>
+          <View flex={1} style={styles.container}>
+            {button1}
+          </View>
+        </KeyboardAvoidingView>
+      </View>
+    </View>
+
     );
 }
 
 const styles = StyleSheet.create({
   statusBar: {
-    backgroundColor: "#C2185B",
+    backgroundColor: color.light_pup,
     height: Constants.statusBarHeight,
+  },
+  afterStatus: {
+    // backgroundColor: color.light_pup,
+    flexGrow: 1,
+    alignItems: 'stretch'
   },
   container: {
-    height: Constants.statusBarHeight,
-    backgroundColor: '#C2185B',
-    alignItems: 'center'
+    // borderTopWidth: 1,
+    // borderLeftWidth: 1,
+    // borderRightWidth: 1,
+    // borderBottomWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 10
   },
+  wrapText:{
+    justifyContent: 'center',
+  }
 });
