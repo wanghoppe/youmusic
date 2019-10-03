@@ -8,6 +8,13 @@ import Constants from 'expo-constants';
 
 import Amplify, { Storage, Auth } from 'aws-amplify';
 import awsconfig from './aws-exports';
+
+import base64 from 'react-native-base64'
+import {List} from './list'
+
+const color = {light_pup: "#e39cff",
+              dark_pup: "#a710e3"};
+
 Amplify.configure(awsconfig);
 
 
@@ -217,11 +224,10 @@ function WebStaff(props) {
 
 function LoginView(props){
   const [username, setUsername] = useState('Email');
-  const [pw, setPw] = useState('Password')
+  const [pw, setPw] = useState('Password');
 
   return(
-    <View style={props.style}>
-      <KeyboardAvoidingView style={props.style} behavior="padding" enabled>
+    <View >
         <Text style={{fontSize: 25}}>Username: </Text>
         <TextInput
             onChangeText={text => setUsername(text)}
@@ -232,16 +238,71 @@ function LoginView(props){
             onChangeText={text => setPw(text)}
             placeholder={'Password'}
           />
-      </KeyboardAvoidingView>
     </View>
   );
+}
+
+function NewWebView(props){
+  var ref_out = null;
+
+  return (
+    <View style={styles.allView} behavior={'padding'}>
+      <View style = {styles.statusBar}>
+        <Text style = {{fontSize: 18}}>Explore</Text>
+      </View>
+      <View style = {styles.afterStatus}>
+        <View style = {{flexDirection: 'row', justifyContent: 'space-around', alignSelf: 'stretch'}}>
+          <Button title="HOME"
+                  onPress={() => {
+                    ref_out.injectJavaScript("window.location.href = 'https://www.youtube.com';");
+                  }}>
+          </Button>
+          <Button title="BACK"
+                  onPress={() => {
+                    ref_out.injectJavaScript("window.history.go(-1);");
+                  }}>
+          </Button>
+          <Button title="GET URL"
+                  onPress={() => {
+                    ref_out.injectJavaScript("window.ReactNativeWebView.postMessage(window.location.href);");
+                  }}>
+          </Button>
+        </View>
+        <View
+            style={{ flex: 1, alignSelf: 'stretch' }}
+            >
+          <WebView
+            ref={ref => (ref_out = ref)}
+            style={{alignSelf: 'stretch'}}
+            source={{
+              uri: 'https://www.youtube.com',
+            }}
+            onMessage={({nativeEvent: state}) => {
+              // setUrl(state.data);
+              console.log(state.data);
+            }}
+          />
+        </View>
+      </View>
+    </View>
+    );
 }
 
 export default function App() {
 
   const [title, setTitle] = useState('');
+  const [username, setUsername] = useState('Email');
+  const [pw, setPw] = useState('Password');
+  const [progress, setProg] = useState(0.0);
+
+  const soundObject = new Audio.Sound();
 
 
+  return(
+    <View style={styles.allView} behavior={'padding'}>
+      <List/>
+    </View>
+  );
   // return (
   //   <View style={styles.container}>
   //   <WebStaff setTitle = {setTitle}/>
@@ -250,20 +311,112 @@ export default function App() {
   //   <PlayComp/>
   //   </View>
   // );
-  return (
-
-        <LoginView/>
-    );
+  // return (
+  //   <View style={styles.allView} behavior={'padding'}>
+  //     <View style = {styles.statusBar}>
+  //       <Text style = {{fontSize: 18}}>Explore</Text>
+  //       <Button title="log in"
+  //               onPress = {async () => {
+  //                 const user = await Auth.signIn('wanghp000@gmail.com', 'whp960923');
+  //                 if (user.challengeName === 'NEW_PASSWORD_REQUIRED'){
+  //                   const loggedUser = await Auth.completeNewPassword(
+  //                     user, 'whp960923'
+  //                   )
+  //                 };
+  //                 info = await Auth.currentUserInfo();
+  //                 console.log(info);
+  //               }}/>
+  //     </View>
+  //     <View style = {styles.afterStatus}>
+  //       <Button title="LIST"
+  //               onPress = {async () => {
+  //                 const info = await Auth.currentUserInfo();
+  //                 const user_id = info.id;
+  //
+  //                 const result = await Storage.list('', {level: 'private'});
+  //                 console.log(result);
+  //               }}/>
+  //       <Button title="LIST2"
+  //               onPress = {async () => {
+  //                 const result = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory);
+  //                 console.log(result);
+  //               }}/>
+  //       <View style = {{alignSelf: 'stretch', height: 50}} >
+  //         <Progress.Bar styles = {{position: 'absolute'}}
+  //                       color = 'rgba(227, 156, 255, 0.5)'
+  //                       progress={progress}
+  //                       borderRadius={20}
+  //                       width = {null}
+  //                       height={50}/>
+  //         <Text style = {{position: 'absolute'}}>晓月老板--《探清水河》，一首轻快的北京小曲儿，讲述了一段凄美的爱情故事-oXwpGzRyzkY</Text>
+  //       </View>
+  //       <Button title="upload"
+  //               onPress={async () => {
+  //                 const title = '晓月老板--《探清水河》，一首轻快的北京小曲儿，讲述了一段凄美的爱情故事-oXwpGzRyzkY.mp3';
+  //                 var result =  await Storage.get(title, {
+  //                     level: 'private'
+  //                 });
+  //                 console.log('132: this is the url: ', result);
+  //                 const downloadResumable = FileSystem.createDownloadResumable(
+  //                   result,
+  //                   // FileSystem.documentDirectory + base64.encode(title.match(/(.*)\.mp3/)[1]) + '.mp3',
+  //                   FileSystem.documentDirectory + base64.encode(title),
+  //                   {},
+  //                   (downloadProgress) => {
+  //                     const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
+  //                     setProg(progress);
+  //                   }
+  //                 );
+  //                 var xx = await downloadResumable.downloadAsync();
+  //                 console.log(base64.encode(title));
+  //               }}/>
+  //         <Button title="Play Button"
+  //                 onPress={async () => {
+  //                   try{
+  //                     const title = '晓月老板--《探清水河》，一首轻快的北京小曲儿，讲述了一段凄美的爱情故事-oXwpGzRyzkY.mp3';
+  //                     await Audio.setAudioModeAsync({
+  //                       staysActiveInBackground: true,
+  //                       allowsRecordingIOS: false,
+  //                       interruptionModeIOS : Audio.INTERRUPTION_MODE_IOS_MIX_WITH_OTHERS,
+  //                       playsInSilentModeIOS : true,
+  //                       interruptionModeAndroid : Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+  //                       shouldDuckAndroid : true,
+  //                       playThroughEarpieceAndroid : false,
+  //                     });
+  //                     // await soundObject.loadAsync({uri: FileSystem.documentDirectory + base64.encode(title.match(/(.*)\.mp3/)[1]) + '.mp3'});
+  //                     await soundObject.loadAsync({uri: FileSystem.documentDirectory + base64.encode(title)});
+  //                     await soundObject.playAsync();
+  //                   } catch (error) {
+  //                     console.log(error);
+  //                   }
+  //                 }}>
+  //         </Button>
+  //     </View>
+  //   </View>
+    // );
 }
 
+
 const styles = StyleSheet.create({
+  allView: {
+    flex:1
+  },
   statusBar: {
-    backgroundColor: "#C2185B",
-    height: Constants.statusBarHeight,
+    backgroundColor: color.light_pup,
+    height: Constants.statusBarHeight + 35,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingBottom: 10
   },
-  container: {
-    height: Constants.statusBarHeight,
-    backgroundColor: '#C2185B',
+  afterStatus: {
+    flexGrow : 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  containerRow: {
+    // backgroundColor: 'powderblue',
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center'
-  },
+  }
 });
