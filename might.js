@@ -216,27 +216,3 @@ function WebStaff(props) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  statusBar: {
-    backgroundColor: color.light_pup,
-    height: Constants.statusBarHeight,
-  },
-  afterStatus: {
-    // backgroundColor: color.light_pup,
-    flexGrow: 1,
-    alignItems: 'stretch'
-  },
-  container: {
-    // borderTopWidth: 1,
-    // borderLeftWidth: 1,
-    // borderRightWidth: 1,
-    // borderBottomWidth: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 10
-  },
-  wrapText:{
-    justifyContent: 'center',
-  }
-});

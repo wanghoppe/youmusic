@@ -10,6 +10,7 @@ import Amplify, { Storage, Auth } from 'aws-amplify';
 import awsconfig from './aws-exports';
 
 import {LoginView} from './login'
+import {NewWebView} from './homeView'
 
 
 
@@ -17,5 +18,5 @@ Amplify.configure(awsconfig);
 
 
 export default function App() {
-  return (<LoginView/>)
+  return (<NewWebView/>)
 }
