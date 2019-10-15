@@ -17,6 +17,8 @@
     "react-art": "^16.9.0",
     "react-dom": "^16.8.6",
     "react-native": "https://github.com/expo/react-native/archive/sdk-34.0.0.tar.gz",
+    "react-native-base64": "0.0.2",
+    "react-native-flash-message": "^0.1.15",
     "react-native-progress": "^3.6.0",
     "react-native-webview": "^5.12.1"
   },

@@ -11,6 +11,8 @@ import awsconfig from './aws-exports';
 
 import {LoginView} from './login'
 import {NewWebView} from './homeView'
+import {List} from './list'
+import FlashMessage from "react-native-flash-message";
 
 
 
@@ -18,5 +20,10 @@ Amplify.configure(awsconfig);
 
 
 export default function App() {
-  return (<NewWebView/>)
+  return (
+    <View flex = {1}>
+      <List/>
+      <FlashMessage position="bottom" />
+    </View>
+  )
 }

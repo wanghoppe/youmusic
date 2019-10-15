@@ -8,12 +8,14 @@ import Constants from 'expo-constants';
 
 import Amplify, { Storage, Auth } from 'aws-amplify';
 import awsconfig from './aws-exports';
+import base64 from 'react-native-base64';
+
 
 const color = {light_pup: '#cc7a9b',
                 dard_pup: '#c91860',
                 light_gre: '#9fd6bf'}
 
-function PlayComp(){
+export function PlayComp(){
   const soundObject = new Audio.Sound();
   console.log('Refreshing PlayComp');
 
@@ -32,7 +34,7 @@ function PlayComp(){
                     shouldDuckAndroid : true,
                     playThroughEarpieceAndroid : false,
                   });
-                  await soundObject.loadAsync({uri: FileSystem.documentDirectory + 'nb.mp3'});
+                  await soundObject.loadAsync({uri: FileSystem.documentDirectory + encodeURIComponent('陈一发儿 - 人间 - 陈一发儿-LiN06nQP0tM.mp3')});
                   await soundObject.playAsync();
                 } catch (error) {
                   console.log(error);

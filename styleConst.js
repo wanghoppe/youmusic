@@ -2,7 +2,7 @@ import {StyleSheet} from 'react-native';
 import Constants from 'expo-constants';
 
 
-const itemHeight = 66;
+export const itemHeight = 66;
 
 export const color = {light_pup: '#cc7a9b',
                       dard_pup: '#c91860',

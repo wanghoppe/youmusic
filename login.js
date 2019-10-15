@@ -5,9 +5,6 @@ import Constants from 'expo-constants';
 import Amplify, { Storage, Auth } from 'aws-amplify';
 import {styles, color} from './styleConst'
 
-// const color = {light_pup: '#cc7a9b',
-//                 dard_pup: '#c91860',
-//                 light_gre: '#9fd6bf'}
 
 
 export function LoginView(props){

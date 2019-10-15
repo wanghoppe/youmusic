@@ -1,6 +1,8 @@
 import React, {useState} from 'react';
-import { StyleSheet, Text, View, Button, TextInput, ScrollView, KeyboardAvoidingView, StatusBar } from 'react-native';
+import { Alert, StyleSheet, Text, View, Button, TextInput, ScrollView, KeyboardAvoidingView, StatusBar } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { showMessage, hideMessage } from "react-native-flash-message";
+import { Auth } from 'aws-amplify';
 
 import {color, styles} from './styleConst';
 
@@ -26,9 +28,44 @@ export function NewWebView(props){
           </Button>
           <Button title="GET URL"
                   onPress={() => {
-                    ref_out.injectJavaScript("window.ReactNativeWebView.postMessage(window.location.href);");
+                    Alert.alert(
+                      "Comfirm",
+                      "Download to Cloud?",
+                      [
+                        {text: 'OK', onPress: () => ref_out.injectJavaScript("window.ReactNativeWebView.postMessage(window.location.href);")},
+                        {text: 'Cancel', onPress: () => {}, style: 'cancel'}
+                      ],
+                    )
                   }}>
           </Button>
+          <Button title="log in"
+                  onPress = {async () => {
+                    try{
+                      const user = await Auth.signIn('wanghp000@gmail.com', '123456789');
+                      if (user.challengeName === 'NEW_PASSWORD_REQUIRED'){
+                        const loggedUser = await Auth.completeNewPassword(
+                          user, '123456789'
+                        )
+                      };
+                      info = await Auth.currentUserInfo();
+
+                      showMessage({
+                        message: "Login Success",
+                        description: "Login as "+ info.attributes.email,
+                        type: "success"})
+                      console.log(info);
+                    }catch(err){
+                      console.log(err)
+                    }
+                  }}
+          />
+          <Button title="test"
+                  onPress = {() => showMessage({
+                    message: "Success",
+                    description: " is downloaded to cloud",
+                    type: "success"})
+                }
+          />
         </View>
         <View
             style={{ flex: 1, alignSelf: 'stretch' }}
@@ -39,9 +76,37 @@ export function NewWebView(props){
             source={{
               uri: 'https://www.youtube.com',
             }}
-            onMessage={({nativeEvent: state}) => {
-              // setUrl(state.data);
-              console.log(state.data);
+            onMessage={ async ({nativeEvent: state}) => {
+              const parsed = state.data.match(/http.:\/\/(www|m)\.youtube\.com.*\?*v=([^&]*).*/);
+
+              if (parsed == '' || parsed == null){
+                Alert.alert('Invalid URL', 'Cannot parse video ID')
+              }else{
+                const you_id = parsed[2];
+                const user_info = await Auth.currentUserInfo();
+                const user_id = info.id;
+                console.log('Downloading ' + you_id + ' for ' + user_id);
+
+                response = await fetch('https://vxmaikxa2m.execute-api.us-west-2.amazonaws.com/beta/trans', {
+                  method: 'POST',
+                  headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    you_id: you_id,
+                    user_id: user_id
+                  })
+                });
+                res_json = await response.json();
+                showMessage({
+                  message: "Success",
+                  description: res_json.download + " is downloaded to cloud",
+                  type: "success"})
+              }
+
+
+              console.log(res_json.download + " is downloaded to cloud");
             }}
           />
         </View>
