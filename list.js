@@ -19,7 +19,7 @@ export function List(props){
 
   const [ready, setReady] = useState(false);
   const [data_lst, setDataLst] = useState([]);
-  var returned;
+  var mainView;
 
 
   async function login(){
@@ -62,38 +62,31 @@ export function List(props){
   }, []);
 
   if (ready){
-    returned = (
-      <View style={styles.allView} behavior={'padding'}>
-        <View style = {styles.statusBar}>
-          <Text style = {{fontSize: 18}}>Explore</Text>
-        </View>
-        <View style = {styles.afterStatus}>
-          <View style = {{alignSelf: 'stretch'}}>
-            <FlatList
-              data={data_lst}
-              renderItem={({item}) => <Item
-                                        prog={item.prog}
-                                        title={item.title}
-                                      />}
-            />
-          </View>
-        </View>
+    mainView = (
+      <View style = {{alignSelf: 'stretch'}}>
+        <FlatList
+          data={data_lst}
+          renderItem={({item}) => <Item
+                                    prog={item.prog}
+                                    title={item.title}
+                                  />}
+        />
       </View>
     )
   }else{
-    returned = (
-      <View style={styles.allView} behavior={'padding'}>
-        <View style = {styles.statusBar}>
-          <Text style = {{fontSize: 18}}>Explore</Text>
-        </View>
-        <View style = {styles.afterStatus}>
-          <Text>Waitting</Text>
-        </View>
-      </View>
-    )
+    mainView = (<Progress.CircleSnail size={80} color={color.dark_pup} thickness={5}/>)
   }
 
-  return returned;
+  return (
+    <View style={styles.allView} behavior={'padding'}>
+      <View style = {styles.statusBar}>
+        <Text style = {{fontSize: 18}}>Explore</Text>
+      </View>
+      <View style = {styles.afterStatus}>
+        {mainView}
+      </View>
+    </View>
+  );
   // return(
   //   <View style={styles.allView} behavior={'padding'}>
   //     <View style = {styles.statusBar}>

@@ -5,7 +5,7 @@ import Constants from 'expo-constants';
 export const itemHeight = 66;
 
 export const color = {light_pup: '#cc7a9b',
-                      dard_pup: '#c91860',
+                      dark_pup: '#c91860',
                       light_gre: '#9fd6bf'}
 
 
