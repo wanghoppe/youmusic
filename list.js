@@ -64,12 +64,22 @@ export function List(props){
   }
 
   function filter_lst(data_map){
-    let idx_arr = [[0,1], [1], [0]];
+    let first_func;
     let temp_lst = [];
+
+    if (filter_idex == 0){
+      first_func = () => true;
+    }else if (filter_idex == 1){
+      first_func = (prog) => (prog == 0)
+    }else if (filter_idex == 2){
+      first_func = (prog) => (prog>0 && prog<1)
+    }else if (filter_idex == 3){
+      first_func = (prog) => (prog == 1)
+    }
 
     data_map.forEach(
       (val, key) => {
-        if (idx_arr[filter_idex].includes(val) && key.toLowerCase().includes(filter_txt)){
+        if (first_func(val.prog) && key.toLowerCase().includes(filter_txt)){
           temp_lst.push({key: key, prog: val});
         }
       }
@@ -78,9 +88,9 @@ export function List(props){
     setShowLst(temp_lst);
   }
 
-  function updateMapProgWithId(id){
+  function updateMapProgWithId(id, progress){
     let temp_map = new Map(data_map);
-    temp_map.set(id, 1);
+    temp_map.set(id, progress);
     setDataMap(temp_map);
   }
 
@@ -93,7 +103,7 @@ export function List(props){
   useEffect(() => {
     filter_lst(data_map);
     console.log('Running2');
-  }, [filter_idex, filter_txt, data_map]);
+  }, [filter_idex, filter_txt]);
 
   useEffect(() => {
     login()
@@ -162,7 +172,7 @@ export function List(props){
             dropdownStyle = {{backgroundColor: color.light_grey, height: 153}}
             defaultIndex = {0}
             defaultValue = {'All'}
-            options={['All', 'Downloaded', 'Undownload']}
+            options={['All', 'Undownload', 'Loading']}
             renderRow = {(option)=>(
               <View style = {{alignItems: 'center', justifyContent: 'center', height: 50}}>
                 <Text style={{fontSize:18}}>{option}</Text>
@@ -292,11 +302,12 @@ function Item(props){
                     (downloadProgress) => {
                       const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
                       setProg(progress);
+                      props.updateMapProgWithId(props.title, progress);
                     }
                   );
                   const xx = await downloadResumable.downloadAsync();
                   console.log(props.title + ' downloaded');
-                  props.updateMapProgWithId(props.title);
+                  // props.updateMapProgWithId(props.title);
                 }catch(err){
                   console.log(err);
                 }
