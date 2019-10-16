@@ -1,5 +1,5 @@
 import React, {useState, useEffect } from 'react';
-import { Picker, StyleSheet, Text, View, Button, TextInput, ScrollView, KeyboardAvoidingView, StatusBar, FlatList } from 'react-native';
+import { Alert, Picker, StyleSheet, Text, View, Button, TextInput, ScrollView, KeyboardAvoidingView, StatusBar, FlatList } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Progress from 'react-native-progress';
 import { showMessage, hideMessage } from "react-native-flash-message";
@@ -66,13 +66,12 @@ export function List(props){
 
     data_map.forEach(
       (val, key) => {
-        if (idx_arr[filter_idex].includes(val) && key.includes(filter_txt)){
+        if (idx_arr[filter_idex].includes(val) && key.toLowerCase().includes(filter_txt)){
           temp_lst.push({key: key, prog: val});
         }
       }
     )
-    console.log(data_map);
-    console.log(temp_lst);
+    console.log('Running filter_lst');
     setShowLst(temp_lst);
   }
 
@@ -82,13 +81,21 @@ export function List(props){
     setDataMap(temp_map);
   }
 
+  function deleteMapWithId(id){
+    let temp_map = new Map(data_map);
+    temp_map.delete(id);
+    setDataMap(temp_map);
+  }
+
   useEffect(() => {
     filter_lst(data_map);
+    console.log('Running2');
   }, [filter_idex, filter_txt, data_map]);
 
   useEffect(() => {
     login()
-      .then(() => generate_lst())
+      .then(() => generate_lst());
+    console.log('Running1');
   }, []);
 
   if (ready){
@@ -100,6 +107,7 @@ export function List(props){
                                     prog={item.prog}
                                     title={item.key}
                                     updateMapProgWithId = {updateMapProgWithId}
+                                    deleteMapWithId = {deleteMapWithId}
                                   />}
         />
       </View>
@@ -292,14 +300,25 @@ function Item(props){
               }}/>
       <Button flex={1}
               title={'DEL'}
-              onPress={ async () => {
-                try{
-                  result = await Storage.remove(props.title, {level: 'private'});
-                  console.log(result);
-                }catch(err){
-                  console.log(result);
-                }
-              }}/>
+              onPress={ () => {
+                Alert.alert(
+                  "Comfirm Delete",
+                  `Delete ${props.title} from cloud?`,
+                  [
+                    {text: 'Yes', onPress: async () => {
+                      try{
+                        result = await Storage.remove(props.title, {level: 'private'});
+                        props.deleteMapWithId(props.title);
+                        console.log(result);
+                      }catch(err){
+                        console.log(result);
+                      }
+                    }},
+                    {text: 'Cancel', onPress: () => {}, style: 'cancel'}
+                  ],
+                )
+              }
+            }/>
     </View>
   )
 }
