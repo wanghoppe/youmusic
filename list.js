@@ -51,7 +51,10 @@ export function List(props){
       const local_set = new Set(local_lst);
 
       const cloud_lst = await Storage.list('', {level: 'private'});
-      const data_map = new Map(cloud_lst.map((item) => ([item.key, local_set.has(item.key) ? 1: 0])));
+      const data_map = new Map(cloud_lst.map((item) => ([item.key, {
+          prog: local_set.has(item.key) ? 1: 0,
+          downloading: false
+        }])));
       setDataMap(data_map);
       filter_lst(data_map);
       setReady(true);
@@ -100,7 +103,7 @@ export function List(props){
 
   if (ready){
     mainView = (
-      <View style = {{alignSelf: 'stretch'}}>
+      <View style = {{alignSelf: 'stretch', flex:1}}>
         <FlatList
           data={show_lst}
           renderItem={({item}) => <Item
