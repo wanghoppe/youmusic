@@ -15,7 +15,7 @@ import {color, styles, itemHeight} from './styleConst';
 import {PlayComp} from './might';
 
 export function List(props){
-  console.log('updating whole view');
+  // console.log('updating whole view');
   const [ready, setReady] = useState(false);
   const [data_map, setDataMap] = useState(new Map());
   const [filter_idex, setFilid] = useState(0);
@@ -68,7 +68,6 @@ export function List(props){
 
   function filter_lst(data_map){
     let first_func;
-    let temp_lst = [];
 
     if (filter_idex == 0){
       first_func = () => true;
@@ -80,13 +79,12 @@ export function List(props){
       first_func = (prog) => (prog == 1)
     }
 
-    data_map.forEach(
-      (val, key) => {
-        if (first_func(val.prog) && key.toLowerCase().includes(filter_txt)){
-          temp_lst.push({key: key, prog: val.prog});
-        }
-      }
-    )
+    let temp_lst = Array.from(data_map, ([key, val]) => ({
+      key: key,
+      prog: val.prog,
+      show: first_func(val.prog) && key.toLowerCase().includes(filter_txt)
+    }));
+
     console.log('Running filter_lst');
     setShowLst(temp_lst);
   }
@@ -103,6 +101,7 @@ export function List(props){
     setDataMap(temp_map);
   },[]);
 
+  //update data_map reference
   useEffect(() =>{
     data_map_ref.current = data_map;
   });
@@ -110,7 +109,7 @@ export function List(props){
   useEffect(() => {
     filter_lst(data_map);
     // console.log('Running2');
-  }, [filter_idex, filter_txt, data_map]);
+  }, [filter_idex, filter_txt]);
 
   useEffect(() => {
     login()
@@ -123,9 +122,10 @@ export function List(props){
       <View style = {{alignSelf: 'stretch', flex:1}}>
         <FlatList
           data={show_lst}
-          renderItem={({item}) => <PureItem
+          renderItem={({item}) => <Item
                                     prog={item.prog}
                                     title={item.key}
+                                    show = {item.show}
                                     updateMapProgWithId = {updateMapProgWithId}
                                     deleteMapWithId = {deleteMapWithId}
                                   />}
@@ -192,6 +192,17 @@ export function List(props){
                 }}
             />)}
             onSelect = {(index) => setFilid(index)}
+          />
+          <Button
+            style = {{flex:2}}
+            title = {'DA'}
+            onPress = { async () => {
+              const local_lst = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory);
+              local_lst.forEach((item) => {
+                FileSystem.deleteAsync(FileSystem.documentDirectory + encodeURIComponent(item));
+              })
+              console.log('Line205: delete all local files')
+            }}
           />
         </View>
         {mainView}
@@ -283,86 +294,92 @@ const PureItem = React.memo((props) => {
 });
 
 function Item(props){
-  // const [prog, setProg] = useState(props.prog);
-  const [change, setChange] = useState(false);
+  var returnView;
+  const [prog, setProg] = useState(props.prog);
+  // const [change, setChange] = useState(false);
 
-  useEffect(()=>{
-    let id;
-    if (change){
-      id = setInterval(()=>{
-        // setProg(prog + 1.5/200);
-        props.updateMapProgWithId(props.title, props.prog + 1.5/200);
-        console.log(props.prog);
-      }, 500);
-    }else{
-      id = setInterval(()=>{}, 1000);
-    }
+  // useEffect(()=>{
+  //   let id;
+  //   if (change){
+  //     id = setInterval(()=>{
+  //       // setProg(prog + 1.5/200);
+  //       props.updateMapProgWithId(props.title, props.prog + 1.5/200);
+  //       console.log(props.prog);
+  //     }, 500);
+  //   }else{
+  //     id = setInterval(()=>{}, 1000);
+  //   }
+  //
+  //   return () => clearInterval(id);
+  // },[props.prog, change])
 
-    return () => clearInterval(id);
-  },[props.prog, change])
-
-  console.log('updating' + props.title);
-  return(
-    <View style = {styles.containerRow}>
-      <View style = {{flex: 8, alignSelf: 'stretch', padding: 10,
-                      justifyContent:'center'}} >
-        <Progress.Bar styles = {{alignSelf: 'stretch', position: 'absolute'}}
-                              color = 'rgba(204, 122, 155, 0.5)'
-                              progress={props.prog}
-                              borderRadius={15}
-                              width = {null}
-                              height = {itemHeight-15}/>
-        <ScrollView style = {{position: 'absolute', marginLeft: 12}} horizontal={true}>
-          <Text style={{fontSize: 16}}>{props.title}</Text>
-        </ScrollView>
-      </View>
-      <Button flex={1}
-              title={'DOWN'}
-              disabled = {props.prog == 1}
-              onPress={() => {
-                try{
-                  setChange(true);
-                  // const temp_url = await Storage.get(
-                  //   props.title, { level: 'private'}
-                  // );
-                  // const downloadResumable = FileSystem.createDownloadResumable(
-                  //   temp_url,
-                  //   FileSystem.documentDirectory + encodeURIComponent(props.title),
-                  //   {},
-                  //   (downloadProgress) => {
-                  //     const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
-                  //     setProg(progress);
-                  //     props.updateMapProgWithId(props.title, progress);
-                  //   }
-                  // );
-                  // const xx = await downloadResumable.downloadAsync();
-                  // console.log(props.title + ' downloaded');
-                  // props.updateMapProgWithId(props.title);
-                }catch(err){
-                  console.log(err);
-                }
-              }}/>
-      <Button flex={1}
-              title={'DEL'}
-              onPress={ () => {
-                Alert.alert(
-                  "Comfirm Delete",
-                  `Delete ${props.title} from cloud?`,
-                  [
-                    {text: 'Yes', onPress: async () => {
-                      try{
-                        result = await Storage.remove(props.title, {level: 'private'});
-                        props.deleteMapWithId(props.title);
-                        console.log(result);
-                      }catch(err){
-                        console.log(result);
+  // console.log('updating' + props.title);
+  if (props.show){
+    returnView = (
+      <View style = {{...styles.containerRow}}>
+        <View style = {{flex: 8, alignSelf: 'stretch', padding: 10,
+                        justifyContent:'center'}} >
+          <Progress.Bar styles = {{alignSelf: 'stretch', position: 'absolute'}}
+                                color = 'rgba(204, 122, 155, 0.5)'
+                                progress={prog}
+                                borderRadius={15}
+                                width = {null}
+                                height = {itemHeight-15}/>
+          <ScrollView style = {{position: 'absolute', marginLeft: 12}} horizontal={true}>
+            <Text style={{fontSize: 16}}>{props.title}</Text>
+          </ScrollView>
+        </View>
+        <Button flex={1}
+                title={'DOWN'}
+                disabled = {prog == 1}
+                onPress={ async () => {
+                  try{
+                    // setChange(true);
+                    const temp_url = await Storage.get(
+                      props.title, { level: 'private'}
+                    );
+                    const downloadResumable = FileSystem.createDownloadResumable(
+                      temp_url,
+                      FileSystem.documentDirectory + encodeURIComponent(props.title),
+                      {},
+                      (downloadProgress) => {
+                        const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
+                        setProg(progress);
+                        // props.updateMapProgWithId(props.title, progress);
                       }
-                    }},
-                    {text: 'Cancel', onPress: () => {}, style: 'cancel'}
-                  ],
-                )
-              }
-            }/>
-    </View>
-  )
+                    );
+                    const xx = await downloadResumable.downloadAsync();
+                    console.log(props.title + ' downloaded');
+                  }catch(err){
+                    console.log(err);
+                  }
+                }}/>
+        <Button flex={1}
+                title={'DEL'}
+                onPress={ () => {
+                  Alert.alert(
+                    "Comfirm Delete",
+                    `Delete ${props.title} from cloud?`,
+                    [
+                      {text: 'Yes', onPress: async () => {
+                        try{
+                          result = await Storage.remove(props.title, {level: 'private'});
+                          props.deleteMapWithId(props.title);
+                          console.log(result);
+                        }catch(err){
+                          console.log(result);
+                        }
+                      }},
+                      {text: 'Cancel', onPress: () => {}, style: 'cancel'}
+                    ],
+                  )
+                }
+              }/>
+      </View>
+    )
+  }else{
+    returnView = null;
+  }
+
+  return returnView;
 }
