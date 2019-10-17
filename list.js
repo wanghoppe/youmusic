@@ -1,4 +1,4 @@
-import React, {useState, useEffect } from 'react';
+import React, {useState, useEffect, useCallback, useRef } from 'react';
 import { Alert, Picker, StyleSheet, Text, View, Button, TextInput, ScrollView, KeyboardAvoidingView, StatusBar, FlatList } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Progress from 'react-native-progress';
@@ -15,12 +15,15 @@ import {color, styles, itemHeight} from './styleConst';
 import {PlayComp} from './might';
 
 export function List(props){
-
+  console.log('updating whole view');
   const [ready, setReady] = useState(false);
   const [data_map, setDataMap] = useState(new Map());
   const [filter_idex, setFilid] = useState(0);
   const [filter_txt, setFilTx] = useState('');
   const [show_lst, setShowLst] = useState(new Map());
+
+  const data_map_ref = useRef();
+
   var mainView;
 
 
@@ -80,7 +83,7 @@ export function List(props){
     data_map.forEach(
       (val, key) => {
         if (first_func(val.prog) && key.toLowerCase().includes(filter_txt)){
-          temp_lst.push({key: key, prog: val});
+          temp_lst.push({key: key, prog: val.prog});
         }
       }
     )
@@ -88,22 +91,26 @@ export function List(props){
     setShowLst(temp_lst);
   }
 
-  function updateMapProgWithId(id, progress){
-    let temp_map = new Map(data_map);
-    temp_map.set(id, progress);
+  const updateMapProgWithId = useCallback((id, progress) => {
+    let temp_map = new Map(data_map_ref.current);
+    temp_map.set(id, {...temp_map.get(id), prog:progress});
     setDataMap(temp_map);
-  }
+  }, []);
 
-  function deleteMapWithId(id){
-    let temp_map = new Map(data_map);
+  const deleteMapWithId = useCallback((id) => {
+    let temp_map = new Map(data_map_ref.current);
     temp_map.delete(id);
     setDataMap(temp_map);
-  }
+  },[]);
+
+  useEffect(() =>{
+    data_map_ref.current = data_map;
+  });
 
   useEffect(() => {
     filter_lst(data_map);
-    console.log('Running2');
-  }, [filter_idex, filter_txt]);
+    // console.log('Running2');
+  }, [filter_idex, filter_txt, data_map]);
 
   useEffect(() => {
     login()
@@ -116,7 +123,7 @@ export function List(props){
       <View style = {{alignSelf: 'stretch', flex:1}}>
         <FlatList
           data={show_lst}
-          renderItem={({item}) => <Item
+          renderItem={({item}) => <PureItem
                                     prog={item.prog}
                                     title={item.key}
                                     updateMapProgWithId = {updateMapProgWithId}
@@ -169,10 +176,10 @@ export function List(props){
               justifyContent:'center',
               height:40}}
             textStyle = {{flex: 1, fontSize: 16, backgroundColor:color.light_gre}}
-            dropdownStyle = {{backgroundColor: color.light_grey, height: 153}}
+            dropdownStyle = {{backgroundColor: color.light_grey, height: 204}}
             defaultIndex = {0}
             defaultValue = {'All'}
-            options={['All', 'Undownload', 'Loading']}
+            options={['All', 'Undownload', 'Loading', 'Downloaded']}
             renderRow = {(option)=>(
               <View style = {{alignItems: 'center', justifyContent: 'center', height: 50}}>
                 <Text style={{fontSize:18}}>{option}</Text>
@@ -271,15 +278,37 @@ export function List(props){
   // )
 }
 
+const PureItem = React.memo((props) => {
+  return Item(props);
+});
+
 function Item(props){
-  const [prog, setProg] = useState(props.prog);
+  // const [prog, setProg] = useState(props.prog);
+  const [change, setChange] = useState(false);
+
+  useEffect(()=>{
+    let id;
+    if (change){
+      id = setInterval(()=>{
+        // setProg(prog + 1.5/200);
+        props.updateMapProgWithId(props.title, props.prog + 1.5/200);
+        console.log(props.prog);
+      }, 500);
+    }else{
+      id = setInterval(()=>{}, 1000);
+    }
+
+    return () => clearInterval(id);
+  },[props.prog, change])
+
+  console.log('updating' + props.title);
   return(
     <View style = {styles.containerRow}>
       <View style = {{flex: 8, alignSelf: 'stretch', padding: 10,
                       justifyContent:'center'}} >
         <Progress.Bar styles = {{alignSelf: 'stretch', position: 'absolute'}}
                               color = 'rgba(204, 122, 155, 0.5)'
-                              progress={prog}
+                              progress={props.prog}
                               borderRadius={15}
                               width = {null}
                               height = {itemHeight-15}/>
@@ -289,24 +318,25 @@ function Item(props){
       </View>
       <Button flex={1}
               title={'DOWN'}
-              disabled = {prog == 1}
-              onPress={ async () => {
+              disabled = {props.prog == 1}
+              onPress={() => {
                 try{
-                  const temp_url = await Storage.get(
-                    props.title, { level: 'private'}
-                  );
-                  const downloadResumable = FileSystem.createDownloadResumable(
-                    temp_url,
-                    FileSystem.documentDirectory + encodeURIComponent(props.title),
-                    {},
-                    (downloadProgress) => {
-                      const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
-                      setProg(progress);
-                      props.updateMapProgWithId(props.title, progress);
-                    }
-                  );
-                  const xx = await downloadResumable.downloadAsync();
-                  console.log(props.title + ' downloaded');
+                  setChange(true);
+                  // const temp_url = await Storage.get(
+                  //   props.title, { level: 'private'}
+                  // );
+                  // const downloadResumable = FileSystem.createDownloadResumable(
+                  //   temp_url,
+                  //   FileSystem.documentDirectory + encodeURIComponent(props.title),
+                  //   {},
+                  //   (downloadProgress) => {
+                  //     const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
+                  //     setProg(progress);
+                  //     props.updateMapProgWithId(props.title, progress);
+                  //   }
+                  // );
+                  // const xx = await downloadResumable.downloadAsync();
+                  // console.log(props.title + ' downloaded');
                   // props.updateMapProgWithId(props.title);
                 }catch(err){
                   console.log(err);
