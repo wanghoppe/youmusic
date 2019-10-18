@@ -15,14 +15,18 @@ import {color, styles, itemHeight} from './styleConst';
 import {PlayComp} from './might';
 
 export function List(props){
-  // console.log('updating whole view');
+  console.log('updating whole view');
   const [ready, setReady] = useState(false);
-  const [data_map, setDataMap] = useState(new Map());
+  const data_map_ref = useRef();
   const [filter_idex, setFilid] = useState(0);
   const [filter_txt, setFilTx] = useState('');
-  const [show_lst, setShowLst] = useState(new Map());
+  const [show_lst, setShowLst] = useState([]);
+  const [toggle_filter, setToggleFil] = useState(true);
+  const toggle_ref = useRef(toggle_filter);
+  const llst_ref = useRef([]);
+  const lcount_ref = useRef(0);
 
-  const data_map_ref = useRef();
+
 
   var mainView;
 
@@ -54,62 +58,76 @@ export function List(props){
       const local_set = new Set(local_lst);
 
       const cloud_lst = await Storage.list('', {level: 'private'});
-      const data_map = new Map(cloud_lst.map((item) => ([item.key, {
-          prog: local_set.has(item.key) ? 1: 0,
-          downloading: false
+      data_map_ref.current = new Map(cloud_lst.map((item) => ([item.key, {
+          prog: local_set.has(item.key) ? 1: 0
         }])));
-      setDataMap(data_map);
-      filter_lst(data_map);
+      // setDataMap(data_map);
+      filter_lst();
       setReady(true);
     }catch(err){
       console.log(err);
     }
   }
 
-  function filter_lst(data_map){
-    let first_func;
+  function filter_lst(){
+    let lst = [[0,1,2], [0], [2], [1]];
 
-    if (filter_idex == 0){
-      first_func = () => true;
-    }else if (filter_idex == 1){
-      first_func = (prog) => (prog == 0)
-    }else if (filter_idex == 2){
-      first_func = (prog) => (prog>0 && prog<1)
-    }else if (filter_idex == 3){
-      first_func = (prog) => (prog == 1)
+    let temp_lst;
+
+    if (data_map_ref.current != undefined){
+      temp_lst = Array.from(data_map_ref.current, ([key, val]) => ({
+        key: key,
+        prog: val.prog,
+        show: lst[filter_idex].includes(val.prog) && key.toLowerCase().includes(filter_txt)
+      }));
+
+      console.log('Running filter_lst');
+      setShowLst(temp_lst);
     }
-
-    let temp_lst = Array.from(data_map, ([key, val]) => ({
-      key: key,
-      prog: val.prog,
-      show: first_func(val.prog) && key.toLowerCase().includes(filter_txt)
-    }));
-
-    console.log('Running filter_lst');
-    setShowLst(temp_lst);
   }
 
-  const updateMapProgWithId = useCallback((id, progress) => {
-    let temp_map = new Map(data_map_ref.current);
-    temp_map.set(id, {...temp_map.get(id), prog:progress});
-    setDataMap(temp_map);
+  const setProgWithId = useCallback((id, prog) => {
+    data_map_ref.current.set(
+      id, {...data_map_ref.current.get(id), prog:prog}
+    );
+    console.log("[INFO].......: set" + id + ' to '+ prog)
+    toggle_ref.current = !toggle_ref.current;
+    setToggleFil(toggle_ref.current);
   }, []);
 
   const deleteMapWithId = useCallback((id) => {
-    let temp_map = new Map(data_map_ref.current);
-    temp_map.delete(id);
-    setDataMap(temp_map);
+    data_map_ref.current.delete(id);
+    toggle_ref.current = !toggle_ref.current;
+    setToggleFil(toggle_ref.current);
   },[]);
 
-  //update data_map reference
-  useEffect(() =>{
-    data_map_ref.current = data_map;
-  });
+  const pushLoadingLst = useCallback((item) => {
+    llst_ref.current = [...llst_ref.current, item];
+    checkIfFire();
+  }, [])
+
+  const updateCount = useCallback((add) => {
+    if (add){
+      lcount_ref.current = lcount_ref.current + 1;
+    }else{
+      lcount_ref.current = lcount_ref.current - 1;
+      checkIfFire();
+    }
+  }, [])
+
+  const checkIfFire = useCallback(() => {
+    if (lcount_ref.current < 3){
+      let temp_item = llst_ref.current.shift();
+      if (temp_item != undefined){
+        temp_item();
+      }
+    }
+  }, [])
 
   useEffect(() => {
-    filter_lst(data_map);
-    // console.log('Running2');
-  }, [filter_idex, filter_txt]);
+    filter_lst();
+    console.log('Running2');
+  }, [filter_idex, filter_txt, toggle_filter]);
 
   useEffect(() => {
     login()
@@ -126,8 +144,10 @@ export function List(props){
                                     prog={item.prog}
                                     title={item.key}
                                     show = {item.show}
-                                    updateMapProgWithId = {updateMapProgWithId}
+                                    setProgWithId = {setProgWithId}
                                     deleteMapWithId = {deleteMapWithId}
+                                    pushLoadingLst = {pushLoadingLst}
+                                    updateCount = {updateCount}
                                   />}
         />
       </View>
@@ -295,7 +315,52 @@ const PureItem = React.memo((props) => {
 
 function Item(props){
   var returnView;
+  var downButton;
   const [prog, setProg] = useState(props.prog);
+  const [loading, setLoading] = useState(false);
+
+  if (loading){
+    downButton = (
+        <Progress.CircleSnail size={26} color={color.light_pup} thickness={3}/>
+    )
+  }else{
+    downButton = (
+      <Button title={'DOWN'}
+              disabled = {prog == 1}
+              onPress={() => {
+                  setLoading(true);
+                  props.setProgWithId(props.title, 2);
+                  props.pushLoadingLst( async () => {
+                    try{
+                      props.updateCount(true);
+                      const temp_url = await Storage.get(
+                        props.title, { level: 'private'}
+                      );
+                      const downloadResumable = FileSystem.createDownloadResumable(
+                        temp_url,
+                        FileSystem.documentDirectory + encodeURIComponent(props.title),
+                        {},
+                        (downloadProgress) => {
+                          const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
+                          setProg(progress);
+                          // props.updateMapProgWithId(props.title, progress);
+                        }
+                      );
+                      const xx = await downloadResumable.downloadAsync();
+
+                      setLoading(false);
+                      props.setProgWithId(props.title, 1);
+                      props.updateCount(false);
+
+                      console.log(props.title + ' downloaded');
+                    }catch(err){
+                      console.log(err);
+                    }
+                  })
+              }}/>
+    )
+  }
+
   // const [change, setChange] = useState(false);
 
   // useEffect(()=>{
@@ -329,33 +394,11 @@ function Item(props){
             <Text style={{fontSize: 16}}>{props.title}</Text>
           </ScrollView>
         </View>
-        <Button flex={1}
-                title={'DOWN'}
-                disabled = {prog == 1}
-                onPress={ async () => {
-                  try{
-                    // setChange(true);
-                    const temp_url = await Storage.get(
-                      props.title, { level: 'private'}
-                    );
-                    const downloadResumable = FileSystem.createDownloadResumable(
-                      temp_url,
-                      FileSystem.documentDirectory + encodeURIComponent(props.title),
-                      {},
-                      (downloadProgress) => {
-                        const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
-                        setProg(progress);
-                        // props.updateMapProgWithId(props.title, progress);
-                      }
-                    );
-                    const xx = await downloadResumable.downloadAsync();
-                    console.log(props.title + ' downloaded');
-                  }catch(err){
-                    console.log(err);
-                  }
-                }}/>
-        <Button flex={1}
-                title={'DEL'}
+        <View style = {{flex:1, justifyContent:'center', alignItems:'center'}}>
+          {downButton}
+        </View>
+        <View style = {{flex:1, justifyContent:'center', alignItems:'center'}}>
+          <Button title={'DEL'}
                 onPress={ () => {
                   Alert.alert(
                     "Comfirm Delete",
@@ -375,6 +418,7 @@ function Item(props){
                   )
                 }
               }/>
+        </View>
       </View>
     )
   }else{
