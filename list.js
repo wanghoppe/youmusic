@@ -1,11 +1,13 @@
 import React, {useState, useEffect, useCallback, useRef } from 'react';
-import { Alert, Picker, StyleSheet, Text, View, Button, TextInput, ScrollView, KeyboardAvoidingView, StatusBar, FlatList } from 'react-native';
+import { TouchableHighlight, TouchableOpacity, Alert, Picker,
+  StyleSheet, Text, View, Button, TextInput,
+  ScrollView, KeyboardAvoidingView, StatusBar, FlatList } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Progress from 'react-native-progress';
 import { showMessage, hideMessage } from "react-native-flash-message";
 import Constants from 'expo-constants';
 import { Storage, Auth } from 'aws-amplify';
-import { SearchBar } from 'react-native-elements';
+import { SearchBar, CheckBox } from 'react-native-elements';
 import ModalDropdown from 'react-native-modal-dropdown';
 
 
@@ -26,9 +28,13 @@ export function List(props){
   const llst_ref = useRef([]);
   const lcount_ref = useRef(0);
 
+  const [select_map, setSelectMap] = useState(new Map());
+  const [select_mode, setSelectMode] = useState(false);
 
+  const flatlist_ref = useRef();
 
   var mainView;
+  var selectControl;
 
 
   async function login(){
@@ -124,6 +130,16 @@ export function List(props){
     }
   }, [])
 
+  const updateSelectMap = useCallback((id) => {
+    let temp_map =  new Map(select_map);
+    temp_map.set(id, !!!temp_map.get(id));
+    setSelectMap(temp_map);
+  }, [select_map])
+
+  const flatlist_getItemLayout = useCallback((data, index) => (
+    {length: itemHeight, offset: itemHeight * index, index}
+  ),[])
+
   useEffect(() => {
     filter_lst();
     console.log('Running2');
@@ -135,12 +151,46 @@ export function List(props){
     console.log('Running1');
   }, []);
 
+  if (select_mode){
+    selectControl = (
+      <View style = {{...styles.containerRow, justifyContent: 'space-around', height: itemHeight}}>
+        <CheckBox
+            center
+            size = {28}
+            checked= {true}
+            checkedColor = {color.light_pup}
+            onPress={() => {}}
+            />
+        <Button
+          title = {'Download'}
+          onPress = {() => {}}
+          />
+        <Button
+          title = {'Delete'}
+          onPress = {() => {}}
+          />
+        <Button
+          title = {'Cancel'}
+          onPress = {() => {
+            setSelectMode(false);
+          }}
+          />
+      </View>
+    )
+  }else{
+    selectControl = null;
+  }
+
   if (ready){
     mainView = (
-      <View style = {{alignSelf: 'stretch', flex:1}}>
+      <View style = {{alignSelf: 'stretch', flex:1, justifyContent: 'flex-end'}}>
+        {selectControl}
         <FlatList
+          ref={flatlist_ref}
           data={show_lst}
-          renderItem={({item}) => <Item
+          extraData={[select_map, select_mode]}
+          getItemLayout={flatlist_getItemLayout}
+          renderItem={({item}) => <PureItem
                                     prog={item.prog}
                                     title={item.key}
                                     show = {item.show}
@@ -148,6 +198,11 @@ export function List(props){
                                     deleteMapWithId = {deleteMapWithId}
                                     pushLoadingLst = {pushLoadingLst}
                                     updateCount = {updateCount}
+                                    updateSelectMap ={updateSelectMap}
+                                    selected = {select_map.get(item.key)}
+                                    select_mode = {select_mode}
+                                    setSelectMode = {setSelectMode}
+                                    flatlist_ref={flatlist_ref}
                                   />}
         />
       </View>
@@ -229,84 +284,6 @@ export function List(props){
       </View>
     </View>
   );
-//   [(<Button
-//     title={'Button1'}
-//     onPress={() => {
-//       showMessage({
-//         message: "Button1 Success",
-//         type: "success"})
-//     }}
-//     />),
-//   (<Button
-//     title={'Button2'}
-//     onPress={() => {
-//       showMessage({
-//         message: "Button2 Success",
-//         type: "success"})
-//     }}
-//     />)]
-// </ModalDropdown>
-  // return(
-  //   <View style={styles.allView} behavior={'padding'}>
-  //     <View style = {styles.statusBar}>
-  //       <Text style = {{fontSize: 18}}>Explore</Text>
-  //     </View>
-  //     <View style = {styles.afterStatus}>
-  //       <Button title="log in"
-  //               onPress = {async () => {
-  //                 try{
-  //                   const user = await Auth.signIn('wanghp000@gmail.com', '123456789');
-  //                   if (user.challengeName === 'NEW_PASSWORD_REQUIRED'){
-  //                     const loggedUser = await Auth.completeNewPassword(
-  //                       user, '123456789'
-  //                     )
-  //                   };
-  //                   info = await Auth.currentUserInfo();
-  //
-  //                   showMessage({
-  //                     message: "Login Success",
-  //                     description: "Login as "+ info.attributes.email,
-  //                     type: "success"})
-  //                   console.log(info);
-  //                 }catch(err){
-  //                   console.log(err)
-  //                 }
-  //               }}
-  //       />
-  //       <Button
-  //         title={'get list'}
-  //         onPress={ async () => {
-  //           list_get = await Storage.list('', {level: 'private'});
-  //           console.log(list_get);
-  //         }}
-  //         />
-  //       <Button
-  //         title={'get files'}
-  //         onPress={ async () => {
-  //           list_get = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory);
-  //           console.log(list_get);
-  //         }}
-  //         />
-  //       <Button
-  //         title={'generate'}
-  //         onPress={ async () => {
-  //           const local_lst = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory);
-  //           const local_set = new Set(local_lst);
-  //
-  //           const cloud_lst = await Storage.list('', {level: 'private'});
-  //           const data_map = cloud_lst.map((item) => ({title: item.key, prog: local_set.has(item.key) ? 1: 0}));
-  //           console.log(data_map);
-  //         }}
-  //         />
-  //       <Item
-  //         prog={0}
-  //         title={'陈一发儿 - 人间 - 陈一发儿-LiN06nQP0tM.mp3'}
-  //       />
-  //       <PlayComp/>
-  //
-  //     </View>
-  //   </View>
-  // )
 }
 
 const PureItem = React.memo((props) => {
@@ -316,8 +293,49 @@ const PureItem = React.memo((props) => {
 function Item(props){
   var returnView;
   var downButton;
+  var checkBox;
+  var buttonGrop;
+  var touchable;
+
   const [prog, setProg] = useState(props.prog);
   const [loading, setLoading] = useState(false);
+
+  async function downloadItemAsync(){
+    try{
+      props.updateCount(true);
+      const temp_url = await Storage.get(
+        props.title, { level: 'private'}
+      );
+      const downloadResumable = FileSystem.createDownloadResumable(
+        temp_url,
+        FileSystem.documentDirectory + encodeURIComponent(props.title),
+        {},
+        (downloadProgress) => {
+          const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
+          setProg(progress);
+          // props.updateMapProgWithId(props.title, progress);
+        }
+      );
+      const xx = await downloadResumable.downloadAsync();
+
+      setLoading(false);
+      props.setProgWithId(props.title, 1);
+      props.updateCount(false);
+
+      console.log(props.title + ' downloaded');
+    }catch(err){
+      console.log(err);
+    }
+  }
+
+  async function deleteItemAsync(){
+    try{
+      result = await Storage.remove(props.title, {level: 'private'});
+      props.deleteMapWithId(props.title);
+    }catch(err){
+      console.log(result);
+    }
+  }
 
   if (loading){
     downButton = (
@@ -330,95 +348,86 @@ function Item(props){
               onPress={() => {
                   setLoading(true);
                   props.setProgWithId(props.title, 2);
-                  props.pushLoadingLst( async () => {
-                    try{
-                      props.updateCount(true);
-                      const temp_url = await Storage.get(
-                        props.title, { level: 'private'}
-                      );
-                      const downloadResumable = FileSystem.createDownloadResumable(
-                        temp_url,
-                        FileSystem.documentDirectory + encodeURIComponent(props.title),
-                        {},
-                        (downloadProgress) => {
-                          const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
-                          setProg(progress);
-                          // props.updateMapProgWithId(props.title, progress);
-                        }
-                      );
-                      const xx = await downloadResumable.downloadAsync();
-
-                      setLoading(false);
-                      props.setProgWithId(props.title, 1);
-                      props.updateCount(false);
-
-                      console.log(props.title + ' downloaded');
-                    }catch(err){
-                      console.log(err);
-                    }
-                  })
+                  props.pushLoadingLst(downloadItemAsync);
               }}/>
     )
   }
 
-  // const [change, setChange] = useState(false);
+  if (props.select_mode){
+    checkBox = (
+      <View style = {{flex:1, justifyContent:'center', alignItems:'center', marginLeft:10 }}>
+        <CheckBox
+            center
+            size = {28}
+            checked= {props.selected}
+            checkedColor = {color.light_pup}
+            onPress={() => props.updateSelectMap(props.title)}
+            />
+      </View>);
+      buttonGrop = null;
+      touchable = (
+        <TouchableOpacity
+          onPress = {() => {
+            props.updateSelectMap(props.title);
+          }}>
+          <Text style={{fontSize: 16}}>{props.title}</Text>
+        </TouchableOpacity>
+      );
+    }else{
+      checkBox = null;
+      buttonGrop = (
+        <View style = {{flex:2, alignItems:'center', flexDirection:'row'}}>
+          <View style = {{flex:1, justifyContent:'center', alignItems:'center'}}>
+            {downButton}
+          </View>
+          <View style = {{flex:1, justifyContent:'center', alignItems:'center'}}>
+            <Button title={'DEL'}
+                  onPress={ () => {
+                    Alert.alert(
+                      "Comfirm Delete",
+                      `Delete ${props.title} from cloud?`,
+                      [
+                        {text: 'Yes', onPress: deleteItemAsync },
+                        {text: 'Cancel', onPress: () => {}, style: 'cancel'}
+                      ],
+                    )
+                  }
+                }/>
+          </View>
+        </View>
+      );
+      touchable = (
+        <TouchableOpacity
+          onLongPress = {() => {
+            console.log(`you long pressed ${props.title}`);
+            props.updateSelectMap();
+            props.setSelectMode(true);
+            // props.flatlist_ref.current.scrollToOffset({offset: - itemHeight, animated: false});
+            console.log(props.flatlist_ref.current.flashScrollIndicators())
+          }}>
+          <Text style={{fontSize: 16}}>{props.title}</Text>
+        </TouchableOpacity>
+      )
+    }
 
-  // useEffect(()=>{
-  //   let id;
-  //   if (change){
-  //     id = setInterval(()=>{
-  //       // setProg(prog + 1.5/200);
-  //       props.updateMapProgWithId(props.title, props.prog + 1.5/200);
-  //       console.log(props.prog);
-  //     }, 500);
-  //   }else{
-  //     id = setInterval(()=>{}, 1000);
-  //   }
-  //
-  //   return () => clearInterval(id);
-  // },[props.prog, change])
-
-  // console.log('updating' + props.title);
   if (props.show){
     returnView = (
       <View style = {{...styles.containerRow}}>
-        <View style = {{flex: 8, alignSelf: 'stretch', padding: 10,
-                        justifyContent:'center'}} >
-          <Progress.Bar styles = {{alignSelf: 'stretch', position: 'absolute'}}
-                                color = 'rgba(204, 122, 155, 0.5)'
-                                progress={prog}
-                                borderRadius={15}
-                                width = {null}
-                                height = {itemHeight-15}/>
-          <ScrollView style = {{position: 'absolute', marginLeft: 12}} horizontal={true}>
-            <Text style={{fontSize: 16}}>{props.title}</Text>
-          </ScrollView>
+        {checkBox}
+        <View
+          style = {{flex: 8, alignSelf: 'stretch', padding: 10,
+                        justifyContent:'center'}}>
+            <Progress.Bar styles = {{alignSelf: 'stretch', position: 'absolute'}}
+                                    color = 'rgba(204, 122, 155, 0.5)'
+                                    progress={prog}
+                                    borderRadius={15}
+                                    width = {null}
+                                    height = {itemHeight-15}/>
+            <ScrollView style = {{height: '100%', position: 'absolute', marginLeft: 12, alignItems:'center'}} horizontal={true}>
+              {touchable}
+            </ScrollView>
         </View>
-        <View style = {{flex:1, justifyContent:'center', alignItems:'center'}}>
-          {downButton}
-        </View>
-        <View style = {{flex:1, justifyContent:'center', alignItems:'center'}}>
-          <Button title={'DEL'}
-                onPress={ () => {
-                  Alert.alert(
-                    "Comfirm Delete",
-                    `Delete ${props.title} from cloud?`,
-                    [
-                      {text: 'Yes', onPress: async () => {
-                        try{
-                          result = await Storage.remove(props.title, {level: 'private'});
-                          props.deleteMapWithId(props.title);
-                          console.log(result);
-                        }catch(err){
-                          console.log(result);
-                        }
-                      }},
-                      {text: 'Cancel', onPress: () => {}, style: 'cancel'}
-                    ],
-                  )
-                }
-              }/>
-        </View>
+        {buttonGrop}
       </View>
     )
   }else{

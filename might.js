@@ -218,3 +218,23 @@ function WebStaff(props) {
     </View>
   );
 }
+
+
+// const [change, setChange] = useState(false);
+
+// useEffect(()=>{
+//   let id;
+//   if (change){
+//     id = setInterval(()=>{
+//       // setProg(prog + 1.5/200);
+//       props.updateMapProgWithId(props.title, props.prog + 1.5/200);
+//       console.log(props.prog);
+//     }, 500);
+//   }else{
+//     id = setInterval(()=>{}, 1000);
+//   }
+//
+//   return () => clearInterval(id);
+// },[props.prog, change])
+
+// console.log('updating' + props.title);
