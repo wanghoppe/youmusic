@@ -28,34 +28,15 @@ export function List(props){
   const llst_ref = useRef([]);
   const lcount_ref = useRef(0);
 
-  const [select_map, setSelectMap] = useState(new Map());
+  const [select_set, setSelectSet] = useState(new Set());
   const [select_mode, setSelectMode] = useState(false);
+  const [global_select, setGloSelect] = useState(false);
 
-  const flatlist_ref = useRef();
+  const force_down_set_ref = useRef(new Set())
+
 
   var mainView;
   var selectControl;
-
-
-  async function login(){
-    try{
-      const user = await Auth.signIn('wanghp000@gmail.com', '123456789');
-      if (user.challengeName === 'NEW_PASSWORD_REQUIRED'){
-        const loggedUser = await Auth.completeNewPassword(
-          user, '123456789'
-        )
-      };
-      info = await Auth.currentUserInfo();
-
-      showMessage({
-        message: "Login Success",
-        description: "Login as "+ info.attributes.email,
-        type: "success"})
-      console.log(info);
-    }catch{
-      console.log(err);
-    }
-  }
 
   async function generate_lst(){
     try{
@@ -131,10 +112,14 @@ export function List(props){
   }, [])
 
   const updateSelectMap = useCallback((id) => {
-    let temp_map =  new Map(select_map);
-    temp_map.set(id, !!!temp_map.get(id));
-    setSelectMap(temp_map);
-  }, [select_map])
+    let temp_set =  new Set(select_set);
+    if (temp_set.has(id)){
+      temp_set.delete(id);
+    }else{
+      temp_set.add(id);
+    }
+    setSelectSet(temp_set);
+  }, [select_set])
 
   const flatlist_getItemLayout = useCallback((data, index) => (
     {length: itemHeight, offset: itemHeight * index, index}
@@ -151,27 +136,81 @@ export function List(props){
     console.log('Running1');
   }, []);
 
+  useEffect(() => {
+    if (show_lst != []){
+      let temp_set = new Set(select_set);
+
+      if (select_mode){
+        show_lst.forEach(({key, show}) => {
+          if(show){
+            if(global_select){
+              temp_set.add(key)
+            }else{
+              temp_set.delete(key)
+            }
+          }
+        })
+        setSelectSet(temp_set);
+      }
+    }
+  }, [global_select]);
+
   if (select_mode){
     selectControl = (
       <View style = {{...styles.containerRow, justifyContent: 'space-around', height: itemHeight}}>
         <CheckBox
             center
             size = {28}
-            checked= {true}
+            checked= {global_select}
             checkedColor = {color.light_pup}
-            onPress={() => {}}
+            onPress={() => {setGloSelect(!global_select)}}
             />
         <Button
           title = {'Download'}
-          onPress = {() => {}}
+          onPress = {() => {
+            let temp_set = new Set();
+            select_set.forEach((item) => {
+              if (data_map_ref.current.get(item).prog == 0){
+                temp_set.add(item);
+              }
+            })
+            Alert.alert(
+              "Comfirm Download",
+              `Download ${temp_set.size} track from cloud?`,
+              [
+                {text: 'Yes', onPress: () => {
+                  force_down_set_ref.current = temp_set;
+                  setSelectSet(new Set());
+                  setSelectMode(false);
+                }},
+                {text: 'Cancel', onPress: () => {}, style: 'cancel'}
+              ],
+            )
+          }}
           />
         <Button
           title = {'Delete'}
-          onPress = {() => {}}
+          onPress = {() => {
+            Alert.alert(
+              "Comfirm Delete",
+              `Delete ${select_set.size} track from cloud?`,
+              [
+                {text: 'Yes', onPress: () => {
+                  select_set.forEach(async (item) => {
+                    result = await Storage.remove(item, {level: 'private'});
+                    deleteMapWithId(item);
+                  });
+                  setSelectSet(new Set());
+                }},
+                {text: 'Cancel', onPress: () => {}, style: 'cancel'}
+              ],
+            )
+          }}
           />
         <Button
           title = {'Cancel'}
           onPress = {() => {
+            setSelectSet(new Set())
             setSelectMode(false);
           }}
           />
@@ -186,9 +225,8 @@ export function List(props){
       <View style = {{alignSelf: 'stretch', flex:1, justifyContent: 'flex-end'}}>
         {selectControl}
         <FlatList
-          ref={flatlist_ref}
           data={show_lst}
-          extraData={[select_map, select_mode]}
+          extraData={[select_set, select_mode, global_select]}
           getItemLayout={flatlist_getItemLayout}
           renderItem={({item}) => <PureItem
                                     prog={item.prog}
@@ -199,10 +237,10 @@ export function List(props){
                                     pushLoadingLst = {pushLoadingLst}
                                     updateCount = {updateCount}
                                     updateSelectMap ={updateSelectMap}
-                                    selected = {select_map.get(item.key)}
+                                    selected = {select_set.has(item.key)}
                                     select_mode = {select_mode}
                                     setSelectMode = {setSelectMode}
-                                    flatlist_ref={flatlist_ref}
+                                    force_down_set_ref = {force_down_set_ref}
                                   />}
         />
       </View>
@@ -279,6 +317,21 @@ export function List(props){
               console.log('Line205: delete all local files')
             }}
           />
+          <Button
+            style = {{flex:2}}
+            title = {'DA2'}
+            onPress = { async () => {
+              const data = [
+                'qZ5U7s8T5oI','VArUc-bCanQ','ZHFgk8Eo0FE','ioIEjzR7Xj8',
+                'Z16qw94gP4w','TV7DeM0Jqik','5XgnwopNyn0','p0GPJbdKhCw',
+                'NSwQ0OlwUn0','4HgNzGHbB5Y','cb2hVNAhPJ4','79t4chAseE',
+                'zcrx7OVoypM','C6YobfNjeqc','4ROBQMlh3Ew','8m7hxhyr4jc'
+              ];
+              data.forEach((item) =>{
+                download2cloud(item);
+              })
+            }}
+          />
         </View>
         {mainView}
       </View>
@@ -337,6 +390,15 @@ function Item(props){
     }
   }
 
+  useEffect(() => {
+      if (props.force_down_set_ref.current.has(props.title)){
+        props.force_down_set_ref.current.delete(props.title);
+        setLoading(true);
+        props.setProgWithId(props.title, 2);
+        props.pushLoadingLst(downloadItemAsync);
+    }
+  })
+
   if (loading){
     downButton = (
         <Progress.CircleSnail size={26} color={color.light_pup} thickness={3}/>
@@ -367,6 +429,7 @@ function Item(props){
       buttonGrop = null;
       touchable = (
         <TouchableOpacity
+          style = {{justifyContent:'center'}}
           onPress = {() => {
             props.updateSelectMap(props.title);
           }}>
@@ -398,12 +461,10 @@ function Item(props){
       );
       touchable = (
         <TouchableOpacity
+          style = {{justifyContent:'center'}}
           onLongPress = {() => {
             console.log(`you long pressed ${props.title}`);
-            props.updateSelectMap();
             props.setSelectMode(true);
-            // props.flatlist_ref.current.scrollToOffset({offset: - itemHeight, animated: false});
-            console.log(props.flatlist_ref.current.flashScrollIndicators())
           }}>
           <Text style={{fontSize: 16}}>{props.title}</Text>
         </TouchableOpacity>
@@ -423,7 +484,7 @@ function Item(props){
                                     borderRadius={15}
                                     width = {null}
                                     height = {itemHeight-15}/>
-            <ScrollView style = {{height: '100%', position: 'absolute', marginLeft: 12, alignItems:'center'}} horizontal={true}>
+            <ScrollView style = {{height: '100%', position: 'absolute', marginLeft: 12}} horizontal={true}>
               {touchable}
             </ScrollView>
         </View>
@@ -435,4 +496,48 @@ function Item(props){
   }
 
   return returnView;
+}
+
+async function login(){
+  try{
+    const user = await Auth.signIn('wanghp000@gmail.com', '123456789');
+    if (user.challengeName === 'NEW_PASSWORD_REQUIRED'){
+      const loggedUser = await Auth.completeNewPassword(
+        user, '123456789'
+      )
+    };
+    info = await Auth.currentUserInfo();
+
+    showMessage({
+      message: "Login Success",
+      description: "Login as "+ info.attributes.email,
+      type: "success"})
+    console.log(info);
+  }catch{
+    console.log(err);
+  }
+}
+
+async function download2cloud(you_id){
+  const user_info = await Auth.currentUserInfo();
+  const user_id = info.id;
+  console.log('Downloading ' + you_id + ' for ' + user_id);
+
+  response = await fetch('https://vxmaikxa2m.execute-api.us-west-2.amazonaws.com/beta/trans', {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      you_id: you_id,
+      user_id: user_id
+    })
+  });
+  res_json = await response.json();
+  showMessage({
+    message: "Success",
+    description: res_json.download + " is downloaded to cloud",
+    type: "success"})
+  console.log(res_json.download + " is downloaded to cloud");
 }

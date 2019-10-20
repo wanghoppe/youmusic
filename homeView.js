@@ -103,10 +103,8 @@ export function NewWebView(props){
                   message: "Success",
                   description: res_json.download + " is downloaded to cloud",
                   type: "success"})
+                console.log(res_json.download + " is downloaded to cloud");
               }
-
-
-              console.log(res_json.download + " is downloaded to cloud");
             }}
           />
         </View>
