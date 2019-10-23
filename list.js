@@ -11,8 +11,8 @@ import { SearchBar, CheckBox } from 'react-native-elements';
 import ModalDropdown from 'react-native-modal-dropdown';
 
 
-import {color, styles, itemHeight} from './styleConst';
-
+import {color, styles, itemHeight, TRACK_DIR} from './styleConst';
+import {login} from './utils'
 
 import {PlayComp} from './might';
 
@@ -41,7 +41,7 @@ export function List(props){
   async function generate_lst(){
     try{
       // generate list
-      const local_lst = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory);
+      const local_lst = await FileSystem.readDirectoryAsync(TRACK_DIR);
       const local_set = new Set(local_lst);
 
       const cloud_lst = await Storage.list('', {level: 'private'});
@@ -310,9 +310,9 @@ export function List(props){
             style = {{flex:2}}
             title = {'DA'}
             onPress = { async () => {
-              const local_lst = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory);
+              const local_lst = await FileSystem.readDirectoryAsync(TRACK_DIR);
               local_lst.forEach((item) => {
-                FileSystem.deleteAsync(FileSystem.documentDirectory + encodeURIComponent(item));
+                FileSystem.deleteAsync(TRACK_DIR + encodeURIComponent(item));
               })
               console.log('Line205: delete all local files')
             }}
@@ -361,7 +361,7 @@ function Item(props){
       );
       const downloadResumable = FileSystem.createDownloadResumable(
         temp_url,
-        FileSystem.documentDirectory + encodeURIComponent(props.title),
+        TRACK_DIR + encodeURIComponent(props.title),
         {},
         (downloadProgress) => {
           const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
@@ -496,26 +496,6 @@ function Item(props){
   }
 
   return returnView;
-}
-
-async function login(){
-  try{
-    const user = await Auth.signIn('wanghp000@gmail.com', '123456789');
-    if (user.challengeName === 'NEW_PASSWORD_REQUIRED'){
-      const loggedUser = await Auth.completeNewPassword(
-        user, '123456789'
-      )
-    };
-    info = await Auth.currentUserInfo();
-
-    showMessage({
-      message: "Login Success",
-      description: "Login as "+ info.attributes.email,
-      type: "success"})
-    console.log(info);
-  }catch{
-    console.log(err);
-  }
 }
 
 async function download2cloud(you_id){

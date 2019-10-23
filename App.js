@@ -12,11 +12,14 @@ import awsconfig from './aws-exports';
 import {LoginView} from './login'
 import {NewWebView} from './homeView'
 import {List} from './list'
+import {LocalView} from './localView'
 import FlashMessage from "react-native-flash-message";
-
+import {first_run}  from './firstRun'
 
 
 Amplify.configure(awsconfig);
+first_run();
+// console.log('what 2')
 
 
 export default function App() {

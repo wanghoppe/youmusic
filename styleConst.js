@@ -1,8 +1,12 @@
 import {StyleSheet} from 'react-native';
 import Constants from 'expo-constants';
-
+import * as FileSystem from 'expo-file-system';
+import {SQLite} from 'expo-sqlite';
 
 export const itemHeight = 66;
+
+export const TRACK_DIR = FileSystem.documentDirectory + 'tracks/';
+export const db = SQLite.openDatabase("db.db");
 
 export const color = {light_pup: '#cc7a9b',
                       dark_pup: '#c91860',
