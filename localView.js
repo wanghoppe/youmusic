@@ -15,37 +15,109 @@ import {login} from './utils'
 
 export function LocalView(props){
 
-  // async function test(){
-  //   const db_info = await FileSystem.getInfoAsync(FileSystem.documentDirectory+'SQLite/db.db');
-  //   console.log(db_info)
-  // }
-  //
-  // useEffect(() => {
-  //   console.log('what the hell')
-  //   test();
-  // }, [])
+  const [playlist_lst, setPllst] = useState([]);
+
+  const fetch_pllst = useCallback(() => (
+    db.transaction(tx => {
+      tx.executeSql(
+        `SELECT * FROM Playlists`,
+        null,
+        (_, {rows: {_array}}) => console.log(_array),
+        (_, error) => console.log(error)
+      );
+    })
+  ),[])
+
+  useEffect(() => {
+    fetch_pllst();
+  })
+
+  var MainView = (
+    <View style = {styles.afterStatus}>
+      <TouchableOpacity
+        style = {styles.touchableRow}
+        onPress = {() => {
+          showMessage({
+            message: "Success",
+            description: "ALL",
+            type: "success"})
+        }}>
+        <Text style={{fontSize:20}}>All Tracks...</Text>
+      </TouchableOpacity>
+      <View style = {styles.grayRow} />
+      <View style = {{...styles.containerRow, justifyContent: 'space-between', paddingHorizontal:30}}>
+        <Text style={{fontSize:20}}>Playlist:</Text>
+        <Button
+          title = {'ADD'}
+          onPress = {() => {
+            showMessage({
+              message: "Success",
+              description: "ADD",
+              type: "success"})
+          }}
+        />
+      </View>
+      <FlatList
+        data={playlist_lst}
+        renderItem={({item}) => <PureItem
+                                  title={item.key}
+                                  create_date = {item.date}
+                                />}
+      />
+    </View>
+  )
 
   return (
     <View style={styles.allView} behavior={'padding'}>
       <View style = {styles.statusBar}>
         <Text style = {{fontSize: 18}}>Local</Text>
       </View>
-      <View style = {styles.afterStatus}>
+      {MainView}
+      <Test/>
       <Button
-        title = {'Get info'}
-        onPress = {async () => {
-          const db_info = await FileSystem.getInfoAsync(FileSystem.documentDirectory+`SQLite/db.db`);
-          console.log(db_info)
+        title= {'Delete db'}
+        onPress={ async () => {
+          await FileSystem.deleteAsync(FileSystem.documentDirectory + 'SQLite/db.db');
+          console.log('[Delete]..delete db.db')
         }}
       />
-      <Button
-        title = {'Delete'}
-        onPress = {async () => {
-          const db_info = await FileSystem.deleteAsync(FileSystem.documentDirectory+`SQLite/db.db`);
-          console.log('delete db')
-        }}
-      />
-      </View>
     </View>
   )
+}
+
+function Item(props){
+
+  return (
+    <TouchableOpacity
+      style = {styles.touchableRow}
+      onPress = {() => {
+        showMessage({
+          message: "Success",
+          description: "ALL",
+          type: "success"})
+      }}>
+      <Text style={{fontSize:16}}>{props.title}</Text>
+      <Text>{props.create_date}</Text>
+    </TouchableOpacity>
+  )
+
+}
+
+function Test(props){
+  const txt_ref  = useRef();
+
+  return(
+    <View>
+      <TextInput
+        ref = {txt_ref}/>
+      <Button
+        title='Check'
+        onPress={() => {
+          console.log(txt_ref.current._lastNativeText)
+        }}
+        />
+    </View>
+  )
+
+
 }

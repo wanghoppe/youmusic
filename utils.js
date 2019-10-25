@@ -15,7 +15,7 @@ export async function login(){
       message: "Login Success",
       description: "Login as "+ info.attributes.email,
       type: "success"})
-    console.log(info);
+    // console.log(info);
   }catch{
     console.log(err);
   }

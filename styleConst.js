@@ -30,6 +30,7 @@ export const styles = StyleSheet.create({
   afterStatus: {
     flexGrow : 1,
     alignItems: 'center',
+    alignSelf: 'stretch'
   },
 
   container: {
@@ -57,4 +58,19 @@ export const styles = StyleSheet.create({
   wrapText:{
     justifyContent: 'center',
   },
+
+  grayRow:{
+    alignSelf: 'stretch',
+    height: 30,
+    backgroundColor: color.light_grey
+  },
+
+  touchableRow:{
+    flexDirection: 'row',
+    height: itemHeight,
+    alignSelf:'stretch',
+    alignItems:'center',
+    paddingLeft:30,
+    backgroundColor: color.light_grey
+  }
 })

@@ -393,7 +393,8 @@ function Item(props){
 
       db.transaction(tx => {
         tx.executeSql(
-          `INSERT INTO Tracks (track_name) VALUES ('${props.title}');`,
+          `INSERT INTO Tracks (track_name, date)
+            VALUES ('${props.title}', datetime('now', 'localtime'))`,
           [],
           () => console.log(props.title + ' inserted into database'),
           (_, error) => console.log(error)

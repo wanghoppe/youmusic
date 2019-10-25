@@ -35,7 +35,8 @@ export async function first_run(){
     );
     tx.executeSql(
       `CREATE TABLE IF NOT EXISTS Playlists (
-        lst_name TEXT PRIMARY KEY
+        lst_name TEXT PRIMARY KEY,
+        date TEXT
       );`,
       null,
       (tx1) => console.log('create table success2'),
@@ -43,7 +44,8 @@ export async function first_run(){
     );
     tx.executeSql(
       `CREATE TABLE IF NOT EXISTS Tracks (
-        track_name TEXT PRIMARY KEY
+        track_name TEXT PRIMARY KEY,
+        date TEXT
       );`,
       null,
       (tx1) => console.log('create table success3'),

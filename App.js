@@ -25,7 +25,7 @@ first_run();
 export default function App() {
   return (
     <View flex = {1}>
-      <List/>
+      <LocalView/>
       <FlashMessage position="bottom" />
     </View>
   )
