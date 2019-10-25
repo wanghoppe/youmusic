@@ -11,13 +11,13 @@ import { SearchBar, CheckBox } from 'react-native-elements';
 import ModalDropdown from 'react-native-modal-dropdown';
 
 
-import {color, styles, itemHeight, TRACK_DIR} from './styleConst';
+import {color, styles, itemHeight, TRACK_DIR, db} from './styleConst';
 import {login} from './utils'
 
 import {PlayComp} from './might';
 
 export function List(props){
-  console.log('updating whole view');
+  // console.log('updating whole view');
   const [ready, setReady] = useState(false);
   const data_map_ref = useRef();
   const [filter_idex, setFilid] = useState(0);
@@ -374,6 +374,31 @@ function Item(props){
       setLoading(false);
       props.setProgWithId(props.title, 1);
       props.updateCount(false);
+
+      // insert records into database
+      // db.transaction(tx => {
+      //   tx.executeSql(
+      //     `SELECT
+      //         name
+      //     FROM
+      //         sqlite_master
+      //     WHERE
+      //         type ='table' AND
+      //         name NOT LIKE 'sqlite_%';`,
+      //     [],
+      //     (_, {rows: {_array}}) => console.log(_array),
+      //     (_, error) => console.log(error)
+      //   );
+      // });
+
+      db.transaction(tx => {
+        tx.executeSql(
+          `INSERT INTO Tracks (track_name) VALUES ('${props.title}');`,
+          [],
+          () => console.log(props.title + ' inserted into database'),
+          (_, error) => console.log(error)
+        );
+      });
 
       console.log(props.title + ' downloaded');
     }catch(err){

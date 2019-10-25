@@ -219,6 +219,27 @@ function WebStaff(props) {
   );
 }
 
+function SysButton(props){
+  return (
+    <View>
+      <Button
+        title = {'Get info'}
+        onPress = {async () => {
+          const db_info = await FileSystem.getInfoAsync(FileSystem.documentDirectory+`SQLite/db.db`);
+          console.log(db_info)
+        }}
+      />
+      <Button
+        title = {'Delete'}
+        onPress = {async () => {
+          const db_info = await FileSystem.deleteAsync(FileSystem.documentDirectory+`SQLite/db.db`);
+          console.log('delete db')
+        }}
+      />
+    </View>
+  )
+}
+
 
 // const [change, setChange] = useState(false);
 
