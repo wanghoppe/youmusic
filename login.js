@@ -26,7 +26,7 @@ export function LoginView(props){
             }
           }/>
     );
-    pwText = (<Text style={{fontSize: 25, color: color.dard_pup}}>New Password:</Text>)
+    pwText = (<Text style={{fontSize: 25, color: color.dark_pup}}>New Password:</Text>)
   } else {
     button1 = (
       <Button title={"LOG IN"}
@@ -45,7 +45,7 @@ export function LoginView(props){
           }
         }/>
     )
-    pwText = (<Text style={{fontSize: 25, color: color.dard_pup}}>Password:</Text>)
+    pwText = (<Text style={{fontSize: 25, color: color.dark_pup}}>Password:</Text>)
   }
 
 
@@ -54,14 +54,14 @@ export function LoginView(props){
       <View style={styles.statusBar}/>
       <View style={styles.afterStatus}>
         <View flex={1} style={styles.container}>
-          <Text style = {{fontSize:30, color: color.dard_pup}}>Log In</Text>
+          <Text style = {{fontSize:30, color: color.dark_pup}}>Log In</Text>
         </View>
         <KeyboardAvoidingView flex={3} style={styles.container} behavior="padding">
           <View flex={2} style={ styles.container } flexDirection={'row'}>
             <View flex={2}/>
             <View style={{flex: 8}}>
               <View style={styles.wrapText} marginBottom = {15}>
-                <Text style={{fontSize: 25, color: color.dard_pup}}>Username: </Text>
+                <Text style={{fontSize: 25, color: color.dark_pup}}>Username: </Text>
               </View>
               <View style={styles.wrapText} marginBottom = {40}>
                 <TextInput

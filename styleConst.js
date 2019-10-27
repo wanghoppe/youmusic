@@ -70,7 +70,26 @@ export const styles = StyleSheet.create({
     height: itemHeight,
     alignSelf:'stretch',
     alignItems:'center',
-    paddingLeft:30,
-    backgroundColor: color.light_grey
+    paddingLeft:30
+  },
+
+  modalBack:{
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.4)'
+  },
+
+  modalInCenter:{
+    height: 250,
+    width:'80%',
+    backgroundColor:'white',
+    alignItems: 'center',
+    borderRadius: 10
+  },
+
+  modalTouchClose:{
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
   }
 })
