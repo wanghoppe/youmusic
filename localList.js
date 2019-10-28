@@ -219,59 +219,10 @@ export function LocalList(props){
     )
 
     ModalPlaylist = (
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={show_modal_playlist}
-      >
-        <View style={{...styles.modalBack, justifyContent: 'center'}}>
-          <TouchableWithoutFeedback onPress = {() => setModalPlaylist(false)}>
-            <View style = {styles.modalTouchClose}/>
-          </TouchableWithoutFeedback>
-          <View style={{...styles.modalInCenter, justifyContent: 'space-around', height: '50%'}}>
-            <Text style={{fontSize:25, color: color.dark_pup}}>Add To Playlist</Text>
-            <View style={{...styles.containerRow, justifyContent: 'space-around', height: null}}>
-              <Button
-                title='Cancel'
-                onPress={() => setModalPlaylist(false)}
-                />
-              <Button
-                buttonStyle= {{backgroundColor:color.dark_pup}}
-                title='Check'
-                onPress={() => {
-                  let get_txt = name_input_ref.current._lastNativeText;
-                  if (get_txt){
-                    if (playlist_lst.map((item) => item.key).includes(get_txt)){
-                      Alert.alert("Duplicate Playlist")
-                    }else{
-                      db.transaction(tx => {
-                        tx.executeSql(
-                          `INSERT INTO Playlists (lst_name, date)
-                            VALUES ('${get_txt}', datetime('now', 'localtime'))`,
-                          [],
-                          () => {
-                            console.log(`[Info] Playlist (${get_txt}) inserted into database`)
-                            showMessage({
-                              message: "Success",
-                              description: "Playlist Added",
-                              type: "success"
-                            })
-                            setShowModal1(false);
-                            fetch_pllst();
-                          },
-                          (_, error) => console.log(error)
-                        );
-                      });
-                    }
-                  }else{
-                    Alert.alert("Empty Input")
-                  }
-                }}
-                />
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <AddToLstModal
+        show = {show_modal_playlist}
+        setModalPlaylist = {setModalPlaylist}
+      />
     )
   }
 
@@ -352,8 +303,7 @@ export function LocalList(props){
             borderTopWidth:0
           }}
           inputContainerStyle = {{
-            backgroundColor: color.light_grey,
-            color:'black'
+            backgroundColor: color.light_grey
           }}
           placeholder="Search Here..."
           onChangeText={text => setFilTx(text)}
@@ -514,4 +464,140 @@ function Item(props){
     </View>
   )
 
+}
+
+function AddToLstModal(props){
+  const [checked, updateChecked] = useState(null);
+  const [data_lst, setDataLst] = useState([])
+
+  const fetch_pllst = useCallback(() => (
+    db.transaction(tx => {
+      tx.executeSql(
+        `SELECT * FROM Playlists`,
+        null,
+        (_, {rows: {_array}}) => {
+          setDataLst(_array.map((it) => ({key: it.lst_name})));
+        },
+        (_, error) => console.log(error)
+      );
+    })
+  ),[]);
+
+  useEffect(() => {
+    fetch_pllst();
+  }, [])
+
+  return(
+    <Modal
+      animationType="fade"
+      transparent={true}
+      visible={props.show}
+    >
+      <View style={{...styles.modalBack, justifyContent: 'center'}}>
+        <TouchableWithoutFeedback onPress = {() => props.setModalPlaylist(false)}>
+          <View style = {styles.modalTouchClose}/>
+        </TouchableWithoutFeedback>
+        <View style={{...styles.modalInCenter, justifyContent: 'space-around', height: '55%'}}>
+          <View style={{...styles.container, flex:1, alignSelf: 'stretch'}}>
+            <Text style={{fontSize:25, color: color.dark_pup}}>Add To Playlist</Text>
+          </View>
+          <View style = {{
+            flex: 3,
+            alignSelf: 'stretch'
+          }}>
+            <FlatList
+              data={data_lst}
+              extraData={[checked]}
+              renderItem={({item}) => <SelectLstItem
+                                        title = {item.key}
+                                        checked = {item.key == checked}
+                                        updateChecked = {updateChecked}
+                                      />}
+            />
+          </View>
+          <View style={{
+            ...styles.containerRow,
+            flex: 1,
+            justifyContent: 'space-around',
+            height: null
+          }}>
+            <Button
+              title='Cancel'
+              onPress={() => props.setModalPlaylist(false)}
+              />
+            <Button
+              buttonStyle= {{backgroundColor:color.dark_pup}}
+              title='Check'
+              onPress={() => {
+                let get_txt = name_input_ref.current._lastNativeText;
+                if (get_txt){
+                  if (playlist_lst.map((item) => item.key).includes(get_txt)){
+                    Alert.alert("Duplicate Playlist")
+                  }else{
+                    db.transaction(tx => {
+                      tx.executeSql(
+                        `INSERT INTO Playlists (lst_name, date)
+                          VALUES ('${get_txt}', datetime('now', 'localtime'))`,
+                        [],
+                        () => {
+                          console.log(`[Info] Playlist (${get_txt}) inserted into database`)
+                          showMessage({
+                            message: "Success",
+                            description: "Playlist Added",
+                            type: "success"
+                          })
+                          props.setShowModal1(false);
+                          props.fetch_pllst();
+                        },
+                        (_, error) => console.log(error)
+                      );
+                    });
+                  }
+                }else{
+                  Alert.alert("Empty Input")
+                }
+              }}
+              />
+          </View>
+        </View>
+      </View>
+    </Modal>
+  )
+
+}
+
+function SelectLstItem(props){
+
+  return (
+    <View style = {{
+      ...styles.containerRow,
+      height: 55,
+      marginLeft: 20,
+      marginRight:20,
+      borderBottomWidth:1,
+      borderColor: color.light_pup,
+    }}>
+      <View style = {{flex: 2, justifyContent:'center'}}>
+        <CheckBox
+          center
+          size={22}
+          checkedIcon='dot-circle-o'
+          uncheckedIcon='circle-o'
+          checked={props.checked}
+          checkedColor = {color.dark_pup}
+          onPress={() => props.updateChecked(props.title)}
+        />
+      </View>
+      <TouchableOpacity
+        style = {{
+          flex: 5,
+          height:'100%',
+          justifyContent: 'center'
+        }}
+        onPress ={() => {props.updateChecked(props.title)}}
+      >
+        <Text numberOfLines={1} style={{fontSize:18}}>{props.title}</Text>
+      </TouchableOpacity>
+    </View>
+  )
 }
