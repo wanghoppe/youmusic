@@ -15,7 +15,7 @@ import {List} from './list'
 import {LocalView} from './localView'
 import FlashMessage from "react-native-flash-message";
 import {first_run}  from './firstRun'
-
+import {LocalList} from './localList'
 
 Amplify.configure(awsconfig);
 first_run();
@@ -25,7 +25,7 @@ first_run();
 export default function App() {
   return (
     <View flex = {1}>
-      <LocalView/>
+      <LocalList/>
       <FlashMessage position="bottom" />
     </View>
   )

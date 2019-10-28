@@ -11,6 +11,7 @@ export const db = SQLite.openDatabase("db.db");
 export const color = {light_pup: '#cc7a9b',
                       dark_pup: '#c91860',
                       light_gre: '#9fd6bf',
+                      light_pup2: 'rgba(204, 122, 155, 0.5)',
                       light_grey: 'rgb(227, 227, 227)'}
 
 

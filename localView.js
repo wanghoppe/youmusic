@@ -29,7 +29,6 @@ export function LocalView(props){
         `SELECT * FROM Playlists`,
         null,
         (_, {rows: {_array}}) => {
-          console.log(_array.map((it) => ({key: it.lst_name, date: it.date.split(' ')[0]})));
           setPllst(_array.map((it) => ({key: it.lst_name, date: it.date.split(' ')[0]})));
         },
         (_, error) => console.log(error)
@@ -67,8 +66,9 @@ export function LocalView(props){
           }}
         />
       </View>
-      <View style = {{alignSelf: 'stretch',
-        justifyContent: 'flex-end',
+      <View style = {{
+        flexGrow: 1,
+        alignSelf: 'stretch',
         borderBottomWidth: 1,
         borderColor: color.light_pup
       }}>
