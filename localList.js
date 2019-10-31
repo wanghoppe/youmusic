@@ -12,7 +12,10 @@ import ModalDropdown from 'react-native-modal-dropdown';
 
 import {color, styles, itemHeight, db, TRACK_DIR} from './styleConst';
 import {login} from './utils'
+import {AddToLstModal, DeleteModal} from './localModal'
+
 import { Button, Icon } from 'react-native-elements';
+
 
 function orderLst(lst, idx){
 
@@ -59,8 +62,9 @@ function getNoshowSet(data_lst, filter_txt){
 
 export function LocalList(props){
 
-  const all_ref = useRef(true);
-  const track_ref = useRef(null)
+  const all_ref = useRef(false);
+  // const all_ref = useRef(true);
+  const lst_ref = useRef('hhh')
 
   const [data_lst, setDataLst] = useState([]);
   const [select_set, setSelectSet] = useState(new Set());
@@ -74,15 +78,28 @@ export function LocalList(props){
 
   const [show_modal_more, setModalMore] = useState(false);
   const [show_modal_playlist, setModalPlaylist] = useState(false);
+  const [show_modal_delete, setModalDel] =  useState(false);
 
   const key_ref = useRef();
 
   var SelectControl;
-  var SecondButton;
-
-  var ModalMore;
   var ModalPlaylist;
 
+  var db_fetch_query;
+  if (all_ref.current){
+    db_fetch_query = `SELECT * FROM Tracks`
+  }else{
+    db_fetch_query = `SELECT * FROM Tracks
+                      WHERE track_name in (
+                        SELECT fk_track_name FROM Linking
+                        WHERE fk_lst_name = '${lst_ref.current}'
+                      )`
+  }
+
+  const exitSelectMode = useCallback(() => {
+    setSelectSet(new Set());
+    setSelectMode(false);
+  },[]);
 
   const flatlist_getItemLayout = useCallback((data, index) => (
     {length: itemHeight, offset: itemHeight * index, index}
@@ -98,24 +115,25 @@ export function LocalList(props){
     setSelectSet(temp_set);
   }, [select_set])
 
+  function onDbSuccessFetch(_, {rows: {_array}}){
+    setDataLst(
+      orderLst(
+        _array.map((it) => ({key: it.track_name, date: it.date.split(' ')[0]})),
+        order_idex
+      )
+    );
+  }
+
   const fetchShowLst = useCallback(() => {
-      if (all_ref.current){
-        db.transaction(tx => {
-          tx.executeSql(
-            `SELECT * FROM Tracks`,
-            null,
-            (_, {rows: {_array}}) => {
-              setDataLst(
-                orderLst(
-                  _array.map((it) => ({key: it.track_name, date: it.date.split(' ')[0]})),
-                  order_idex
-                )
-              );
-            },
-            (_, error) => console.log(error)
-          );
-        })
-      }
+      console.log(db_fetch_query)
+      db.transaction(tx => {
+        tx.executeSql(
+          db_fetch_query,
+          null,
+          onDbSuccessFetch,
+          (_, error) => console.log(error)
+        );
+      })
     },[order_idex]
   );
 
@@ -148,80 +166,17 @@ export function LocalList(props){
     }
   }, [global_select]);
 
-  if (track_ref.current){
-    SecondButton = (
-      <Button
-        title = 'placeholder'
-      />
-    )
-
+  if (! all_ref.current ){
     ModalPlaylist = null
   }else{
-    SecondButton = null;
-
-    ModalMore = (
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={show_modal_more}
-      >
-        <View style={{...styles.modalBack, justifyContent: 'center'}}>
-          <TouchableWithoutFeedback onPress = {() => setModalMore(false)}>
-            <View style = {styles.modalTouchClose}/>
-          </TouchableWithoutFeedback>
-          <View style ={{...styles.modalInCenter, height: null}}>
-            <TouchableOpacity
-              style = {{...styles.touchableRow}}
-              onPress = {() => {
-                Alert.alert(
-                  `Delete ${key_ref.current}?`,
-                  `This track will be permanently delete`,
-                  [
-                    {text: 'Yes', onPress: () => {
-                      db.transaction(tx => {
-                        tx.executeSql(
-                          `DELETE FROM Tracks WHERE track_name = '${key_ref.current}'`,
-                          [],
-                          () => {
-                            console.log(`[Info] Track: (${key_ref.current}) deleted from database`)
-                            FileSystem.deleteAsync(TRACK_DIR + encodeURIComponent(key_ref.current));
-                            showMessage({
-                              message: "Success",
-                              description: "Track Deleted",
-                              type: "success"
-                            })
-                            setModalMore(false);
-                            fetchShowLst();
-                          },
-                          (_, error) => console.log(error)
-                        );
-                      });
-                    }},
-                    {text: 'Cancel', onPress: () => {}, style: 'cancel'}
-                  ],
-                )
-              }}
-            >
-              <Text>Delete Track From Local</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style = {{...styles.touchableRow}}
-              onPress = {() => {
-                setModalMore(false);
-                setModalPlaylist(true);
-              }}
-            >
-              <Text>Add Track to Playlist</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    )
-
     ModalPlaylist = (
       <AddToLstModal
         show = {show_modal_playlist}
-        setModalPlaylist = {setModalPlaylist}
+        setShow = {setModalPlaylist}
+        select_mode = {select_mode}
+        select_set = {select_set}
+        key_ref = {key_ref}
+        exitSelectMode = {exitSelectMode}
       />
     )
   }
@@ -230,42 +185,33 @@ export function LocalList(props){
     SelectControl = (
       <View style = {{...styles.containerRow, justifyContent: 'space-around', height: itemHeight}}>
         <Button
-          title = {'Del From Local'}
+          title = {'DEL'}
           onPress = {() => {
-            Alert.alert(
-              "Comfirm Delete",
-              `Delete ${select_set.size} track from local?`,
-              [
-                {text: 'Yes', onPress: () => {
-                  select_set.forEach((item) => {
-                    FileSystem.deleteAsync(TRACK_DIR + encodeURIComponent(item));
-                  });
-
-                  db.transaction(tx => {
-                    tx.executeSql(
-                      `DELETE FROM Tracks WHERE track_name in (${Array.from(select_set).map((it) => `'${it}'`)})`,
-                      null,
-                      () => {
-                        console.log('delete successful')
-                        setSelectMode(false);
-                        setSelectSet(new Set());
-                        fetchShowLst();
-                      },
-                      (_, error) => console.log(error)
-                    );
-                  })
-                }},
-                {text: 'Cancel', onPress: () => {}, style: 'cancel'}
-              ],
-            )
+            if (select_set.size == 0){
+              Alert.alert('No track was selected!')
+            }else {
+              setModalDel(true);
+            }
           }}
           />
-        {SecondButton}
+        {
+          (all_ref.current) &&
+          <Button
+            title = {'ADD'}
+            onPress = {() => {
+              if (select_set.size == 0){
+                Alert.alert('No track was selected!')
+              }else {
+                setModalPlaylist(true);
+              }
+            }}
+            />
+        }
+
         <Button
           title = {'Cancel'}
           onPress = {() => {
-            setSelectSet(new Set())
-            setSelectMode(false);
+            exitSelectMode()
           }}
           />
           <CheckBox
@@ -281,6 +227,83 @@ export function LocalList(props){
     SelectControl = null;
   }
 
+  var ModalMore = (
+    <Modal
+      animationType="fade"
+      transparent={true}
+      visible={show_modal_more}
+    >
+      <View style={{...styles.modalBack, justifyContent: 'center'}}>
+        <TouchableWithoutFeedback onPress = {() => setModalMore(false)}>
+          <View style = {styles.modalTouchClose}/>
+        </TouchableWithoutFeedback>
+        <View style ={{...styles.modalInCenter, height: null}}>
+          <TouchableOpacity
+            style = {{...styles.touchableRow}}
+            onPress = {() => {
+              setModalDel(true);
+              setModalMore(false);
+              // Alert.alert(
+              //   `Delete ${key_ref.current}?`,
+              //   `This track will be permanently delete`,
+              //   [
+              //     {text: 'Yes', onPress: () => {
+              //       db.transaction(tx => {
+              //         tx.executeSql(
+              //           `DELETE FROM Tracks WHERE track_name = '${key_ref.current}'`,
+              //           [],
+              //           () => {
+              //             console.log(`[Info] Track: (${key_ref.current}) deleted from database`)
+              //             FileSystem.deleteAsync(TRACK_DIR + encodeURIComponent(key_ref.current));
+              //             showMessage({
+              //               message: "Success",
+              //               description: "Track Deleted",
+              //               type: "success"
+              //             })
+              //             setModalMore(false);
+              //             fetchShowLst();
+              //           },
+              //           (_, error) => console.log(error)
+              //         );
+              //       });
+              //     }},
+              //     {text: 'Cancel', onPress: () => {}, style: 'cancel'}
+              //   ],
+              // )
+            }}
+          >
+            <Text>Delete Track</Text>
+          </TouchableOpacity>
+          {
+            all_ref.current &&
+            <TouchableOpacity
+              style = {{...styles.touchableRow}}
+              onPress = {() => {
+                setModalPlaylist(true);
+                setModalMore(false);
+              }}
+            >
+              <Text>Add Track to Playlist</Text>
+            </TouchableOpacity>
+          }
+        </View>
+      </View>
+    </Modal>
+  )
+
+  var ModalDel = (
+    <DeleteModal
+      show = {show_modal_delete}
+      setShow = {setModalDel}
+      select_mode = {select_mode}
+      select_set = {select_set}
+      all_ref = {all_ref}
+      lst_ref = {lst_ref}
+      key_ref = {key_ref}
+      exitSelectMode = {exitSelectMode}
+      fetchShowLst = {fetchShowLst}
+    />
+  )
 
   var MainView = (
     <View style = {styles.afterStatus}>
@@ -360,6 +383,32 @@ export function LocalList(props){
         />
       </View>
       {SelectControl}
+      <Button
+        title = {'test'}
+        onPress = {() => {
+          db.transaction(tx => {
+            tx.executeSql(
+              `SELECT * FROM Linking`,
+              null,
+              (_, {rows: {_array}}) => console.log(_array),
+              (_, error) => console.log(error)
+            );
+          })
+        }}
+        />
+        <Button
+          title = {'test2'}
+          onPress = {() => {
+            db.transaction(tx => {
+              tx.executeSql(
+                `SELECT * FROM Tracks`,
+                null,
+                (_, {rows: {_array}}) => console.log(_array),
+                (_, error) => console.log(error)
+              );
+            })
+          }}
+          />
     </View>
   )
 
@@ -371,6 +420,7 @@ export function LocalList(props){
       {MainView}
       {ModalMore}
       {ModalPlaylist}
+      {ModalDel}
     </View>
   )
 }
@@ -464,140 +514,4 @@ function Item(props){
     </View>
   )
 
-}
-
-function AddToLstModal(props){
-  const [checked, updateChecked] = useState(null);
-  const [data_lst, setDataLst] = useState([])
-
-  const fetch_pllst = useCallback(() => (
-    db.transaction(tx => {
-      tx.executeSql(
-        `SELECT * FROM Playlists`,
-        null,
-        (_, {rows: {_array}}) => {
-          setDataLst(_array.map((it) => ({key: it.lst_name})));
-        },
-        (_, error) => console.log(error)
-      );
-    })
-  ),[]);
-
-  useEffect(() => {
-    fetch_pllst();
-  }, [])
-
-  return(
-    <Modal
-      animationType="fade"
-      transparent={true}
-      visible={props.show}
-    >
-      <View style={{...styles.modalBack, justifyContent: 'center'}}>
-        <TouchableWithoutFeedback onPress = {() => props.setModalPlaylist(false)}>
-          <View style = {styles.modalTouchClose}/>
-        </TouchableWithoutFeedback>
-        <View style={{...styles.modalInCenter, justifyContent: 'space-around', height: '55%'}}>
-          <View style={{...styles.container, flex:1, alignSelf: 'stretch'}}>
-            <Text style={{fontSize:25, color: color.dark_pup}}>Add To Playlist</Text>
-          </View>
-          <View style = {{
-            flex: 3,
-            alignSelf: 'stretch'
-          }}>
-            <FlatList
-              data={data_lst}
-              extraData={[checked]}
-              renderItem={({item}) => <SelectLstItem
-                                        title = {item.key}
-                                        checked = {item.key == checked}
-                                        updateChecked = {updateChecked}
-                                      />}
-            />
-          </View>
-          <View style={{
-            ...styles.containerRow,
-            flex: 1,
-            justifyContent: 'space-around',
-            height: null
-          }}>
-            <Button
-              title='Cancel'
-              onPress={() => props.setModalPlaylist(false)}
-              />
-            <Button
-              buttonStyle= {{backgroundColor:color.dark_pup}}
-              title='Check'
-              onPress={() => {
-                let get_txt = name_input_ref.current._lastNativeText;
-                if (get_txt){
-                  if (playlist_lst.map((item) => item.key).includes(get_txt)){
-                    Alert.alert("Duplicate Playlist")
-                  }else{
-                    db.transaction(tx => {
-                      tx.executeSql(
-                        `INSERT INTO Playlists (lst_name, date)
-                          VALUES ('${get_txt}', datetime('now', 'localtime'))`,
-                        [],
-                        () => {
-                          console.log(`[Info] Playlist (${get_txt}) inserted into database`)
-                          showMessage({
-                            message: "Success",
-                            description: "Playlist Added",
-                            type: "success"
-                          })
-                          props.setShowModal1(false);
-                          props.fetch_pllst();
-                        },
-                        (_, error) => console.log(error)
-                      );
-                    });
-                  }
-                }else{
-                  Alert.alert("Empty Input")
-                }
-              }}
-              />
-          </View>
-        </View>
-      </View>
-    </Modal>
-  )
-
-}
-
-function SelectLstItem(props){
-
-  return (
-    <View style = {{
-      ...styles.containerRow,
-      height: 55,
-      marginLeft: 20,
-      marginRight:20,
-      borderBottomWidth:1,
-      borderColor: color.light_pup,
-    }}>
-      <View style = {{flex: 2, justifyContent:'center'}}>
-        <CheckBox
-          center
-          size={22}
-          checkedIcon='dot-circle-o'
-          uncheckedIcon='circle-o'
-          checked={props.checked}
-          checkedColor = {color.dark_pup}
-          onPress={() => props.updateChecked(props.title)}
-        />
-      </View>
-      <TouchableOpacity
-        style = {{
-          flex: 5,
-          height:'100%',
-          justifyContent: 'center'
-        }}
-        onPress ={() => {props.updateChecked(props.title)}}
-      >
-        <Text numberOfLines={1} style={{fontSize:18}}>{props.title}</Text>
-      </TouchableOpacity>
-    </View>
-  )
 }
