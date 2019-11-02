@@ -27,7 +27,8 @@
     "react-native-reanimated": "^1.1.0",
     "react-native-screens": "^1.0.0-alpha.22",
     "react-native-webview": "^5.12.1",
-    "react-navigation": "^4.0.10"
+    "react-navigation": "^4.0.10",
+    "react-navigation-stack": "^1.10.3"
   },
   "devDependencies": {
     "babel-preset-expo": "^6.0.0"

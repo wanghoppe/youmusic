@@ -62,9 +62,9 @@ function getNoshowSet(data_lst, filter_txt){
 
 export function LocalList(props){
 
-  const all_ref = useRef(false);
+  const all_ref = useRef(props.navigation.getParam('all_tracks', false));
   // const all_ref = useRef(true);
-  const lst_ref = useRef('hhh')
+  const lst_ref = useRef(props.navigation.getParam('plst_name', null));
 
   const [data_lst, setDataLst] = useState([]);
   const [select_set, setSelectSet] = useState(new Set());

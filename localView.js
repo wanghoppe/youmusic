@@ -49,10 +49,7 @@ export function LocalView(props){
       <TouchableOpacity
         style = {styles.touchableRow}
         onPress = {() => {
-          showMessage({
-            message: "Success",
-            description: "ALL",
-            type: "success"})
+          props.navigation.navigate('LocalList', {all_tracks: true})
         }}>
         <Text style={{fontSize:20}}>All Tracks...</Text>
       </TouchableOpacity>
@@ -80,6 +77,7 @@ export function LocalView(props){
                                     create_date = {item.date}
                                     setShowModal = {setShowModal2}
                                     key_ref = {key_ref}
+                                    navigation = {props.navigation}
                                   />}
         />
       </View>
@@ -222,10 +220,7 @@ function Item(props){
           justifyContent: 'space-between'
         }}
         onPress = {() => {
-          showMessage({
-            message: "Success",
-            description: "ALL",
-            type: "success"})
+          props.navigation.navigate('LocalList', {plst_name: props.title})
         }}>
         <Text numberOfLines={1} style={{fontSize:18, maxWidth:'70%'}}>{props.title}</Text>
         <Text style={{color: 'rgba(0,0,0,0.3)', fontSize:14}}>{props.create_date}</Text>
