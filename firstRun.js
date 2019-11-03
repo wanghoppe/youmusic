@@ -26,13 +26,11 @@ CREATE TABLE IF NOT EXISTS Linking (
 `
 
 export async function first_run(){
+  db.exec([{ sql: 'PRAGMA foreign_keys = ON;', args: [] }], false, () =>
+    console.log('Foreign keys turned on')
+  );
+
   db.transaction(tx => {
-    tx.executeSql(
-      `PRAGMA foreign_keys = ON;`,
-      null,
-      (tx1) => console.log('create table success1'),
-      (_, error) => console.log(error)
-    );
     tx.executeSql(
       `CREATE TABLE IF NOT EXISTS Playlists (
         lst_name TEXT PRIMARY KEY,

@@ -5,8 +5,16 @@ import {styles, color} from './styleConst'
 import {LocalList} from './localList'
 import {LocalView} from './localView'
 
+
+function getTitle({navigation}){
+  let plst = navigation.getParam('plst_name', false);
+  return {
+    title: (plst)? 'Playlist': 'All Track',
+  };
+}
+
 LocalView.navigationOptions = { title: 'Local'}
-LocalList.navigationOptions = { title: 'Home' }
+LocalList.navigationOptions = getTitle
 
 const LocalStack = createStackNavigator(
   {

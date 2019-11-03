@@ -85,6 +85,8 @@ export function LocalList(props){
   var SelectControl;
   var ModalPlaylist;
 
+  // console.log('refreshing');
+
   var db_fetch_query;
   if (all_ref.current){
     db_fetch_query = `SELECT * FROM Tracks`
@@ -125,7 +127,7 @@ export function LocalList(props){
   }
 
   const fetchShowLst = useCallback(() => {
-      console.log(db_fetch_query)
+      // console.log(db_fetch_query)
       db.transaction(tx => {
         tx.executeSql(
           db_fetch_query,
@@ -243,33 +245,6 @@ export function LocalList(props){
             onPress = {() => {
               setModalDel(true);
               setModalMore(false);
-              // Alert.alert(
-              //   `Delete ${key_ref.current}?`,
-              //   `This track will be permanently delete`,
-              //   [
-              //     {text: 'Yes', onPress: () => {
-              //       db.transaction(tx => {
-              //         tx.executeSql(
-              //           `DELETE FROM Tracks WHERE track_name = '${key_ref.current}'`,
-              //           [],
-              //           () => {
-              //             console.log(`[Info] Track: (${key_ref.current}) deleted from database`)
-              //             FileSystem.deleteAsync(TRACK_DIR + encodeURIComponent(key_ref.current));
-              //             showMessage({
-              //               message: "Success",
-              //               description: "Track Deleted",
-              //               type: "success"
-              //             })
-              //             setModalMore(false);
-              //             fetchShowLst();
-              //           },
-              //           (_, error) => console.log(error)
-              //         );
-              //       });
-              //     }},
-              //     {text: 'Cancel', onPress: () => {}, style: 'cancel'}
-              //   ],
-              // )
             }}
           >
             <Text>Delete Track</Text>
@@ -307,8 +282,18 @@ export function LocalList(props){
 
   var MainView = (
     <View style = {styles.afterStatus}>
-      <View style={{...styles.containerRow, paddingLeft: 30, paddingRight: 30}}>
-        <Text numberOfLines={1} style={{fontSize:30, color: color.light_pup}}>TestTsssesttest</Text>
+      <View style={{alignSelf: 'stretch'}}>
+        { all_ref.current ||
+          <Text numberOfLines={1} style={{
+            paddingTop: 10,
+            paddingLeft: 25,
+            paddingRight: 25,
+            fontSize:30,
+            color: color.light_pup
+          }}>
+            {`${lst_ref.current} :`}
+          </Text>
+        }
       </View>
       <View style = {{
         alignSelf : "stretch",
@@ -383,44 +368,49 @@ export function LocalList(props){
         />
       </View>
       {SelectControl}
-      <Button
-        title = {'test'}
-        onPress = {() => {
-          db.transaction(tx => {
-            tx.executeSql(
-              `SELECT * FROM Linking`,
-              null,
-              (_, {rows: {_array}}) => console.log(_array),
-              (_, error) => console.log(error)
-            );
-          })
-        }}
-        />
-        <Button
-          title = {'test2'}
-          onPress = {() => {
-            db.transaction(tx => {
-              tx.executeSql(
-                `SELECT * FROM Tracks`,
-                null,
-                (_, {rows: {_array}}) => console.log(_array),
-                (_, error) => console.log(error)
-              );
-            })
-          }}
-          />
     </View>
   )
 
   return (
     <View style={styles.allView} behavior={'padding'}>
-      <View style = {styles.statusBar}>
-        <Text style = {{fontSize: 18}}>Local</Text>
-      </View>
       {MainView}
       {ModalMore}
       {ModalPlaylist}
       {ModalDel}
+      { false &&
+      (<View>
+        <Button
+          title = 'test1'
+          onPress = {() => {
+            db.transaction(tx => {
+              tx.executeSql(
+                `SELECT * FROM Linking WHERE fk_lst_name = '1'`,
+                null,
+                (_, {rows: {_array}}) => {
+                  console.log(_array);
+                },
+                (_, error) => console.log(error)
+              );
+            });
+          }}
+        />
+        <Button
+          title = 'test2'
+          onPress = {() => {
+            db.transaction(tx => {
+              tx.executeSql(
+                `SELECT * FROM Tracks`,
+                null,
+                (_, {rows: {_array}}) => {
+                  console.log(_array);
+                },
+                (_, error) => console.log(error)
+              );
+            });
+          }}
+      />
+    </View>)
+    }
     </View>
   )
 }
@@ -490,7 +480,7 @@ function Item(props){
   return (
     <View style={{...styles.containerRow,
       paddingLeft: 22,
-      borderTopWidth: 1,
+      borderBottomWidth: 1,
       borderColor: color.light_pup,
       backgroundColor: (props.select) ? color.light_pup2 : 'white'
     }}>

@@ -12,7 +12,10 @@ import {color, styles, itemHeight, db, TRACK_DIR} from './styleConst';
 import {login} from './utils'
 import { Button, Icon } from 'react-native-elements';
 
-export function AddToLstModal(props){
+export const AddToLstModal = React.memo((props) => {
+  return _AddToLstModal(props);
+});
+function _AddToLstModal(props){
   const [checked, updateChecked] = useState(undefined);
   const [data_lst, setDataLst] = useState([])
 
@@ -155,7 +158,10 @@ function SelectLstItem(props){
   )
 }
 
-export function DeleteModal(props){
+export const DeleteModal = React.memo((props) => {
+  return _DeleteModal(props);
+});
+function _DeleteModal(props){
 
   const [check, setCheck] = useState(props.all_ref.current);
 
@@ -257,6 +263,112 @@ export function DeleteModal(props){
                   message: "Delete Success",
                   type: "success"}
                 );
+              }}
+              />
+          </View>
+        </View>
+      </View>
+    </Modal>
+  )
+}
+
+export const ViewDeleteModal = React.memo((props) => {
+  return _ViewDeleteModal(props);
+});
+
+export function _ViewDeleteModal(props){
+
+  const [check, setCheck] = useState(false);
+  const [count, setCount] = useState(0);
+  const track_lst_ref = useRef();
+
+  useEffect(() => {
+    if (props.show){
+      // console.log(props.lst_ref.current);
+      db.transaction(tx => {
+        tx.executeSql(
+          `SELECT fk_track_name FROM Linking WHERE fk_lst_name = '${props.lst_ref.current}'`,
+          null,
+          (_, {rows: {_array}}) => {
+            track_lst_ref.current = _array.map((it) => (it.fk_track_name));
+            // console.log(track_lst_ref.current);
+            setCount(track_lst_ref.current.length);
+          },
+          (_, error) => console.log(error)
+        );
+      });
+    }
+  },[props.show])
+
+  return(
+    <Modal
+      animationType="fade"
+      transparent={true}
+      visible={props.show}
+    >
+      <View style={{...styles.modalBack, justifyContent: 'center'}}>
+        <TouchableWithoutFeedback onPress = {() => props.setShow(false)}>
+          <View style = {styles.modalTouchClose}/>
+        </TouchableWithoutFeedback>
+        <View style={{...styles.modalInCenter, justifyContent: 'space-around', height: '30%'}}>
+          <View style={{...styles.container, flex:1, alignSelf: 'stretch'}}>
+            <Text style={{fontSize:25, color: color.dark_pup}}>Delete Playlist: {props.lst_ref.current}</Text>
+          </View>
+          <View style = {{flex:1, alignSelf: 'stretch', justifyContent:'center'}}>
+            <CheckBox
+              center
+              title= {`Also delete ${count} tracks in this playlist`}
+              size = {22}
+              checked= {check}
+              checkedColor = {color.dark_pup}
+              onPress={() => setCheck(!check)}
+            />
+          </View>
+          <View style={{
+            ...styles.containerRow,
+            flex: 1,
+            justifyContent: 'space-around',
+            height: null
+          }}>
+            <Button
+              title='Cancel'
+              onPress={() => props.setShow(false)}
+              />
+            <Button
+              buttonStyle= {{backgroundColor:color.dark_pup}}
+              title='Check'
+              onPress={() => {
+                db.transaction(tx => {
+                  if (check){
+                    track_lst_ref.current.forEach((item) => {
+                      FileSystem.deleteAsync(TRACK_DIR + encodeURIComponent(item));
+                    });
+                    tx.executeSql(
+                      `DELETE FROM Tracks WHERE track_name in (
+                        SELECT fk_track_name FROM Linking WHERE fk_lst_name = '${props.lst_ref.current}'
+                      )`,
+                      null,
+                      () => {
+                        console.log('Tracks deleted successful')
+                      },
+                      (_, error) => console.log(error)
+                    );
+                  }
+                  tx.executeSql(
+                    `DELETE FROM Playlists WHERE lst_name = '${props.lst_ref.current}'`,
+                    null,
+                    () => {
+                      console.log('Playlists deleted successful')
+                      showMessage({
+                        message: "Delete Success",
+                        type: "success"}
+                      );
+                    },
+                    (_, error) => console.log(error)
+                  );
+                });
+                props.setShow(false);
+                props.fetch_pllst();
               }}
               />
           </View>

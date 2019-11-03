@@ -12,6 +12,7 @@ import ModalDropdown from 'react-native-modal-dropdown';
 
 import {color, styles, itemHeight, db, TRACK_DIR} from './styleConst';
 import {login} from './utils'
+import { ViewDeleteModal } from './localModal';
 import { Button, Icon } from 'react-native-elements';
 
 
@@ -21,7 +22,8 @@ export function LocalView(props){
   const [show_modal1, setShowModal1] = useState(false);
   const name_input_ref = useRef();
   const [show_modal2, setShowModal2] = useState(false);
-  const key_ref = useRef();
+  const key_ref = useRef(null);
+  const [show_modal3, setShowModal3] = useState(false);
 
   const fetch_pllst = useCallback(() => (
     db.transaction(tx => {
@@ -64,7 +66,7 @@ export function LocalView(props){
         />
       </View>
       <View style = {{
-        flexGrow: 1,
+        flex: 1,
         alignSelf: 'stretch',
         borderBottomWidth: 1,
         borderColor: color.light_pup
@@ -81,33 +83,34 @@ export function LocalView(props){
                                   />}
         />
       </View>
+
     </View>
   )
 
   return (
     <View style={styles.allView} behavior={'padding'}>
-      <View style = {styles.statusBar}>
-        <Text style = {{fontSize: 18}}>Local</Text>
-      </View>
       {MainView}
-      <Button
+      { true && <Button
         title= {'Delete db'}
         onPress={ async () => {
           await FileSystem.deleteAsync(FileSystem.documentDirectory + 'SQLite/db.db');
           console.log('[Delete]..delete db.db')
         }}
-      />
+      />}
       <Modal
         animationType="fade"
         transparent={true}
         visible={show_modal1}
       >
         <KeyboardAvoidingView behavior="padding" style={{...styles.modalBack, justifyContent: 'center'}}>
+          <TouchableWithoutFeedback onPress = {() => setShowModal1(false)}>
+            <View style = {styles.modalTouchClose}/>
+          </TouchableWithoutFeedback>
           <View style={{...styles.modalInCenter, justifyContent: 'space-around'}}>
             <Text style={{fontSize:25, color: color.dark_pup}}>Add Playlist</Text>
             <TextInput
               style = {{fontSize:20, padding: 10, backgroundColor: color.light_grey, width: '80%'}}
-              placeholder={'Play List Name'}
+              placeholder={'PlayList Name'}
               ref = {name_input_ref}/>
             <View style={{...styles.containerRow, justifyContent: 'space-around', height: null}}>
               <Button
@@ -164,32 +167,34 @@ export function LocalView(props){
             <TouchableOpacity
               style = {{...styles.touchableRow}}
               onPress = {() => {
-                Alert.alert(
-                  "Comfirm Delete",
-                  `Delete Playlist: ${key_ref.current}?`,
-                  [
-                    {text: 'Yes', onPress: () => {
-                      db.transaction(tx => {
-                        tx.executeSql(
-                          `DELETE FROM Playlists WHERE lst_name = '${key_ref.current}'`,
-                          [],
-                          () => {
-                            console.log(`[Info] Playlist (${key_ref.current}) deleted from database`)
-                            showMessage({
-                              message: "Success",
-                              description: "Playlist Deleted",
-                              type: "success"
-                            })
-                            setShowModal2(false);
-                            fetch_pllst();
-                          },
-                          (_, error) => console.log(error)
-                        );
-                      });
-                    }},
-                    {text: 'Cancel', onPress: () => {}, style: 'cancel'}
-                  ],
-                )
+                // Alert.alert(
+                //   "Comfirm Delete",
+                //   `Delete Playlist: ${key_ref.current}?`,
+                //   [
+                //     {text: 'Yes', onPress: () => {
+                //       db.transaction(tx => {
+                //         tx.executeSql(
+                //           `DELETE FROM Playlists WHERE lst_name = '${key_ref.current}'`,
+                //           [],
+                //           () => {
+                //             console.log(`[Info] Playlist (${key_ref.current}) deleted from database`)
+                //             showMessage({
+                //               message: "Success",
+                //               description: "Playlist Deleted",
+                //               type: "success"
+                //             })
+                //             setShowModal2(false);
+                //             fetch_pllst();
+                //           },
+                //           (_, error) => console.log(error)
+                //         );
+                //       });
+                //     }},
+                //     {text: 'Cancel', onPress: () => {}, style: 'cancel'}
+                //   ],
+                // )
+                setShowModal2(false);
+                setShowModal3(true);
               }}
             >
               <Text>Delete Playlist</Text>
@@ -200,6 +205,12 @@ export function LocalView(props){
           </View>
         </View>
       </Modal>
+      <ViewDeleteModal
+        lst_ref= {key_ref}
+        setShow = {setShowModal3}
+        show = {show_modal3}
+        fetch_pllst = {fetch_pllst}
+      />
     </View>
   )
 }
