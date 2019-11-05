@@ -5,6 +5,7 @@ import {SQLite} from 'expo-sqlite';
 
 export const itemHeight = 55;
 export const itemFontSize = 16;
+export const itemOffset = 8;
 
 export const TRACK_DIR = FileSystem.documentDirectory + 'tracks/';
 export const db = SQLite.openDatabase("db.db");

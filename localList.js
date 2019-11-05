@@ -42,7 +42,7 @@ function orderDate(a, b){
   if (a.date > b.date){
     return -1;
   }
-  if (a.key < b.key){
+  if (a.date < b.date){
     return 1;
   }
   return 0
@@ -486,7 +486,7 @@ function Item(props){
     }}>
       <TouchableOpacity
         style = {{flex: 10,
-          height:'100%',
+          height:'100%'
         }}
         onPress = {onPressEvent}
         onLongPress = {onLongPressEvent}

@@ -60,10 +60,10 @@ const TabNavigator = createMaterialTopTabNavigator(
       style: {
         paddingTop: 5,
         backgroundColor: color.light_grey,
-        height: Platform.OS === 'ios' ? 70 : 50,
+        height: Platform.OS === 'ios' ? 72 : 55,
       },
       tabStyle:{
-        height: 50
+        height: 46
       }
     },
   }

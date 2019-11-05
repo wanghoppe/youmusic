@@ -14,10 +14,49 @@ import { Icon } from 'react-native-elements'
 import { createStackNavigator } from 'react-navigation-stack';
 
 
-import {color, styles, itemHeight, TRACK_DIR, db, itemFontSize} from './styleConst';
+import {color, styles, itemHeight, TRACK_DIR, db, itemFontSize, itemOffset} from './styleConst';
 import {login} from './utils'
 
 import {PlayComp} from './might';
+
+function date2string(date){
+  date.setMinutes(
+    date.getMinutes() - date.getTimezoneOffset()
+  );
+  return date.toISOString().slice(0,16).replace('T', ' ')
+}
+
+function size2string(size){
+  return `${(size/(1024*1024).toFixed(1)).toFixed(1)} MB`
+}
+
+function orderDate(a, b){
+  if (a.date > b.date){
+    return -1;
+  }
+  if (a.date < b.date){
+    return 1;
+  }
+  return 0
+}
+
+function orderSize(a, b){
+  if (a.size > b.size){
+    return -1;
+  }
+  if (a.size < b.size){
+    return 1;
+  }
+  return 0
+}
+
+function orderLst(lst, by){
+  if (by == 'Size'){
+    return [...lst].sort(orderSize);
+  }else{
+    return [...lst].sort(orderDate);
+  }
+}
 
 export const CloudList = createStackNavigator(
   {
@@ -54,6 +93,8 @@ function List(props){
 
   const force_down_set_ref = useRef(new Set())
 
+  const [orderBy, setOrder] = useState(0);
+
 
   var mainView;
   var selectControl;
@@ -65,8 +106,13 @@ function List(props){
       const local_set = new Set(local_lst);
 
       const cloud_lst = await Storage.list('', {level: 'private'});
-      console.log(`${cloud_lst[0].lastModified.getFullYear()}-${cloud_lst[0].lastModified.getMonth()}-${cloud_lst[0].lastModified.getDate()}`);
-      data_map_ref.current = new Map(cloud_lst.map((item) => ([item.key, { prog: local_set.has(item.key) ? 1: 0}])));
+
+      console.log(cloud_lst);
+      data_map_ref.current = new Map(cloud_lst.map((item) => ([item.key, {
+        prog: local_set.has(item.key) ? 1: 0,
+        date: date2string(item.lastModified),
+        size: item.size
+      }])));
       // setDataMap(data_map);
       filter_lst();
       setReady(true);
@@ -83,9 +129,12 @@ function List(props){
     if (data_map_ref.current != undefined){
       temp_lst = Array.from(data_map_ref.current, ([key, val]) => ({
         key: key,
+        date: val.date,
+        size: val.size,
         prog: val.prog,
         show: lst[filter_idex].includes(val.prog) && key.toLowerCase().includes(filter_txt)
       }));
+      temp_lst = orderLst(temp_lst, ['Date', 'Size'][orderBy]);
 
       console.log('Running filter_lst');
       setShowLst(temp_lst);
@@ -174,6 +223,12 @@ function List(props){
     }
   }, [global_select]);
 
+  useEffect(() => {
+    if (ready){
+      setShowLst(orderLst(show_lst, ['Date', 'Size'][orderBy]))
+    }
+  }, [orderBy])
+
   if (select_mode){
     selectControl = (
       <View style = {{...styles.containerRow, justifyContent: 'space-around', height: itemHeight}}>
@@ -242,7 +297,6 @@ function List(props){
   if (ready){
     mainView = (
       <View style = {{alignSelf: 'stretch', flex:1, justifyContent: 'flex-end'}}>
-        {selectControl}
         <FlatList
           data={show_lst}
           extraData={[select_set, select_mode, global_select]}
@@ -250,6 +304,8 @@ function List(props){
           renderItem={({item}) => <PureItem
                                     prog={item.prog}
                                     title={item.key}
+                                    date={item.date}
+                                    size={size2string(item.size)}
                                     show = {item.show}
                                     setProgWithId = {setProgWithId}
                                     deleteMapWithId = {deleteMapWithId}
@@ -262,6 +318,7 @@ function List(props){
                                     force_down_set_ref = {force_down_set_ref}
                                   />}
         />
+        {selectControl}
       </View>
     )
   }else{
@@ -321,6 +378,15 @@ function List(props){
                 }}
             />)}
             onSelect = {(index) => setFilid(index)}
+          />
+          <Button
+            style = {{
+              flex: 3,
+              height:40}}
+            title = {['Date', 'Size'][orderBy]}
+            onPress = {() => {
+              setOrder(1 - orderBy);
+            }}
           />
           <Button
             style = {{flex:2}}
@@ -541,17 +607,31 @@ function Item(props){
       <View style = {{...styles.containerRow}}>
         {checkBox}
         <View
-          style = {{flex: 8, alignSelf: 'stretch', padding: 10,
-                        justifyContent:'center'}}>
+          style = {{
+            flex: 8, alignSelf: 'stretch',
+            paddingLeft: 10, paddingRight:10,
+            paddingTop: itemOffset/2, paddingBottom: itemOffset/2,
+            justifyContent:'center'
+          }}>
             <Progress.Bar styles = {{alignSelf: 'stretch', position: 'absolute'}}
                                     color = 'rgba(204, 122, 155, 0.5)'
                                     progress={prog}
                                     borderRadius={15}
                                     width = {null}
-                                    height = {itemHeight-10}/>
-            <ScrollView style = {{height: '100%', position: 'absolute', marginLeft: 12}} horizontal={true}>
-              {touchable}
-            </ScrollView>
+                                    height = {itemHeight-itemOffset}/>
+            <TouchableOpacity
+              style = {{width: '100%', height: '100%', position: 'absolute', paddingLeft: 14}}
+              onLongPress = {(props.select_mode)? null: () => props.setSelectMode(true)}
+              onPress = {(props.select_mode)? () => props.updateSelectMap(props.title) : null}
+            >
+              <View style = {{justifyContent: 'flex-end',flex: 4}}>
+                <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{props.title}</Text>
+              </View>
+              <View style = {{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flex: 3}}>
+                <Text style={{color: 'rgba(0,0,0,0.6)', fontSize:itemFontSize-4}}>{props.date}</Text>
+                <Text style={{color: 'rgba(0,0,0,0.6)', fontSize:itemFontSize-4}}>{props.size}</Text>
+              </View>
+            </TouchableOpacity>
         </View>
         {buttonGrop}
       </View>
