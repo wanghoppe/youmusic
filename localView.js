@@ -8,9 +8,8 @@ import { showMessage, hideMessage } from "react-native-flash-message";
 import Constants from 'expo-constants';
 import { Storage, Auth } from 'aws-amplify';
 import { SearchBar, CheckBox } from 'react-native-elements';
-import ModalDropdown from 'react-native-modal-dropdown';
 
-import {color, styles, itemHeight, db, TRACK_DIR} from './styleConst';
+import {color, styles, itemHeight, db, TRACK_DIR, itemFontSize} from './styleConst';
 import {login} from './utils'
 import { ViewDeleteModal } from './localModal';
 import { Button, Icon } from 'react-native-elements';
@@ -233,8 +232,8 @@ function Item(props){
         onPress = {() => {
           props.navigation.navigate('LocalList', {plst_name: props.title})
         }}>
-        <Text numberOfLines={1} style={{fontSize:18, maxWidth:'70%'}}>{props.title}</Text>
-        <Text style={{color: 'rgba(0,0,0,0.3)', fontSize:14}}>{props.create_date}</Text>
+        <Text numberOfLines={1} style={{fontSize:itemFontSize + 2, maxWidth:'70%'}}>{props.title}</Text>
+        <Text style={{color: 'rgba(0,0,0,0.3)', fontSize:itemFontSize - 2}}>{props.create_date}</Text>
       </TouchableOpacity>
       <View style = {{flex:2, justifyContent:'center', alignItems:'center'}}>
         <Button

@@ -204,6 +204,32 @@ function WebStaff(props) {
 
             }}>
     </Button>
+    <Button
+      style = {{flex:2}}
+      title = {'DA'}
+      onPress = { async () => {
+        const local_lst = await FileSystem.readDirectoryAsync(TRACK_DIR);
+        local_lst.forEach((item) => {
+          FileSystem.deleteAsync(TRACK_DIR + encodeURIComponent(item));
+        })
+        console.log('Line205: delete all local files')
+      }}
+    />
+    <Button
+      style = {{flex:2}}
+      title = {'DA2'}
+      onPress = { async () => {
+        const data = [
+          'qZ5U7s8T5oI','VArUc-bCanQ','ZHFgk8Eo0FE','ioIEjzR7Xj8',
+          'Z16qw94gP4w','TV7DeM0Jqik','5XgnwopNyn0','p0GPJbdKhCw',
+          'NSwQ0OlwUn0','4HgNzGHbB5Y','cb2hVNAhPJ4','79t4chAseE',
+          'zcrx7OVoypM','C6YobfNjeqc','4ROBQMlh3Ew','8m7hxhyr4jc'
+        ];
+        data.forEach((item) =>{
+          download2cloud(item);
+        })
+      }}
+    />
     <WebView
       ref={ref => (ref_out = ref)}
       style={{width: 300, marginTop: 20}}

@@ -10,7 +10,7 @@ import { Storage, Auth } from 'aws-amplify';
 import { SearchBar, CheckBox } from 'react-native-elements';
 import ModalDropdown from 'react-native-modal-dropdown';
 
-import {color, styles, itemHeight, db, TRACK_DIR} from './styleConst';
+import {color, styles, itemHeight, db, TRACK_DIR, itemFontSize} from './styleConst';
 import {login} from './utils'
 import {AddToLstModal, DeleteModal} from './localModal'
 
@@ -282,19 +282,19 @@ export function LocalList(props){
 
   var MainView = (
     <View style = {styles.afterStatus}>
-      <View style={{alignSelf: 'stretch'}}>
-        { all_ref.current ||
+      { all_ref.current ||
+        <View style={{alignSelf: 'stretch'}}>
           <Text numberOfLines={1} style={{
             paddingTop: 10,
             paddingLeft: 25,
             paddingRight: 25,
-            fontSize:30,
+            fontSize:26,
             color: color.light_pup
           }}>
             {`${lst_ref.current} :`}
           </Text>
-        }
-      </View>
+        </View>
+      }
       <View style = {{
         alignSelf : "stretch",
         flexDirection: 'row',
@@ -492,10 +492,10 @@ function Item(props){
         onLongPress = {onLongPressEvent}
       >
         <View style = {{justifyContent: 'flex-end',flex: 4}}>
-          <Text numberOfLines={1} style={{fontSize:18}}>{props.title}</Text>
+          <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{props.title}</Text>
         </View>
         <View style = {{justifyContent: 'center', flex: 3}}>
-          <Text style={{color: 'rgba(0,0,0,0.3)', fontSize:14}}>{props.date}</Text>
+          <Text style={{color: 'rgba(0,0,0,0.3)', fontSize:itemFontSize-4}}>{props.date}</Text>
         </View>
       </TouchableOpacity>
       <View style = {{flex:2, justifyContent:'center', alignItems:'center'}}>

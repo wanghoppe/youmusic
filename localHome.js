@@ -16,7 +16,7 @@ function getTitle({navigation}){
 LocalView.navigationOptions = { title: 'Local'}
 LocalList.navigationOptions = getTitle
 
-const LocalStack = createStackNavigator(
+export const LocalHome = createStackNavigator(
   {
     LocalView: LocalView,
     LocalList: LocalList,
@@ -32,6 +32,3 @@ const LocalStack = createStackNavigator(
     }
   }
 );
-
-
-export const LocalHome = createAppContainer(LocalStack);

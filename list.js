@@ -9,14 +9,34 @@ import Constants from 'expo-constants';
 import { Storage, Auth } from 'aws-amplify';
 import { SearchBar, CheckBox } from 'react-native-elements';
 import ModalDropdown from 'react-native-modal-dropdown';
+import { Icon } from 'react-native-elements'
+
+import { createStackNavigator } from 'react-navigation-stack';
 
 
-import {color, styles, itemHeight, TRACK_DIR, db} from './styleConst';
+import {color, styles, itemHeight, TRACK_DIR, db, itemFontSize} from './styleConst';
 import {login} from './utils'
 
 import {PlayComp} from './might';
 
-export function List(props){
+export const CloudList = createStackNavigator(
+  {
+    CloudList: List
+  },
+  {
+    defaultNavigationOptions:{
+      title: 'Cloud',
+      headerStyle: {
+          backgroundColor: color.light_pup2,
+        },
+      headerTitleStyle: {
+        fontWeight: 'bold',
+      }
+    }
+  }
+);
+
+function List(props){
   // console.log('updating whole view');
   const [ready, setReady] = useState(false);
   const data_map_ref = useRef();
@@ -45,9 +65,8 @@ export function List(props){
       const local_set = new Set(local_lst);
 
       const cloud_lst = await Storage.list('', {level: 'private'});
-      data_map_ref.current = new Map(cloud_lst.map((item) => ([item.key, {
-          prog: local_set.has(item.key) ? 1: 0
-        }])));
+      console.log(`${cloud_lst[0].lastModified.getFullYear()}-${cloud_lst[0].lastModified.getMonth()}-${cloud_lst[0].lastModified.getDate()}`);
+      data_map_ref.current = new Map(cloud_lst.map((item) => ([item.key, { prog: local_set.has(item.key) ? 1: 0}])));
       // setDataMap(data_map);
       filter_lst();
       setReady(true);
@@ -255,9 +274,6 @@ export function List(props){
 
   return (
     <View style={styles.allView} behavior={'padding'}>
-      <View style = {styles.statusBar}>
-        <Text style = {{fontSize: 18}}>Explore</Text>
-      </View>
       <View style = {styles.afterStatus}>
         <View style = {{
           alignSelf : "stretch",
@@ -288,14 +304,14 @@ export function List(props){
               backgroundColor: color.light_grey,
               justifyContent:'center',
               height:40}}
-            textStyle = {{flex: 1, fontSize: 16, backgroundColor:color.light_gre}}
+            textStyle = {{fontSize: 20, alignItems: 'center'}}
             dropdownStyle = {{backgroundColor: color.light_grey, height: 204}}
             defaultIndex = {0}
             defaultValue = {'All'}
             options={['All', 'Undownload', 'Loading', 'Downloaded']}
             renderRow = {(option)=>(
               <View style = {{alignItems: 'center', justifyContent: 'center', height: 50}}>
-                <Text style={{fontSize:18}}>{option}</Text>
+                <Text style={{fontSize:20}}>{option}</Text>
               </View>
             )}
             renderSeparator = { () => (<View
@@ -332,6 +348,16 @@ export function List(props){
               })
             }}
           />
+          <View style = {{flex:2}}>
+            <Icon
+              name = 'refresh'
+              size = {35}
+              onPress ={() => {
+                generate_lst();
+              }}
+              color={color.dark_pup}
+            />
+          </View>
         </View>
         {mainView}
       </View>
@@ -425,19 +451,29 @@ function Item(props){
     }
   })
 
+  useEffect(() => {
+    if ([0, 1].includes(props.prog)){
+      setProg(props.prog);
+    }
+  }, [props.prog])
+
   if (loading){
     downButton = (
         <Progress.CircleSnail size={26} color={color.light_pup} thickness={3}/>
     )
   }else{
     downButton = (
-      <Button title={'DOWN'}
-              disabled = {prog == 1}
-              onPress={() => {
-                  setLoading(true);
-                  props.setProgWithId(props.title, 2);
-                  props.pushLoadingLst(downloadItemAsync);
-              }}/>
+      <Icon
+        name = 'cloud-download'
+        disabled = {prog == 1}
+        disabledStyle = {{backgroundColor: null}}
+        color = {(prog == 1)? 'grey': color.primary}
+        size = {30}
+        onPress={() => {
+            setLoading(true);
+            props.setProgWithId(props.title, 2);
+            props.pushLoadingLst(downloadItemAsync);
+        }}/>
     )
   }
 
@@ -459,7 +495,7 @@ function Item(props){
           onPress = {() => {
             props.updateSelectMap(props.title);
           }}>
-          <Text style={{fontSize: 16}}>{props.title}</Text>
+          <Text style={{fontSize: itemFontSize}}>{props.title}</Text>
         </TouchableOpacity>
       );
     }else{
@@ -470,18 +506,21 @@ function Item(props){
             {downButton}
           </View>
           <View style = {{flex:1, justifyContent:'center', alignItems:'center'}}>
-            <Button title={'DEL'}
-                  onPress={ () => {
-                    Alert.alert(
-                      "Comfirm Delete",
-                      `Delete ${props.title} from cloud?`,
-                      [
-                        {text: 'Yes', onPress: deleteItemAsync },
-                        {text: 'Cancel', onPress: () => {}, style: 'cancel'}
-                      ],
-                    )
-                  }
-                }/>
+            <Icon
+              name = 'delete'
+              size = {30}
+              color = {color.dark_pup}
+              onPress={ () => {
+                Alert.alert(
+                  "Comfirm Delete",
+                  `Delete ${props.title} from cloud?`,
+                  [
+                    {text: 'Yes', onPress: deleteItemAsync },
+                    {text: 'Cancel', onPress: () => {}, style: 'cancel'}
+                  ],
+                )
+              }
+          }/>
           </View>
         </View>
       );
@@ -492,7 +531,7 @@ function Item(props){
             console.log(`you long pressed ${props.title}`);
             props.setSelectMode(true);
           }}>
-          <Text style={{fontSize: 16}}>{props.title}</Text>
+          <Text style={{fontSize: itemFontSize}}>{props.title}</Text>
         </TouchableOpacity>
       )
     }
@@ -509,7 +548,7 @@ function Item(props){
                                     progress={prog}
                                     borderRadius={15}
                                     width = {null}
-                                    height = {itemHeight-15}/>
+                                    height = {itemHeight-10}/>
             <ScrollView style = {{height: '100%', position: 'absolute', marginLeft: 12}} horizontal={true}>
               {touchable}
             </ScrollView>
@@ -541,7 +580,7 @@ async function download2cloud(you_id){
     })
   });
   res_json = await response.json();
-  showMessage({
+  key_ref.currentssage({
     message: "Success",
     description: res_json.download + " is downloaded to cloud",
     type: "success"})

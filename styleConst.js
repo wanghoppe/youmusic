@@ -3,7 +3,8 @@ import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
 import {SQLite} from 'expo-sqlite';
 
-export const itemHeight = 66;
+export const itemHeight = 55;
+export const itemFontSize = 16;
 
 export const TRACK_DIR = FileSystem.documentDirectory + 'tracks/';
 export const db = SQLite.openDatabase("db.db");
@@ -12,7 +13,9 @@ export const color = {light_pup: '#cc7a9b',
                       dark_pup: '#c91860',
                       light_gre: '#9fd6bf',
                       light_pup2: 'rgba(204, 122, 155, 0.5)',
-                      light_grey: 'rgb(227, 227, 227)'}
+                      light_grey: 'rgb(227, 227, 227)',
+                      primary: 'rgb(67,136,214)'
+                    }
 
 
 export const styles = StyleSheet.create({

@@ -3,17 +3,31 @@ import { Alert, StyleSheet, Text, View, Button, TextInput, ScrollView, KeyboardA
 import { WebView } from 'react-native-webview';
 import { showMessage, hideMessage } from "react-native-flash-message";
 import { Auth } from 'aws-amplify';
-
+import { createStackNavigator } from 'react-navigation-stack';
 import {color, styles} from './styleConst';
 
-export function NewWebView(props){
+export const ExploreView = createStackNavigator(
+  {
+    ExploreView: NewWebView
+  },
+  {
+    defaultNavigationOptions:{
+      title: 'Explore',
+      headerStyle: {
+          backgroundColor: color.light_pup2,
+        },
+      headerTitleStyle: {
+        fontWeight: 'bold',
+      }
+    }
+  }
+);
+
+function NewWebView(props){
   var ref_out = null;
 
   return (
     <View style={styles.allView} behavior={'padding'}>
-      <View style = {styles.statusBar}>
-        <Text style = {{fontSize: 18}}>Explore</Text>
-      </View>
       <View style = {styles.afterStatus}>
         <View style = {{flexDirection: 'row', justifyContent: 'space-around', alignSelf: 'stretch'}}>
           <Button title="HOME"
