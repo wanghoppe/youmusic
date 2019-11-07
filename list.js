@@ -103,11 +103,12 @@ function List(props){
     try{
       // generate list
       const local_lst = await FileSystem.readDirectoryAsync(TRACK_DIR);
+      // console.log(local_lst);
       const local_set = new Set(local_lst);
 
       const cloud_lst = await Storage.list('', {level: 'private'});
 
-      console.log(cloud_lst);
+      // console.log(cloud_lst);
       data_map_ref.current = new Map(cloud_lst.map((item) => ([item.key, {
         prog: local_set.has(item.key) ? 1: 0,
         date: date2string(item.lastModified),

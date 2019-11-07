@@ -13,14 +13,15 @@ import { createStackNavigator } from 'react-navigation-stack';
 import Amplify, { Storage, Auth } from 'aws-amplify';
 import awsconfig from './aws-exports';
 
-import {LoginView} from './login'
-import {ExploreView} from './homeView'
-import {CloudList} from './list'
-import {LocalView} from './localView'
+import {LoginView} from './login';
+import {ExploreView} from './homeView';
+import {CloudList} from './list';
+import {LocalView} from './localView';
 import FlashMessage from "react-native-flash-message";
-import {first_run}  from './firstRun'
-import {LocalList} from './localList'
-import {LocalHome} from './localHome'
+import {first_run}  from './firstRun';
+import {LocalList} from './localList';
+import {LocalHome} from './localHome';
+import {PlayingComp} from './playing';
 import {color, styles, itemHeight, db, TRACK_DIR} from './styleConst';
 
 Amplify.configure(awsconfig);
@@ -74,7 +75,7 @@ const YouMusic = createAppContainer(TabNavigator);
 export default function App() {
   return (
     <View flex = {1}>
-      <YouMusic/>
+      <PlayingComp/>
       <FlashMessage position="bottom" />
     </View>
   )

@@ -1,3 +1,4 @@
+import React, { useCallback } from 'react';
 import {StyleSheet} from 'react-native';
 import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
@@ -17,7 +18,9 @@ export const color = {light_pup: '#cc7a9b',
                       light_grey: 'rgb(227, 227, 227)',
                       primary: 'rgb(67,136,214)'
                     }
-
+export const flatlist_getItemLayout = (data, index) => (
+  {length: itemHeight, offset: itemHeight * index, index}
+)
 
 export const styles = StyleSheet.create({
   allView: {
