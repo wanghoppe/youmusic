@@ -4,6 +4,7 @@ import { TouchableHighlight, TouchableOpacity, Alert,  Text, View, TextInput,
 import { showMessage, hideMessage } from "react-native-flash-message";
 import Constants from 'expo-constants';
 import ModalDropdown from 'react-native-modal-dropdown';
+import { Audio } from 'expo-av';
 
 import {color, styles, itemHeight, TRACK_DIR, itemFontSize, flatlist_getItemLayout} from './styleConst';
 import { Button, Icon, Slider } from 'react-native-elements';
@@ -27,6 +28,58 @@ const data_lst = [
 
 export function PlayingComp(props){
 
+  const initdata_ref = useRef({playlst: data_lst, init_index: 0});
+
+  const [play_index, setPlayIndex] = useState(0);
+  const [playing, setPlaying] = useState(true);
+  const [init_created, setInitCreated] = useState(false);
+  const sound_ref = useRef();
+
+  const onItemClick = async (index) => {
+    setPlayIndex(index);
+
+    await sound_ref.current.unloadAsync();
+
+    const source = {
+      uri: TRACK_DIR + encodeURIComponent(initdata_ref.current.playlst[index])
+    };
+    const init_status = {
+      shouldPlay: playing
+    };
+    await sound_ref.current.loadAsync(source, init_status);
+  }
+
+  const initLoadSound = async () => {
+    let track_name = initdata_ref.current.playlst[initdata_ref.current.init_index]
+
+    await Audio.setAudioModeAsync({
+      staysActiveInBackground: true,
+      allowsRecordingIOS: false,
+      interruptionModeIOS : Audio.INTERRUPTION_MODE_IOS_MIX_WITH_OTHERS,
+      playsInSilentModeIOS : true,
+      interruptionModeAndroid : Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+      shouldDuckAndroid : true,
+      playThroughEarpieceAndroid : false,
+    });
+
+    const soundObject = new Audio.Sound();
+    sound_ref.current = soundObject;
+
+    const source = {
+      uri: TRACK_DIR + encodeURIComponent(track_name)
+    };
+    await soundObject.loadAsync(source);
+    setInitCreated(true);
+  }
+
+  useEffect(() => {
+    if (initdata_ref.current){
+      console.log('here');
+      initLoadSound();
+      console.log(sound_ref.current);
+    }
+  }, [])
+
   return(
     <View style={styles.allView} behavior={'padding'}>
       <View style = {styles.statusBar}>
@@ -44,8 +97,9 @@ export function PlayingComp(props){
             getItemLayout={flatlist_getItemLayout}
             renderItem={({item, index}) => <Item
                                       title={item.key}
-                                      date = {'111'}
-                                      select = {(index == 5)}
+                                      select = {(index == play_index)}
+                                      index = {index}
+                                      onItemClick = {onItemClick}
                                     />}
           />
         </View>
@@ -54,6 +108,11 @@ export function PlayingComp(props){
           alignSelf:'stretch'
         }}>
           <PlayControl
+            playing = {playing}
+            setPlaying = {setPlaying}
+            title = {data_lst[play_index]}
+            sound_ref = {sound_ref}
+            init_created = {init_created}
           />
         </View>
       </View>
@@ -66,9 +125,86 @@ export function PlayingComp(props){
 function PlayControl(props){
 
   const [mode_id, setModeId] = useState(0);
-  const [should_play, setShouldPlay] = useState(true);
   const [value, setValue] = useState(0);
+  const [play_back_status, setPlayBackStatus] = useState({});
 
+  const onPlayClick = ()=> {
+    if (props.playing){
+      props.sound_ref.current.pauseAsync();
+    }else{
+      props.sound_ref.current.playAsync();
+    }
+    props.setPlaying(!props.playing);
+  }
+
+  const onPlaybackStatusUpdate = (status) => {
+    console.log('1')
+    if (status.error){
+      console.log(`FATAL PLAYER ERROR: ${status.error}`);
+    }else{
+      setPlayBackStatus({
+        position: status.positionMillis,
+				duration: status.durationMillis,
+      });
+      if (status.didJustFinish) {
+
+      }
+    }
+  }
+
+  const _getMMSSFromMillis = (millis) => {
+		const totalSeconds = millis / 1000;
+		const seconds = Math.floor(totalSeconds % 60);
+		const minutes = Math.floor(totalSeconds / 60);
+
+		const padWithZero = number => {
+			const string = number.toString();
+			if (number < 10) {
+				return '0' + string;
+			}
+			return string;
+		};
+		return padWithZero(minutes) + ':' + padWithZero(seconds);
+	}
+
+  const _getTimestamp = () => {
+		if (
+			play_back_status.position != null &&
+			play_back_status.duration != null
+		) {
+			return `${_getMMSSFromMillis(
+        play_back_status.position
+			)} / ${_getMMSSFromMillis(
+				play_back_status.duration
+			)}`;
+		}
+		return '';
+	}
+
+  const _getSeekSliderPosition = () => {
+		if (
+      play_back_status.position != null &&
+			play_back_status.duration != null
+		) {
+			return (
+				play_back_status.position /
+				play_back_status.duration
+			);
+		}
+		return 0;
+	}
+
+  const initSetStatus = async () => {
+    console.log('Running init')
+    if (props.sound_ref.current){
+      await props.sound_ref.current.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate);
+      await props.sound_ref.current.setStatusAsync({shouldPlay: props.playing})
+    }
+  }
+
+  useEffect(() => {
+    initSetStatus()
+  },[props.init_created])
 
   return(
     <View style = {{flex:1, alignSelf:'stretch'}}>
@@ -77,7 +213,7 @@ function PlayControl(props){
           <Icon
             reverse
             name={['list', 'shuffle', 'loop'][mode_id]}
-            type={'fundation'}
+            type={(mode_id == 3)? 'material-community': 'fundation'}
             color = {color.light_pup}
             size={20}
             Component={TouchableOpacity}
@@ -85,7 +221,7 @@ function PlayControl(props){
           />
         </View>
         <View style={{flex:1, alignSelf:'center', justifyContent:'flex-end', paddingLeft:10, paddingRight:10}}>
-          <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{data_lst[5]}</Text>
+          <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{props.title}</Text>
         </View>
       </View>
       <View style={{flex:3,
@@ -107,12 +243,12 @@ function PlayControl(props){
         />
         <Icon
           reverse
-          name={(should_play)? 'play': 'pause'}
+          name={(props.playing)? 'pause': 'play'}
           type='font-awesome'
           color ={color.light_pup}
           size={40}
           Component={TouchableOpacity}
-          onPress = {()=>{setShouldPlay(!should_play)}}
+          onPress = {onPlayClick}
         />
         <Icon
           reverse
@@ -126,10 +262,11 @@ function PlayControl(props){
       </View>
       <View style={{flex:2, justifyContent:'center',
         backgroundColor:color.light_grey,
+        alignItems: 'center',
         paddingLeft:15,
         paddingRight:15
       }}>
-        <Text>Value: {value}</Text>
+        <Text>{_getTimestamp()}</Text>
         <Slider
           value={value}
           onValueChange={value => setValue(value)}
@@ -141,11 +278,16 @@ function PlayControl(props){
 
 function Item(props){
   return (
-    <TouchableOpacity style={{...styles.containerRow,
-      borderBottomWidth: 1,
-      borderColor: color.light_pup,
-      backgroundColor: (props.select) ? color.light_pup2 : 'rgba(0,0,0,0.1)'
-    }}>
+    <TouchableOpacity
+      style={{...styles.containerRow,
+        borderBottomWidth: 1,
+        borderColor: color.light_pup,
+        backgroundColor: (props.select) ? color.light_pup2 : 'rgba(0,0,0,0.1)'
+      }}
+      onPress = {() =>{
+        props.onItemClick(props.index)
+      }}
+    >
       <View style = {{flex:2}}>
         <Icon
           name='music'
