@@ -30,10 +30,42 @@ export function PlayingComp(props){
 
   const initdata_ref = useRef({playlst: data_lst, init_index: 0});
 
-  const [play_index, setPlayIndex] = useState(0);
+  const [play_index, _setPlayIndex] = useState(0);
+  const play_index_ref = useRef(play_index);
   const [playing, setPlaying] = useState(true);
   const [init_created, setInitCreated] = useState(false);
   const sound_ref = useRef();
+  const flatlist_ref = useRef();
+
+  const setPlayIndex = useCallback((index) => {
+    _setPlayIndex(index);
+    play_index_ref.current = index;
+  })
+
+  const getNextIndex = () => {
+    return (play_index_ref.current + 1) % data_lst.length
+  }
+
+  const loadSoundIndex = async (index) => {
+    // console.log(index)
+    await sound_ref.current.unloadAsync();
+    const source = {
+      uri: TRACK_DIR + encodeURIComponent(initdata_ref.current.playlst[index])
+    };
+    const init_status = {
+      shouldPlay: playing
+    };
+    await sound_ref.current.loadAsync(source, init_status);
+    setPlayIndex(index);
+    // flatlist_ref.current.scrollToIndex(play_index_ref.current);
+  }
+
+  const nextTrack = () => {
+    const index = getNextIndex();
+    loadSoundIndex(index);
+    console.log(index);
+    flatlist_ref.current.scrollToIndex({index:index});
+  }
 
   const onItemClick = async (index) => {
     setPlayIndex(index);
@@ -93,6 +125,7 @@ export function PlayingComp(props){
           borderColor: color.light_pup
         }}>
           <FlatList
+            ref = {flatlist_ref}
             data={data_lst.map((it) => ({key: it}))}
             getItemLayout={flatlist_getItemLayout}
             renderItem={({item, index}) => <Item
@@ -113,6 +146,7 @@ export function PlayingComp(props){
             title = {data_lst[play_index]}
             sound_ref = {sound_ref}
             init_created = {init_created}
+            nextTrack = {nextTrack}
           />
         </View>
       </View>
@@ -125,8 +159,9 @@ export function PlayingComp(props){
 function PlayControl(props){
 
   const [mode_id, setModeId] = useState(0);
-  const [value, setValue] = useState(0);
   const [play_back_status, setPlayBackStatus] = useState({});
+  const [seeking, setSeeking] = useState(false);
+  const [seek_value, setSeekValue] = useState(0);
 
   const onPlayClick = ()=> {
     if (props.playing){
@@ -138,7 +173,6 @@ function PlayControl(props){
   }
 
   const onPlaybackStatusUpdate = (status) => {
-    console.log('1')
     if (status.error){
       console.log(`FATAL PLAYER ERROR: ${status.error}`);
     }else{
@@ -147,7 +181,7 @@ function PlayControl(props){
 				duration: status.durationMillis,
       });
       if (status.didJustFinish) {
-
+        props.nextTrack()
       }
     }
   }
@@ -173,7 +207,7 @@ function PlayControl(props){
 			play_back_status.duration != null
 		) {
 			return `${_getMMSSFromMillis(
-        play_back_status.position
+        seeking? (seek_value * play_back_status.duration): (play_back_status.position)
 			)} / ${_getMMSSFromMillis(
 				play_back_status.duration
 			)}`;
@@ -187,12 +221,25 @@ function PlayControl(props){
 			play_back_status.duration != null
 		) {
 			return (
-				play_back_status.position /
+				(seeking? (seek_value * play_back_status.duration): (play_back_status.position)) /
 				play_back_status.duration
 			);
 		}
 		return 0;
 	}
+
+  const _onSlidingComplete = async (value) => {
+    const seekPosition = value * play_back_status.duration;
+    await props.sound_ref.current.setPositionAsync(seekPosition);
+    setSeeking(false);
+  }
+
+  const _onValueChange = (value) => {
+    setPlayBackStatus({
+      position: value * play_back_status.duration,
+      duration: play_back_status.duration
+    })
+  }
 
   const initSetStatus = async () => {
     console.log('Running init')
@@ -257,7 +304,7 @@ function PlayControl(props){
           color ={color.light_pup}
           size={26}
           Component={TouchableOpacity}
-          onPress = {()=>{}}
+          onPress = {props.nextTrack}
         />
       </View>
       <View style={{flex:2, justifyContent:'center',
@@ -267,10 +314,14 @@ function PlayControl(props){
         paddingRight:15
       }}>
         <Text>{_getTimestamp()}</Text>
-        <Slider
-          value={value}
-          onValueChange={value => setValue(value)}
-        />
+        <View style = {{alignSelf: 'stretch'}}>
+          <Slider
+            value={_getSeekSliderPosition()}
+            onValueChange = {(value) => setSeekValue(value)}
+            onSlidingComplete = {_onSlidingComplete}
+            onSlidingStart = {() => setSeeking(true)}
+          />
+        </View>
       </View>
     </View>
   )
