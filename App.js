@@ -33,7 +33,8 @@ const TabNavigator = createMaterialTopTabNavigator(
   {
     Explore: ExploreView,
     Cloud: CloudList,
-    Local: LocalHome
+    Local: LocalHome,
+    Play: PlayingComp
   },
   {
     tabBarPosition: 'bottom',
@@ -75,7 +76,7 @@ const YouMusic = createAppContainer(TabNavigator);
 export default function App() {
   return (
     <View flex = {1}>
-      <PlayingComp/>
+      <YouMusic/>
       <FlashMessage position="bottom" />
     </View>
   )

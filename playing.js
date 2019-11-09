@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useCallback, useRef } from 'react';
 import { TouchableHighlight, TouchableOpacity, Alert,  Text, View, TextInput,
-  ScrollView, KeyboardAvoidingView, StatusBar, FlatList, Modal } from 'react-native';
+  ScrollView, KeyboardAvoidingView, StatusBar, FlatList, Modal, AppState } from 'react-native';
 import { showMessage, hideMessage } from "react-native-flash-message";
 import Constants from 'expo-constants';
 import ModalDropdown from 'react-native-modal-dropdown';
@@ -10,20 +10,26 @@ import {color, styles, itemHeight, TRACK_DIR, itemFontSize, flatlist_getItemLayo
 import { Button, Icon, Slider } from 'react-native-elements';
 
 const data_lst = [
+  // "5 Second Countdown HD-QohH89Eu5iM.mp3",
   "馮提莫 - 佛系少女「我的愛不過氣 」♪Karendaidai♪-VArUc-bCanQ.mp3",
+  "Top Hits 2019 - Best English Music Playlist 2019 - Rihanna, Ed Sheeran, Shawn Mendes, Maroon 5-PMcdYmCxpOU.mp3",
   "13 Year Old Singing Like a Lion Earns Howie's Golden Buzzer America's Got Talent-d59H0UxhyaY.mp3",
   "陈一发儿－白山茶-qZ5U7s8T5oI.mp3",
   "Taylor Swift - Lover--BjZmE2gtdo.mp3",
   "牽絲戲 by 銀臨 & Aki阿杰 QIAN SI XI-C6YobfNjeqc.mp3",
   "音闕詩聽 - 白露 (feat.王梓鈺)【動態歌詞Lyrics】-NSwQ0OlwUn0.mp3",
+  "Best english song 2019 + 好聽的英文歌2019 + 英文歌曲排行榜2019 + 2019流行英文歌曲 + 2019最新英文歌曲 + 2019年会烧脑神曲推荐 + tik tok-Ih_AmU4-YPA.mp3",
+  "蘇仨 - 沙漠駱駝 (女聲版)(Cover：展展與羅羅)【動態歌詞Lyrics】-8m7hxhyr4jc.mp3",
   "4位去外国“砸场子”的女歌手，她们一开口，台下老外沸腾了 超清 254299796-C-u30Mdlj4Y.mp3",
   "音闕詩聽 - 芒種 (feat.趙方婧)【動態歌詞Lyrics】-ZHFgk8Eo0FE.mp3",
   "HITA - 赤伶「情字難落墨，她唱須以血來和。」[ High Quality Lyrics ][ Chinese Style ] tk推薦-4ROBQMlh3Ew.mp3",
   "《芒種》音闕詩聽，（芒种 录音室版），一想到你我就~-eoar4WDRSHk.mp3",
   "【蕭憶情】不謂俠【《蕭音瀰漫》專輯收錄曲】-cb2hVNAhPJ4.mp3",
   "Despacito - Luis Fonsi, Daddy Yankee ft. Justin Bieber (Madilyn Bailey & Leroy Sanchez Cover)-ASAzwmORUJk.mp3",
+  "陈一发儿－夜空中最亮的星-TV7DeM0Jqik.mp3",
+  "你在終點等我 － 陈一发儿-4HgNzGHbB5Y.mp3",
   "汪小敏《笑看風雲》挑戰主打歌 2018-07-27-36h0-Z6KbL0.mp3",
-  "陳粒 - 奇妙能力歌-p0GPJbdKhCw.mp3"
+  "陳粒 - 奇妙能力歌-p0GPJbdKhCw.mp3",
 ]
 
 export function PlayingComp(props){
@@ -36,6 +42,8 @@ export function PlayingComp(props){
   const [init_created, setInitCreated] = useState(false);
   const sound_ref = useRef();
   const flatlist_ref = useRef();
+
+  const [appStatus, setAppStatus] = useState(AppState.currentState)
 
   const setPlayIndex = useCallback((index) => {
     _setPlayIndex(index);
@@ -56,6 +64,9 @@ export function PlayingComp(props){
       shouldPlay: playing
     };
     await sound_ref.current.loadAsync(source, init_status);
+    console.log('I am here2');
+    await sound_ref.current.playAsync()
+    console.log('I am here');
     setPlayIndex(index);
     // flatlist_ref.current.scrollToIndex(play_index_ref.current);
   }
@@ -63,7 +74,6 @@ export function PlayingComp(props){
   const nextTrack = () => {
     const index = getNextIndex();
     loadSoundIndex(index);
-    console.log(index);
     flatlist_ref.current.scrollToIndex({index:index});
   }
 
@@ -95,12 +105,19 @@ export function PlayingComp(props){
     });
 
     const soundObject = new Audio.Sound();
-    sound_ref.current = soundObject;
 
     const source = {
       uri: TRACK_DIR + encodeURIComponent(track_name)
     };
     await soundObject.loadAsync(source);
+    sound_ref.current = soundObject;
+
+    // sound_ref.current = new Audio.Sound();
+    // const source = {
+    //   uri: TRACK_DIR + encodeURIComponent(track_name)
+    // };
+    // await sound_ref.current.loadAsync(source);
+
     setInitCreated(true);
   }
 
@@ -111,6 +128,15 @@ export function PlayingComp(props){
       console.log(sound_ref.current);
     }
   }, [])
+
+  useEffect(() => {
+    AppState.addEventListener('change', _handleAppStateChange);
+    console.log(AppState.currentState)
+  }, [])
+
+  const _handleAppStateChange = (nextAppState) => {
+    console.log(`nextAppState: ${nextAppState}`)
+  }
 
   return(
     <View style={styles.allView} behavior={'padding'}>
@@ -246,6 +272,7 @@ function PlayControl(props){
     if (props.sound_ref.current){
       await props.sound_ref.current.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate);
       await props.sound_ref.current.setStatusAsync({shouldPlay: props.playing})
+      await props.sound_ref.current.playAsync()
     }
   }
 

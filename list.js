@@ -103,7 +103,7 @@ function List(props){
     try{
       // generate list
       const local_lst = await FileSystem.readDirectoryAsync(TRACK_DIR);
-      // console.log(local_lst);
+      console.log(local_lst);
       const local_set = new Set(local_lst);
 
       const cloud_lst = await Storage.list('', {level: 'private'});
