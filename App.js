@@ -47,6 +47,8 @@ const TabNavigator = createMaterialTopTabNavigator(
         } else if (routeName === 'Cloud') {
           iconName = `cloud-circle`;
         } else if (routeName === 'Local') {
+          iconName = `library-music`;
+        } else if (routeName === 'Play'){
           iconName = `queue-music`;
         }
         return <Icon name={iconName} size={25} color={tintColor} iconStyle={`${focused ? '' : 'outline'}`}/>;

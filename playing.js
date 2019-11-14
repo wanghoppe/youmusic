@@ -34,9 +34,17 @@ const data_lst = [
 
 export function PlayingComp(props){
 
-  const initdata_ref = useRef({playlst: data_lst, init_index: 0});
+  const [initdata, setInitdata] = useState({playlst:[], init_index:0});
+  const [loaded, setLoaded] = useState(false);
 
-  const [play_index, _setPlayIndex] = useState(0);
+  var MainView;
+
+  // if (! initdata_ref.current){
+  //   console.log('return null')
+  //   return null
+  // }
+
+  const [play_index, _setPlayIndex] = useState();
   const play_index_ref = useRef(play_index);
   const [playing, setPlaying] = useState(true);
   const [init_created, setInitCreated] = useState(false);
@@ -62,9 +70,9 @@ export function PlayingComp(props){
 
   const getNextIndex = () => {
     if (play_mode_ref.current == 0){
-      return (play_index_ref.current + 1) % data_lst.length;
+      return (play_index_ref.current + 1) % initdata.playlst.length;
     }else if(play_mode_ref.current == 1){
-      return Math.floor(Math.random() * data_lst.length);
+      return Math.floor(Math.random() * initdata.playlst.length);
     }else if(play_mode_ref.current == 2){
       return play_index_ref.current;
     }
@@ -74,7 +82,7 @@ export function PlayingComp(props){
     // console.log(index)
     await sound_ref.current.unloadAsync();
     const source = {
-      uri: TRACK_DIR + encodeURIComponent(initdata_ref.current.playlst[index])
+      uri: TRACK_DIR + encodeURIComponent(initdata.playlst[index])
     };
     const init_status = {
       shouldPlay: playing
@@ -100,7 +108,7 @@ export function PlayingComp(props){
     if (pre_index){
       index = pre_index;
     }else{
-      index = initdata_ref.current.init_index;
+      index = initdata.init_index;
     }
     loadSoundIndex(index);
     flatlist_ref.current.scrollToIndex({index:index});
@@ -112,7 +120,7 @@ export function PlayingComp(props){
     await sound_ref.current.unloadAsync();
 
     const source = {
-      uri: TRACK_DIR + encodeURIComponent(initdata_ref.current.playlst[index])
+      uri: TRACK_DIR + encodeURIComponent(initdata.playlst[index])
     };
     const init_status = {
       shouldPlay: playing
@@ -121,7 +129,7 @@ export function PlayingComp(props){
   }
 
   const initLoadSound = async () => {
-    let track_name = initdata_ref.current.playlst[initdata_ref.current.init_index]
+    let track_name = initdata.playlst[initdata.init_index]
 
     await Audio.setAudioModeAsync({
       staysActiveInBackground: true,
@@ -132,6 +140,11 @@ export function PlayingComp(props){
       shouldDuckAndroid : true,
       playThroughEarpieceAndroid : false,
     });
+    console.log(`sound_ref: `)
+    console.log(sound_ref.current)
+    if (sound_ref.current){
+      await sound_ref.current.unloadAsync();
+    }
 
     const soundObject = new Audio.Sound();
 
@@ -150,13 +163,26 @@ export function PlayingComp(props){
     setInitCreated(true);
   }
 
+  // useEffect(() => {
+  //   if (initdata_ref.current){
+  //     console.log('here');
+  //     initLoadSound();
+  //     console.log(sound_ref.current);
+  //   }
+  // }, [initdata_ref.current])
+
   useEffect(() => {
-    if (initdata_ref.current){
-      console.log('here');
+    const init_data = props.navigation.getParam('init_data', false);
+    if (init_data){
+      setLoaded(true);
+      setInitdata(init_data);
+      setPlayIndex(init_data.init_index);
       initLoadSound();
-      console.log(sound_ref.current);
+      console.log('yes inside')
     }
-  }, [])
+    console.log('refreshing');
+    // console.log(initdata);
+  })
 
   useEffect(() => {
     AppState.addEventListener('change', _handleAppStateChange);
@@ -167,49 +193,57 @@ export function PlayingComp(props){
     console.log(`nextAppState: ${nextAppState}`)
   }
 
-  return(
-    <View style={styles.allView} behavior={'padding'}>
-      <View style = {styles.statusBar}>
-        <Text fontSize={itemFontSize+4}>Music</Text>
-      </View>
-      <View style={styles.afterStatus}>
-        <View style = {{
-          flex: 3,
-          alignSelf: 'stretch',
-          borderBottomWidth: 1,
-          borderColor: color.light_pup
-        }}>
-          <FlatList
-            ref = {flatlist_ref}
-            data={data_lst.map((it) => ({key: it}))}
-            getItemLayout={flatlist_getItemLayout}
-            renderItem={({item, index}) => <Item
-                                      title={item.key}
-                                      select = {(index == play_index)}
-                                      index = {index}
-                                      onItemClick = {onItemClick}
-                                    />}
-          />
+  if (loaded){
+    MainView = (
+      <View style={styles.allView} behavior={'padding'}>
+        <View style = {styles.statusBar}>
+          <Text fontSize={itemFontSize+4}>Music</Text>
         </View>
-        <View style = {{
-          flex: 2,
-          alignSelf:'stretch'
-        }}>
-          <PlayControl
-            playing = {playing}
-            setPlaying = {setPlaying}
-            title = {data_lst[play_index]}
-            sound_ref = {sound_ref}
-            init_created = {init_created}
-            nextTrack = {nextTrack}
-            previousTrack = {previousTrack}
-            play_mode_ref = {play_mode_ref}
-          />
+        <View style={styles.afterStatus}>
+          <View style = {{
+            flex: 3,
+            alignSelf: 'stretch',
+            borderBottomWidth: 1,
+            borderColor: color.light_pup
+          }}>
+            <FlatList
+              ref = {flatlist_ref}
+              data={initdata.playlst.map((it) => ({key: it}))}
+              getItemLayout={flatlist_getItemLayout}
+              renderItem={({item, index}) => <Item
+                                        title={item.key}
+                                        select = {(index == play_index)}
+                                        index = {index}
+                                        onItemClick = {onItemClick}
+                                      />}
+            />
+          </View>
+          <View style = {{
+            flex: 2,
+            alignSelf:'stretch'
+          }}>
+            <PlayControl
+              playing = {playing}
+              setPlaying = {setPlaying}
+              title = {initdata.playlst[play_index]}
+              sound_ref = {sound_ref}
+              init_created = {init_created}
+              nextTrack = {nextTrack}
+              previousTrack = {previousTrack}
+              play_mode_ref = {play_mode_ref}
+            />
+          </View>
         </View>
+        <View style={{height:25, alignSelf:'stretch'}}/>
       </View>
-      <View style={{height:25, alignSelf:'stretch'}}/>
-    </View>
-  )
+    )
+  }else{
+    MainView = (
+      <Text> nothing got loaded </Text>
+    )
+  }
+
+  return MainView
 }
 
 

@@ -81,6 +81,7 @@ export function LocalList(props){
   const [show_modal_delete, setModalDel] =  useState(false);
 
   const key_ref = useRef();
+  const data_lst_ref = useRef();
 
   var SelectControl;
   var ModalPlaylist;
@@ -124,6 +125,7 @@ export function LocalList(props){
         order_idex
       )
     );
+    data_lst_ref.current = _array.map((it) => it.track_name);
   }
 
   const fetchShowLst = useCallback(() => {
@@ -353,7 +355,7 @@ export function LocalList(props){
           data={data_lst}
           extraData={[noshow_set, select_mode, select_set]}
           getItemLayout={flatlist_getItemLayout}
-          renderItem={({item}) => <Item
+          renderItem={({item, index}) => <Item
                                     title={item.key}
                                     date = {item.date}
                                     show = {!!!noshow_set.has(item.key)}
@@ -364,6 +366,9 @@ export function LocalList(props){
                                     show_set_ref = {show_set_ref}
                                     key_ref = {key_ref}
                                     setModalMore = {setModalMore}
+                                    index = {index}
+                                    data_lst_ref = {data_lst_ref}
+                                    navigation = {props.navigation}
                                   />}
         />
       </View>
@@ -447,10 +452,10 @@ function Item(props){
     )
   }else{
     onPressEvent = () => {
-      showMessage({
-        message: "Success",
-        description: "ALL",
-        type: "success"})
+      props.navigation.navigate('Play', {init_data: {
+        playlst: props.data_lst_ref.current,
+        init_index: props.index
+      }})
     };
 
     onLongPressEvent = () => {
