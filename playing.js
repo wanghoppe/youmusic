@@ -43,7 +43,17 @@ export function PlayingComp(props){
   const sound_ref = useRef();
   const flatlist_ref = useRef();
 
+  const play_mode_ref = useRef(0);
+  const play_history_ref = useRef([]);
+
   const [appStatus, setAppStatus] = useState(AppState.currentState)
+
+  const updatePlayHistory = (pre_index) => {
+    if (play_history_ref.current.length > 50){
+      play_history_ref.current.shift();
+    }
+    play_history_ref.current.push(pre_index);
+  }
 
   const setPlayIndex = useCallback((index) => {
     _setPlayIndex(index);
@@ -51,7 +61,13 @@ export function PlayingComp(props){
   })
 
   const getNextIndex = () => {
-    return (play_index_ref.current + 1) % data_lst.length
+    if (play_mode_ref.current == 0){
+      return (play_index_ref.current + 1) % data_lst.length;
+    }else if(play_mode_ref.current == 1){
+      return Math.floor(Math.random() * data_lst.length);
+    }else if(play_mode_ref.current == 2){
+      return play_index_ref.current;
+    }
   }
 
   const loadSoundIndex = async (index) => {
@@ -64,15 +80,28 @@ export function PlayingComp(props){
       shouldPlay: playing
     };
     await sound_ref.current.loadAsync(source, init_status);
-    console.log('I am here2');
+    // console.log('I am here2');
     await sound_ref.current.playAsync()
-    console.log('I am here');
+    // console.log('I am here');
     setPlayIndex(index);
     // flatlist_ref.current.scrollToIndex(play_index_ref.current);
   }
 
-  const nextTrack = () => {
+  const nextTrack = (pre_index) => {
+    updatePlayHistory(play_index_ref.current);
     const index = getNextIndex();
+    loadSoundIndex(index);
+    flatlist_ref.current.scrollToIndex({index:index});
+  }
+
+  const previousTrack = () => {
+    var index;
+    const pre_index = play_history_ref.current.pop();
+    if (pre_index){
+      index = pre_index;
+    }else{
+      index = initdata_ref.current.init_index;
+    }
     loadSoundIndex(index);
     flatlist_ref.current.scrollToIndex({index:index});
   }
@@ -173,6 +202,8 @@ export function PlayingComp(props){
             sound_ref = {sound_ref}
             init_created = {init_created}
             nextTrack = {nextTrack}
+            previousTrack = {previousTrack}
+            play_mode_ref = {play_mode_ref}
           />
         </View>
       </View>
@@ -184,10 +215,15 @@ export function PlayingComp(props){
 
 function PlayControl(props){
 
-  const [mode_id, setModeId] = useState(0);
+  const [mode_id, _setModeId] = useState(0);
   const [play_back_status, setPlayBackStatus] = useState({});
   const [seeking, setSeeking] = useState(false);
   const [seek_value, setSeekValue] = useState(0);
+
+  const setModeId = (mode) => {
+    _setModeId(mode);
+    props.play_mode_ref.current = mode;
+  }
 
   const onPlayClick = ()=> {
     if (props.playing){
@@ -313,7 +349,7 @@ function PlayControl(props){
           color = {color.light_pup}
           size={26}
           Component={TouchableOpacity}
-          onPress = {()=>{}}
+          onPress = {props.previousTrack}
         />
         <Icon
           reverse
