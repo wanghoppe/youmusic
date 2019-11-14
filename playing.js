@@ -34,8 +34,9 @@ const data_lst = [
 
 export function PlayingComp(props){
 
-  const [initdata, setInitdata] = useState({playlst:[], init_index:0});
+  // const [initdata, setInitdata] = useState({playlst:[], init_index:0});
   const [loaded, setLoaded] = useState(false);
+  const initdata_ref = useRef();
 
   var MainView;
 
@@ -70,9 +71,9 @@ export function PlayingComp(props){
 
   const getNextIndex = () => {
     if (play_mode_ref.current == 0){
-      return (play_index_ref.current + 1) % initdata.playlst.length;
+      return (play_index_ref.current + 1) % initdata_ref.current.playlst.length;
     }else if(play_mode_ref.current == 1){
-      return Math.floor(Math.random() * initdata.playlst.length);
+      return Math.floor(Math.random() * initdata_ref.current.playlst.length);
     }else if(play_mode_ref.current == 2){
       return play_index_ref.current;
     }
@@ -82,7 +83,7 @@ export function PlayingComp(props){
     // console.log(index)
     await sound_ref.current.unloadAsync();
     const source = {
-      uri: TRACK_DIR + encodeURIComponent(initdata.playlst[index])
+      uri: TRACK_DIR + encodeURIComponent(initdata_ref.current.playlst[index])
     };
     const init_status = {
       shouldPlay: playing
@@ -108,7 +109,7 @@ export function PlayingComp(props){
     if (pre_index){
       index = pre_index;
     }else{
-      index = initdata.init_index;
+      index = initdata_ref.current.init_index;
     }
     loadSoundIndex(index);
     flatlist_ref.current.scrollToIndex({index:index});
@@ -120,7 +121,7 @@ export function PlayingComp(props){
     await sound_ref.current.unloadAsync();
 
     const source = {
-      uri: TRACK_DIR + encodeURIComponent(initdata.playlst[index])
+      uri: TRACK_DIR + encodeURIComponent(initdata_ref.current.playlst[index])
     };
     const init_status = {
       shouldPlay: playing
@@ -128,8 +129,22 @@ export function PlayingComp(props){
     await sound_ref.current.loadAsync(source, init_status);
   }
 
-  const initLoadSound = async () => {
-    let track_name = initdata.playlst[initdata.init_index]
+  const changeLoadSound =  async (init_data) => {
+    setPlayIndex(init_data.init_index);
+    await sound_ref.current.unloadAsync();
+
+    const source = {
+      uri: TRACK_DIR + encodeURIComponent(init_data.playlst[init_data.init_index])
+    };
+    const init_status = {
+      shouldPlay: playing
+    };
+    await sound_ref.current.loadAsync(source, init_status);
+  }
+
+  const initLoadSound = async (init_data) => {
+    setPlayIndex(init_data.init_index);
+    let track_name = init_data.playlst[init_data.init_index]
 
     await Audio.setAudioModeAsync({
       staysActiveInBackground: true,
@@ -140,11 +155,11 @@ export function PlayingComp(props){
       shouldDuckAndroid : true,
       playThroughEarpieceAndroid : false,
     });
-    console.log(`sound_ref: `)
-    console.log(sound_ref.current)
-    if (sound_ref.current){
-      await sound_ref.current.unloadAsync();
-    }
+    // console.log(`sound_ref: `)
+    // console.log(sound_ref.current)
+    // if (sound_ref.current){
+    //   await sound_ref.current.unloadAsync();
+    // }
 
     const soundObject = new Audio.Sound();
 
@@ -164,25 +179,29 @@ export function PlayingComp(props){
   }
 
   // useEffect(() => {
-  //   if (initdata_ref.current){
+  //   if (initdata_ref.current_ref.current){
   //     console.log('here');
   //     initLoadSound();
   //     console.log(sound_ref.current);
   //   }
-  // }, [initdata_ref.current])
+  // }, [initdata_ref.current_ref.current])
 
   useEffect(() => {
+
+    console.log('[INFO] running here')
     const init_data = props.navigation.getParam('init_data', false);
+
     if (init_data){
-      setLoaded(true);
-      setInitdata(init_data);
-      setPlayIndex(init_data.init_index);
-      initLoadSound();
-      console.log('yes inside')
+      if (! initdata_ref.current){
+        initdata_ref.current = init_data;
+        initLoadSound(init_data);
+      } else if (JSON.stringify(init_data) != JSON.stringify(initdata_ref.current)) {
+        initdata_ref.current = init_data;
+        changeLoadSound(init_data);
+      }
     }
-    console.log('refreshing');
     // console.log(initdata);
-  })
+  }, [JSON.stringify(props.navigation.getParam('init_data', false))])
 
   useEffect(() => {
     AppState.addEventListener('change', _handleAppStateChange);
@@ -193,7 +212,7 @@ export function PlayingComp(props){
     console.log(`nextAppState: ${nextAppState}`)
   }
 
-  if (loaded){
+  if (init_created){
     MainView = (
       <View style={styles.allView} behavior={'padding'}>
         <View style = {styles.statusBar}>
@@ -208,7 +227,7 @@ export function PlayingComp(props){
           }}>
             <FlatList
               ref = {flatlist_ref}
-              data={initdata.playlst.map((it) => ({key: it}))}
+              data={initdata_ref.current.playlst.map((it) => ({key: it}))}
               getItemLayout={flatlist_getItemLayout}
               renderItem={({item, index}) => <Item
                                         title={item.key}
@@ -225,7 +244,7 @@ export function PlayingComp(props){
             <PlayControl
               playing = {playing}
               setPlaying = {setPlaying}
-              title = {initdata.playlst[play_index]}
+              title = {initdata_ref.current.playlst[play_index]}
               sound_ref = {sound_ref}
               init_created = {init_created}
               nextTrack = {nextTrack}

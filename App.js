@@ -37,6 +37,7 @@ const TabNavigator = createMaterialTopTabNavigator(
     Play: PlayingComp
   },
   {
+    lazy : true,
     tabBarPosition: 'bottom',
     defaultNavigationOptions: ({ navigation }) => ({
       tabBarIcon: ({ focused, horizontal, tintColor }) => {
