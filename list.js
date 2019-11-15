@@ -200,8 +200,9 @@ function List(props){
   }, [filter_idex, filter_txt, toggle_filter]);
 
   useEffect(() => {
-    login()
-      .then(() => generate_lst());
+    // login()
+    //   .then(() => generate_lst());
+    generate_lst();
     console.log('Running1');
   }, []);
 

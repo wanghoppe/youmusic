@@ -11,6 +11,7 @@ import { createAppContainer } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
 
 import Amplify, { Storage, Auth } from 'aws-amplify';
+import { withAuthenticator } from 'aws-amplify-react-native';
 import awsconfig from './aws-exports';
 
 import {LoginView} from './login';
@@ -75,6 +76,11 @@ const TabNavigator = createMaterialTopTabNavigator(
 );
 
 const YouMusic = createAppContainer(TabNavigator);
+
+// export default withAuthenticator(App, {
+//                 // Render a sign out button once logged in
+//                 includeGreetings: true
+//               })
 
 export default function App() {
   return (

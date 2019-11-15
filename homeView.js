@@ -73,6 +73,12 @@ function NewWebView(props){
                     }
                   }}
           />
+          <Button title="log out"
+                  onPress = {async () => {
+                    Auth.signOut({ global: true })
+                        .then(data => console.log(data))
+                  }}
+          />
           <Button title="test"
                   onPress = {() => showMessage({
                     message: "Success",
