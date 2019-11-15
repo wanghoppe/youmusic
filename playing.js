@@ -68,7 +68,7 @@ export function PlayingComp(props){
     setPlayIndex(index);
   }
 
-  const nextTrack = (pre_index) => {
+  const nextTrack = () => {
     updatePlayHistory(play_index);
     const index = getNextIndex();
     loadSoundIndex(index);
