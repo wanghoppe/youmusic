@@ -9,44 +9,17 @@ import { Audio } from 'expo-av';
 import {color, styles, itemHeight, TRACK_DIR, itemFontSize, flatlist_getItemLayout} from './styleConst';
 import { Button, Icon, Slider } from 'react-native-elements';
 
-const data_lst = [
-  // "5 Second Countdown HD-QohH89Eu5iM.mp3",
-  "馮提莫 - 佛系少女「我的愛不過氣 」♪Karendaidai♪-VArUc-bCanQ.mp3",
-  "Top Hits 2019 - Best English Music Playlist 2019 - Rihanna, Ed Sheeran, Shawn Mendes, Maroon 5-PMcdYmCxpOU.mp3",
-  "13 Year Old Singing Like a Lion Earns Howie's Golden Buzzer America's Got Talent-d59H0UxhyaY.mp3",
-  "陈一发儿－白山茶-qZ5U7s8T5oI.mp3",
-  "Taylor Swift - Lover--BjZmE2gtdo.mp3",
-  "牽絲戲 by 銀臨 & Aki阿杰 QIAN SI XI-C6YobfNjeqc.mp3",
-  "音闕詩聽 - 白露 (feat.王梓鈺)【動態歌詞Lyrics】-NSwQ0OlwUn0.mp3",
-  "Best english song 2019 + 好聽的英文歌2019 + 英文歌曲排行榜2019 + 2019流行英文歌曲 + 2019最新英文歌曲 + 2019年会烧脑神曲推荐 + tik tok-Ih_AmU4-YPA.mp3",
-  "蘇仨 - 沙漠駱駝 (女聲版)(Cover：展展與羅羅)【動態歌詞Lyrics】-8m7hxhyr4jc.mp3",
-  "4位去外国“砸场子”的女歌手，她们一开口，台下老外沸腾了 超清 254299796-C-u30Mdlj4Y.mp3",
-  "音闕詩聽 - 芒種 (feat.趙方婧)【動態歌詞Lyrics】-ZHFgk8Eo0FE.mp3",
-  "HITA - 赤伶「情字難落墨，她唱須以血來和。」[ High Quality Lyrics ][ Chinese Style ] tk推薦-4ROBQMlh3Ew.mp3",
-  "《芒種》音闕詩聽，（芒种 录音室版），一想到你我就~-eoar4WDRSHk.mp3",
-  "【蕭憶情】不謂俠【《蕭音瀰漫》專輯收錄曲】-cb2hVNAhPJ4.mp3",
-  "Despacito - Luis Fonsi, Daddy Yankee ft. Justin Bieber (Madilyn Bailey & Leroy Sanchez Cover)-ASAzwmORUJk.mp3",
-  "陈一发儿－夜空中最亮的星-TV7DeM0Jqik.mp3",
-  "你在終點等我 － 陈一发儿-4HgNzGHbB5Y.mp3",
-  "汪小敏《笑看風雲》挑戰主打歌 2018-07-27-36h0-Z6KbL0.mp3",
-  "陳粒 - 奇妙能力歌-p0GPJbdKhCw.mp3",
-]
 
 export function PlayingComp(props){
 
-  // const [initdata, setInitdata] = useState({playlst:[], init_index:0});
   const [loaded, setLoaded] = useState(false);
   const initdata_ref = useRef();
 
   var MainView;
 
-  // if (! initdata_ref.current){
-  //   console.log('return null')
-  //   return null
-  // }
-
   const [play_index, _setPlayIndex] = useState();
-  const play_index_ref = useRef(play_index);
+  const [play_list, setPlayList] =  useState();
+
   const [playing, setPlaying] = useState(true);
   const [init_created, setInitCreated] = useState(false);
   const sound_ref = useRef();
@@ -55,7 +28,7 @@ export function PlayingComp(props){
   const play_mode_ref = useRef(0);
   const play_history_ref = useRef([]);
 
-  const [appStatus, setAppStatus] = useState(AppState.currentState)
+  // const [appStatus, setAppStatus] = useState(AppState.currentState)
 
   const updatePlayHistory = (pre_index) => {
     if (play_history_ref.current.length > 50){
@@ -66,41 +39,39 @@ export function PlayingComp(props){
 
   const setPlayIndex = useCallback((index) => {
     _setPlayIndex(index);
-    play_index_ref.current = index;
+    let wait = new Promise((resolve) => setTimeout(resolve, 100));  // Smaller number should work
+    wait.then( () => {
+      flatlist_ref.current.scrollToIndex({index:index});
+    });
   })
 
   const getNextIndex = () => {
     if (play_mode_ref.current == 0){
-      return (play_index_ref.current + 1) % initdata_ref.current.playlst.length;
+      return (play_index + 1) % initdata_ref.current.playlst.length;
     }else if(play_mode_ref.current == 1){
       return Math.floor(Math.random() * initdata_ref.current.playlst.length);
     }else if(play_mode_ref.current == 2){
-      return play_index_ref.current;
+      return play_index;
     }
   }
 
   const loadSoundIndex = async (index) => {
-    // console.log(index)
     await sound_ref.current.unloadAsync();
     const source = {
-      uri: TRACK_DIR + encodeURIComponent(initdata_ref.current.playlst[index])
+      uri: TRACK_DIR + encodeURIComponent(play_list[index].key)
     };
     const init_status = {
       shouldPlay: playing
     };
     await sound_ref.current.loadAsync(source, init_status);
-    // console.log('I am here2');
     await sound_ref.current.playAsync()
-    // console.log('I am here');
     setPlayIndex(index);
-    // flatlist_ref.current.scrollToIndex(play_index_ref.current);
   }
 
   const nextTrack = (pre_index) => {
-    updatePlayHistory(play_index_ref.current);
+    updatePlayHistory(play_index);
     const index = getNextIndex();
     loadSoundIndex(index);
-    flatlist_ref.current.scrollToIndex({index:index});
   }
 
   const previousTrack = () => {
@@ -112,25 +83,13 @@ export function PlayingComp(props){
       index = initdata_ref.current.init_index;
     }
     loadSoundIndex(index);
-    flatlist_ref.current.scrollToIndex({index:index});
   }
 
   const onItemClick = async (index) => {
-    setPlayIndex(index);
-
-    await sound_ref.current.unloadAsync();
-
-    const source = {
-      uri: TRACK_DIR + encodeURIComponent(initdata_ref.current.playlst[index])
-    };
-    const init_status = {
-      shouldPlay: playing
-    };
-    await sound_ref.current.loadAsync(source, init_status);
+    loadSoundIndex(index);
   }
 
   const changeLoadSound =  async (init_data) => {
-    setPlayIndex(init_data.init_index);
     await sound_ref.current.unloadAsync();
 
     const source = {
@@ -140,11 +99,13 @@ export function PlayingComp(props){
       shouldPlay: playing
     };
     await sound_ref.current.loadAsync(source, init_status);
+    play_history_ref.current = [];
+    setPlayList(init_data.playlst.map((it) => ({key: it})));
+    setPlayIndex(init_data.init_index);
   }
 
   const initLoadSound = async (init_data) => {
-    setPlayIndex(init_data.init_index);
-    let track_name = init_data.playlst[init_data.init_index]
+    let track_name = init_data.playlst[init_data.init_index];
 
     await Audio.setAudioModeAsync({
       staysActiveInBackground: true,
@@ -167,28 +128,18 @@ export function PlayingComp(props){
       uri: TRACK_DIR + encodeURIComponent(track_name)
     };
     await soundObject.loadAsync(source);
+
     sound_ref.current = soundObject;
 
-    // sound_ref.current = new Audio.Sound();
-    // const source = {
-    //   uri: TRACK_DIR + encodeURIComponent(track_name)
-    // };
-    // await sound_ref.current.loadAsync(source);
-
+    setPlayList(init_data.playlst.map((it) => ({key: it})));
     setInitCreated(true);
+    setPlayIndex(init_data.init_index);
   }
-
-  // useEffect(() => {
-  //   if (initdata_ref.current_ref.current){
-  //     console.log('here');
-  //     initLoadSound();
-  //     console.log(sound_ref.current);
-  //   }
-  // }, [initdata_ref.current_ref.current])
 
   useEffect(() => {
 
-    console.log('[INFO] running here')
+    // console.log('[INFO] running here')
+    // console.log(init_created)
     const init_data = props.navigation.getParam('init_data', false);
 
     if (init_data){
@@ -227,7 +178,8 @@ export function PlayingComp(props){
           }}>
             <FlatList
               ref = {flatlist_ref}
-              data={initdata_ref.current.playlst.map((it) => ({key: it}))}
+              extraData = {[play_index]}
+              data={play_list}
               getItemLayout={flatlist_getItemLayout}
               renderItem={({item, index}) => <Item
                                         title={item.key}
@@ -244,7 +196,7 @@ export function PlayingComp(props){
             <PlayControl
               playing = {playing}
               setPlaying = {setPlaying}
-              title = {initdata_ref.current.playlst[play_index]}
+              title = {(play_list[play_index]) ? play_list[play_index].key : ''}
               sound_ref = {sound_ref}
               init_created = {init_created}
               nextTrack = {nextTrack}

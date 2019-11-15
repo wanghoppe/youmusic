@@ -89,7 +89,7 @@ export function LocalView(props){
   return (
     <View style={styles.allView} behavior={'padding'}>
       {MainView}
-      { true && <Button
+      { false && <Button
         title= {'Delete db'}
         onPress={ async () => {
           await FileSystem.deleteAsync(FileSystem.documentDirectory + 'SQLite/db.db');

@@ -66,7 +66,7 @@ export function LocalList(props){
   // const all_ref = useRef(true);
   const lst_ref = useRef(props.navigation.getParam('plst_name', null));
 
-  const [data_lst, setDataLst] = useState([]);
+  const [data_lst, _setDataLst] = useState([]);
   const [select_set, setSelectSet] = useState(new Set());
   const [noshow_set, setNoshowset] = useState(new Set());
   const [select_mode, setSelectMode] = useState();
@@ -99,6 +99,11 @@ export function LocalList(props){
                       )`
   }
 
+  const setDataLst = (lst) => {
+    _setDataLst(lst);
+    data_lst_ref.current = lst.map((it) => it.key);
+  }
+
   const exitSelectMode = useCallback(() => {
     setSelectSet(new Set());
     setSelectMode(false);
@@ -125,7 +130,6 @@ export function LocalList(props){
         order_idex
       )
     );
-    data_lst_ref.current = _array.map((it) => it.track_name);
   }
 
   const fetchShowLst = useCallback(() => {
