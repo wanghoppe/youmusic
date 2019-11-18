@@ -7,14 +7,14 @@ import { WebView } from 'react-native-webview';
 import Constants from 'expo-constants';
 import { Icon } from 'react-native-elements'
 import { createBottomTabNavigator, createMaterialTopTabNavigator  } from 'react-navigation-tabs';
-import { createAppContainer } from 'react-navigation';
+import { createAppContainer , createSwitchNavigator} from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
 
 import Amplify, { Storage, Auth } from 'aws-amplify';
 import { withAuthenticator } from 'aws-amplify-react-native';
 import awsconfig from './aws-exports';
 
-import {LoginView} from './login';
+import {LoginView, AuthLoadingScreen} from './login';
 import {ExploreView} from './homeView';
 import {CloudList} from './list';
 import {LocalView} from './localView';
@@ -75,7 +75,19 @@ const TabNavigator = createMaterialTopTabNavigator(
   }
 );
 
-const YouMusic = createAppContainer(TabNavigator);
+
+const SwitchNavigator = createSwitchNavigator(
+    {
+      AuthLoading: AuthLoadingScreen,
+      App: TabNavigator,
+      Auth: LoginView,
+    },
+    {
+      initialRouteName: 'AuthLoading',
+    }
+  )
+
+const YouMusic = createAppContainer(SwitchNavigator);
 
 // export default withAuthenticator(App, {
 //                 // Render a sign out button once logged in

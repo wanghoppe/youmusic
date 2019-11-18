@@ -12,6 +12,7 @@ import ModalDropdown from 'react-native-modal-dropdown';
 import { Icon } from 'react-native-elements'
 
 import { createStackNavigator } from 'react-navigation-stack';
+import { withNavigationFocus } from 'react-navigation';
 
 
 import {color, styles, itemHeight, TRACK_DIR, db, itemFontSize, itemOffset} from './styleConst';
@@ -60,7 +61,7 @@ function orderLst(lst, by){
 
 export const CloudList = createStackNavigator(
   {
-    CloudList: List
+    CloudList: withNavigationFocus(List)
   },
   {
     defaultNavigationOptions:{
@@ -94,6 +95,8 @@ function List(props){
   const force_down_set_ref = useRef(new Set())
 
   const [orderBy, setOrder] = useState(0);
+
+  const focuse_ref = useRef(false);
 
 
   var mainView;
@@ -231,6 +234,11 @@ function List(props){
     }
   }, [orderBy])
 
+  useEffect(() => {
+    focuse_ref.current = props.isFocused;
+    console.log(props.isFocused);
+  }, [props.isFocused])
+
   if (select_mode){
     selectControl = (
       <View style = {{...styles.containerRow, justifyContent: 'space-around', height: itemHeight}}>
@@ -318,6 +326,7 @@ function List(props){
                                     select_mode = {select_mode}
                                     setSelectMode = {setSelectMode}
                                     force_down_set_ref = {force_down_set_ref}
+                                    focuse_ref = {focuse_ref}
                                   />}
         />
         {selectControl}
@@ -459,7 +468,10 @@ function Item(props){
         {},
         (downloadProgress) => {
           const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
-          setProg(progress);
+
+          if (props.focuse_ref.current || progress == 1){
+            setProg(progress);
+          }
           // props.updateMapProgWithId(props.title, progress);
         }
       );

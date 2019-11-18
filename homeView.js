@@ -52,7 +52,7 @@ function NewWebView(props){
                     )
                   }}>
           </Button>
-          <Button title="log in"
+          {false && <Button title="log in"
                   onPress = {async () => {
                     try{
                       const user = await Auth.signIn('wanghp000@gmail.com', '123456789');
@@ -72,11 +72,12 @@ function NewWebView(props){
                       console.log(err)
                     }
                   }}
-          />
+          />}
           <Button title="log out"
                   onPress = {async () => {
-                    Auth.signOut({ global: true })
+                    await Auth.signOut({ global: true })
                         .then(data => console.log(data))
+                    props.navigation.navigate('AuthLoading');
                   }}
           />
           <Button title="test"
@@ -104,7 +105,7 @@ function NewWebView(props){
               }else{
                 const you_id = parsed[2];
                 const user_info = await Auth.currentUserInfo();
-                const user_id = info.id;
+                const user_id = user_info.id;
                 console.log('Downloading ' + you_id + ' for ' + user_id);
 
                 response = await fetch('https://vxmaikxa2m.execute-api.us-west-2.amazonaws.com/beta/trans', {

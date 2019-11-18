@@ -136,6 +136,12 @@ export function PlayingComp(props){
     setPlayIndex(init_data.init_index);
   }
 
+  const cleanUpFunc = async() => {
+    if (sound_ref.current){
+      await sound_ref.current.unloadAsync();
+    }
+  }
+
   useEffect(() => {
 
     // console.log('[INFO] running here')
@@ -151,13 +157,15 @@ export function PlayingComp(props){
         changeLoadSound(init_data);
       }
     }
+
+    return cleanUpFunc;
     // console.log(initdata);
   }, [JSON.stringify(props.navigation.getParam('init_data', false))])
 
-  useEffect(() => {
-    AppState.addEventListener('change', _handleAppStateChange);
-    console.log(AppState.currentState)
-  }, [])
+  // useEffect(() => {
+  //   AppState.addEventListener('change', _handleAppStateChange);
+  //   console.log(AppState.currentState);
+  // }, [])
 
   const _handleAppStateChange = (nextAppState) => {
     console.log(`nextAppState: ${nextAppState}`)
@@ -318,7 +326,7 @@ function PlayControl(props){
   }
 
   useEffect(() => {
-    initSetStatus()
+    initSetStatus();
   },[props.init_created])
 
   return(
