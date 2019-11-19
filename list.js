@@ -236,7 +236,7 @@ function List(props){
 
   useEffect(() => {
     focuse_ref.current = props.isFocused;
-    console.log(props.isFocused);
+    // console.log(props.isFocused);
   }, [props.isFocused])
 
   if (select_mode){

@@ -18,6 +18,7 @@ export function PlayingComp(props){
   var MainView;
 
   const [play_index, _setPlayIndex] = useState();
+  const play_index_ref = useRef()
   const [play_list, setPlayList] =  useState();
 
   const [playing, setPlaying] = useState(true);
@@ -39,6 +40,7 @@ export function PlayingComp(props){
 
   const setPlayIndex = useCallback((index) => {
     _setPlayIndex(index);
+    play_index_ref.current = index;
     let wait = new Promise((resolve) => setTimeout(resolve, 100));  // Smaller number should work
     wait.then( () => {
       flatlist_ref.current.scrollToIndex({index:index});
@@ -47,11 +49,11 @@ export function PlayingComp(props){
 
   const getNextIndex = () => {
     if (play_mode_ref.current == 0){
-      return (play_index + 1) % initdata_ref.current.playlst.length;
+      return (play_index_ref.current + 1) % initdata_ref.current.playlst.length;
     }else if(play_mode_ref.current == 1){
       return Math.floor(Math.random() * initdata_ref.current.playlst.length);
     }else if(play_mode_ref.current == 2){
-      return play_index;
+      return play_index_ref.current;
     }
   }
 
