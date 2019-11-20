@@ -60,18 +60,18 @@ export function PlayingComp(props){
   const loadSoundIndex = async (index) => {
     await sound_ref.current.unloadAsync();
     const source = {
-      uri: TRACK_DIR + encodeURIComponent(play_list[index].key)
+      uri: TRACK_DIR + encodeURIComponent(initdata_ref.current.playlst[index])
     };
     const init_status = {
       shouldPlay: playing
     };
     await sound_ref.current.loadAsync(source, init_status);
-    await sound_ref.current.playAsync()
+    // await sound_ref.current.playAsync()
     setPlayIndex(index);
   }
 
   const nextTrack = () => {
-    updatePlayHistory(play_index);
+    updatePlayHistory(play_index_ref.current);
     const index = getNextIndex();
     loadSoundIndex(index);
   }
@@ -323,7 +323,7 @@ function PlayControl(props){
     if (props.sound_ref.current){
       await props.sound_ref.current.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate);
       await props.sound_ref.current.setStatusAsync({shouldPlay: props.playing})
-      await props.sound_ref.current.playAsync()
+      // await props.sound_ref.current.playAsync()
     }
   }
 
