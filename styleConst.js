@@ -41,6 +41,14 @@ export const styles = StyleSheet.create({
     alignSelf: 'stretch'
   },
 
+  grayContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: color.light_grey,
+    padding: 5
+  },
+
   container: {
     // borderTopWidth: 1,
     // borderLeftWidth: 1,

@@ -1,10 +1,12 @@
 import React, {useState} from 'react';
-import { Alert, StyleSheet, Text, View, Button, TextInput, ScrollView, KeyboardAvoidingView, StatusBar } from 'react-native';
+import { TouchableWithoutFeedback, Modal, TouchableOpacity, Alert, StyleSheet, Text, View, TextInput, ScrollView, KeyboardAvoidingView, StatusBar } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { showMessage, hideMessage } from "react-native-flash-message";
 import { Auth } from 'aws-amplify';
 import { createStackNavigator } from 'react-navigation-stack';
 import {color, styles} from './styleConst';
+import { Button, Icon } from 'react-native-elements';
+import ModalDropdown from 'react-native-modal-dropdown';
 
 export const ExploreView = createStackNavigator(
   {
@@ -26,67 +28,111 @@ export const ExploreView = createStackNavigator(
 function NewWebView(props){
   var ref_out = null;
 
+  const [show_modal, setShowModal] = useState(false);
+
+  const upload2Cloud = () => {
+    Alert.alert(
+      "Comfirm",
+      "Download to Cloud?",
+      [
+        {text: 'OK', onPress: () => ref_out.injectJavaScript("window.ReactNativeWebView.postMessage(window.location.href);")},
+        {text: 'Cancel', onPress: () => {}, style: 'cancel'}
+      ],
+    )
+  }
+
+  const goBackHome = () => {
+    ref_out.injectJavaScript("window.location.href = 'https://www.youtube.com';");
+    setShowModal(false);
+  }
+
+  const historyGoBack = () => {
+    ref_out.injectJavaScript("window.history.go(-1);");
+  }
+
+  const historyGoForward = () => {
+    ref_out.injectJavaScript("window.history.go(1);");
+  }
+
+  const logOut = async () => {
+    await Auth.signOut({ global: true })
+        .then(data => console.log(data));
+    props.navigation.navigate('AuthLoading');
+  }
+
+  const HomeModal = (
+    <Modal
+      animationType="fade"
+      transparent={true}
+      visible={show_modal}
+    >
+      <View style={{...styles.modalBack, justifyContent: 'center'}}>
+        <TouchableWithoutFeedback onPress = {() => setShowModal(false)}>
+          <View style = {styles.modalTouchClose}/>
+        </TouchableWithoutFeedback>
+        <View style ={{...styles.modalInCenter, height: null}}>
+          <TouchableOpacity
+            style = {{...styles.touchableRow}}
+            onPress = {goBackHome}
+          >
+            <Text>Back to Youtube</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style = {{...styles.touchableRow}}
+            onPress = {logOut}
+            >
+            <Text>LOG OUT</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  )
+
   return (
     <View style={styles.allView} behavior={'padding'}>
+      {HomeModal}
       <View style = {styles.afterStatus}>
         <View style = {{flexDirection: 'row', justifyContent: 'space-around', alignSelf: 'stretch'}}>
-          <Button title="HOME"
-                  onPress={() => {
-                    ref_out.injectJavaScript("window.location.href = 'https://www.youtube.com';");
-                  }}>
-          </Button>
-          <Button title="BACK"
-                  onPress={() => {
-                    ref_out.injectJavaScript("window.history.go(-1);");
-                  }}>
-          </Button>
-          <Button title="GET URL"
-                  onPress={() => {
-                    Alert.alert(
-                      "Comfirm",
-                      "Download to Cloud?",
-                      [
-                        {text: 'OK', onPress: () => ref_out.injectJavaScript("window.ReactNativeWebView.postMessage(window.location.href);")},
-                        {text: 'Cancel', onPress: () => {}, style: 'cancel'}
-                      ],
-                    )
-                  }}>
-          </Button>
-          {false && <Button title="log in"
-                  onPress = {async () => {
-                    try{
-                      const user = await Auth.signIn('wanghp000@gmail.com', '123456789');
-                      if (user.challengeName === 'NEW_PASSWORD_REQUIRED'){
-                        const loggedUser = await Auth.completeNewPassword(
-                          user, '123456789'
-                        )
-                      };
-                      info = await Auth.currentUserInfo();
-
-                      showMessage({
-                        message: "Login Success",
-                        description: "Login as "+ info.attributes.email,
-                        type: "success"})
-                      console.log(info);
-                    }catch(err){
-                      console.log(err)
-                    }
-                  }}
-          />}
-          <Button title="log out"
-                  onPress = {async () => {
-                    await Auth.signOut({ global: true })
-                        .then(data => console.log(data))
-                    props.navigation.navigate('AuthLoading');
-                  }}
-          />
-          <Button title="test"
-                  onPress = {() => showMessage({
-                    message: "Success",
-                    description: " is downloaded to cloud",
-                    type: "success"})
-                }
-          />
+          <TouchableOpacity
+            style = {styles.grayContainer}
+            onPress={historyGoBack}
+            >
+            <Icon
+              name = 'first-page'
+              color = {color.primary}
+              size = {35}
+              />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style = {styles.grayContainer}
+            onPress={historyGoForward}
+            >
+            <Icon
+              name = 'last-page'
+              color = {color.primary}
+              size = {35}
+              />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style = {styles.grayContainer}
+            onPress={upload2Cloud}
+            >
+            <Icon
+              name = 'cloud-upload'
+              color = {color.primary}
+              size = {35}
+              />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style = {styles.grayContainer}
+            onPress={() => setShowModal(true)}
+            >
+            <Icon
+              name = 'more-vert'
+              color = {color.primary}
+              size = {35}
+              />
+          </TouchableOpacity>
         </View>
         <View
             style={{ flex: 1, alignSelf: 'stretch' }}
