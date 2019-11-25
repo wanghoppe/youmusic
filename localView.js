@@ -68,9 +68,7 @@ export function LocalView(props){
       </View>
       <View style = {{
         flex: 1,
-        alignSelf: 'stretch',
-        borderBottomWidth: 1,
-        borderColor: color.light_pup
+        alignSelf: 'stretch'
       }}>
         <FlatList
           data={playlist_lst}

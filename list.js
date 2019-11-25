@@ -358,14 +358,15 @@ function _CloudList(props){
           alignSelf : "stretch",
           flexDirection: 'row',
           alignItems:'center',
-          borderBottomColor: color.light_pup,
-          borderBottomWidth: 2,
-          borderRadius:5,
+          // borderBottomColor: color.light_pup,
+          // borderBottomWidth: 2,
+          // backgroundColor: color.light_pup3,
+          // borderRadius:5,
         }}>
           <SearchBar
             containerStyle = {{
               flex: 7,
-              backgroundColor: 'white',
+              backgroundColor: 'rgba(0,0,0,0)',
               borderBottomWidth: 0,
               borderTopWidth:0
             }}
@@ -383,14 +384,14 @@ function _CloudList(props){
               backgroundColor: color.light_grey,
               justifyContent:'center',
               height:40}}
-            textStyle = {{fontSize: 20, alignItems: 'center', color: color.primary}}
+            textStyle = {{fontSize: itemFontSize+2, alignItems: 'center', color: color.primary}}
             dropdownStyle = {{backgroundColor: color.light_grey, height: 204}}
             defaultIndex = {0}
             defaultValue = {'All'}
             options={['All', 'Undownload', 'Loading', 'Downloaded']}
             renderRow = {(option)=>(
               <View style = {{alignItems: 'center', justifyContent: 'center', height: 50}}>
-                <Text style={{fontSize:20, color: color.primary}}>{option}</Text>
+                <Text style={{fontSize:itemFontSize+2, color: color.primary}}>{option}</Text>
               </View>
             )}
             renderSeparator = { () => (<View
@@ -409,7 +410,7 @@ function _CloudList(props){
           >
             <Text style = {{
               color: color.primary,
-              fontSize: 20,
+              fontSize: itemFontSize+2,
             }}>{['Date↓', 'Size↓'][orderBy]}</Text>
           </TouchableOpacity>
           {global_debug && <TouchableOpacity

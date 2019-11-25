@@ -323,9 +323,9 @@ export function LocalList(props){
         alignSelf : "stretch",
         flexDirection: 'row',
         alignItems:'center',
-        borderBottomColor: color.light_pup,
-        borderBottomWidth: 2,
-        borderRadius:5
+        // borderBottomColor: color.light_pup,
+        // borderBottomWidth: 2,
+        // borderRadius:5
       }}>
         <SearchBar
           containerStyle = {{
@@ -349,15 +349,13 @@ export function LocalList(props){
         >
           <Text style = {{
             color: color.primary,
-            fontSize: 20,
+            fontSize: itemFontSize+2,
           }}>{['Name↓','Date↓'][order_idex]}</Text>
         </TouchableOpacity>
       </View>
       <View style = {{
         flex: 1,
         alignSelf: 'stretch',
-        borderBottomWidth: 1,
-        borderColor: color.light_pup
       }}>
         <FlatList
           data={data_lst}
@@ -495,7 +493,7 @@ function Item(props){
   return (
     <View style={{...styles.containerRow,
       paddingLeft: 22,
-      borderBottomWidth: 1,
+      borderTopWidth: 1,
       borderColor: color.light_pup,
       backgroundColor: (props.select) ? color.light_pup2 : 'white'
     }}>

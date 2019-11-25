@@ -181,10 +181,10 @@ export function PlayingComp(props){
         </View>
         <View style={styles.afterStatus}>
           <View style = {{
-            flex: 3,
+            flex: 4,
             alignSelf: 'stretch',
-            borderBottomWidth: 1,
-            borderColor: color.light_pup
+            // borderBottomWidth: 1,
+            // borderColor: color.light_pup
           }}>
             <FlatList
               ref = {flatlist_ref}
@@ -215,7 +215,6 @@ export function PlayingComp(props){
             />
           </View>
         </View>
-        <View style={{height:25, alignSelf:'stretch'}}/>
       </View>
     )
   }else{
@@ -332,61 +331,75 @@ function PlayControl(props){
   },[props.init_created])
 
   return(
-    <View style = {{flex:1, alignSelf:'stretch'}}>
-      <View style={{flex:2, alignSelf:'stretch', justifyContent:'flex-end'}}>
-        <View style={{flex:1, alignSelf:'flex-end', justifyContent:'center'}}>
-          <Icon
-            reverse
-            name={['list', 'shuffle', 'loop'][mode_id]}
-            type={(mode_id == 3)? 'material-community': 'fundation'}
-            color = {color.light_pup}
-            size={20}
-            Component={TouchableOpacity}
-            onPress = {() => setModeId((mode_id+1)% 3)}
-          />
-        </View>
-        <View style={{flex:1, alignSelf:'center', justifyContent:'flex-end', paddingLeft:10, paddingRight:10}}>
-          <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{props.title}</Text>
-        </View>
+    <View style = {{flex:1, alignSelf:'stretch', backgroundColor: color.light_grey}}>
+      <View style={{flex:1, alignSelf:'center', justifyContent:'flex-end', paddingLeft:10, paddingRight:10}}>
+        <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{props.title}</Text>
       </View>
       <View style={{flex:3,
         flexDirection: 'row',
         alignItems: 'center',
-        paddingLeft: 30,
-        paddingRight: 30,
-        justifyContent:'space-between',
-        backgroundColor:color.light_gre
+        paddingLeft: 45,
+        paddingRight: 45,
+        // justifyContent:'space-around',
+        // backgroundColor:color.light_gre
       }}>
-        <Icon
-          reverse
-          name='step-backward'
-          type='font-awesome'
-          color = {color.light_pup}
-          size={26}
-          Component={TouchableOpacity}
-          onPress = {props.previousTrack}
-        />
-        <Icon
-          reverse
-          name={(props.playing)? 'pause': 'play'}
-          type='font-awesome'
-          color ={color.light_pup}
-          size={40}
-          Component={TouchableOpacity}
-          onPress = {onPlayClick}
-        />
-        <Icon
-          reverse
-          name='step-forward'
-          type='font-awesome'
-          color ={color.light_pup}
-          size={26}
-          Component={TouchableOpacity}
-          onPress = {props.nextTrack}
-        />
+        <View style = {{flex:1, alignItems:'center'}}>
+          <Icon
+            reverse
+            name='step-backward'
+            type='font-awesome'
+            color = {color.primary}
+            size={20}
+            Component={TouchableOpacity}
+            onPress = {props.previousTrack}
+          />
+        </View>
+        <View style = {{flex:3, alignItems:'center'}}>
+          <Icon
+            reverse
+            name={(props.playing)? 'pause': 'play'}
+            type='font-awesome'
+            color ={color.primary}
+            size={30}
+            Component={TouchableOpacity}
+            onPress = {onPlayClick}
+          />
+        </View>
+        <View style = {{flex:1, alignItems:'center'}}>
+          <Icon
+            reverse
+            name='step-forward'
+            type='font-awesome'
+            color ={color.primary}
+            size={20}
+            Component={TouchableOpacity}
+            onPress = {props.nextTrack}
+          />
+        </View>
+        <View
+          style = {{
+            position: 'absolute',
+            top:0,
+            right:0,
+            width: 45,
+            // alignItems:'center',
+            alignSelf:'flex-end',
+            // backgroundColor:color.light_gre
+          }}
+        >
+          <Icon
+            reverse
+            name={['list', 'shuffle', 'loop'][mode_id]}
+            type={(mode_id == 3)? 'material-community': 'fundation'}
+            color = {color.primary}
+            size={15}
+            Component={TouchableOpacity}
+            onPress = {() => setModeId((mode_id+1)% 3)}
+          />
+        </View>
       </View>
       <View style={{flex:2, justifyContent:'center',
-        backgroundColor:color.light_grey,
+        // backgroundColor:color.light_grey,
         alignItems: 'center',
         paddingLeft:15,
         paddingRight:15
@@ -398,6 +411,7 @@ function PlayControl(props){
             onValueChange = {(value) => setSeekValue(value)}
             onSlidingComplete = {_onSlidingComplete}
             onSlidingStart = {() => setSeeking(true)}
+            thumbTintColor = {color.primary}
           />
         </View>
       </View>
@@ -410,8 +424,8 @@ function Item(props){
     <TouchableOpacity
       style={{...styles.containerRow,
         borderBottomWidth: 1,
-        borderColor: color.light_pup,
-        backgroundColor: (props.select) ? color.light_pup2 : 'rgba(0,0,0,0.1)'
+        borderColor: color.primary,
+        backgroundColor: (props.select) ? color.primary2 : 'rgba(0,0,0,0)'
       }}
       onPress = {() =>{
         props.onItemClick(props.index)
@@ -421,7 +435,7 @@ function Item(props){
         <Icon
           name='music'
           type='font-awesome'
-          color ={(props.select) ? color.light_pup: 'rgba(0,0,0,0.7)'}
+          color ={(props.select) ? color.primary: 'rgba(0,0,0,0.7)'}
           size={itemFontSize+5}
         />
       </View>

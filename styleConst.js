@@ -17,8 +17,10 @@ export const color = {light_pup: '#cc7a9b',
                       dark_pup: '#c91860',
                       light_gre: '#9fd6bf',
                       light_pup2: 'rgba(204, 122, 155, 0.5)',
+                      light_pup3: 'rgba(204, 122, 155, 0.2)',
                       light_grey: 'rgb(227, 227, 227)',
                       primary: 'rgb(67,136,214)',
+                      primary2: 'rgba(67,136,214,0.3)',
                       light_pup_header: '#d993af',
                     }
 export const flatlist_getItemLayout = (data, index) => (
