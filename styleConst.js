@@ -8,6 +8,8 @@ export const itemHeight = 55;
 export const itemFontSize = 16;
 export const itemOffset = 8;
 
+export const global_debug = false;
+
 export const TRACK_DIR = FileSystem.documentDirectory + 'tracks/';
 export const db = SQLite.openDatabase("db.db");
 
@@ -16,7 +18,8 @@ export const color = {light_pup: '#cc7a9b',
                       light_gre: '#9fd6bf',
                       light_pup2: 'rgba(204, 122, 155, 0.5)',
                       light_grey: 'rgb(227, 227, 227)',
-                      primary: 'rgb(67,136,214)'
+                      primary: 'rgb(67,136,214)',
+                      light_pup_header: '#d993af',
                     }
 export const flatlist_getItemLayout = (data, index) => (
   {length: itemHeight, offset: itemHeight * index, index}
@@ -28,11 +31,11 @@ export const styles = StyleSheet.create({
   },
 
   statusBar: {
-    backgroundColor: color.light_pup,
+    backgroundColor: color.light_pup_header,
     height: Constants.statusBarHeight + 35,
     justifyContent: 'flex-end',
     alignItems: 'center',
-    paddingBottom: 10
+    paddingBottom: 5
   },
 
   afterStatus: {

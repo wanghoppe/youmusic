@@ -177,7 +177,7 @@ export function PlayingComp(props){
     MainView = (
       <View style={styles.allView} behavior={'padding'}>
         <View style = {styles.statusBar}>
-          <Text fontSize={itemFontSize+4}>Music</Text>
+          <Text style={{fontWeight: "bold", fontSize: itemFontSize+2}}>MUSIC</Text>
         </View>
         <View style={styles.afterStatus}>
           <View style = {{

@@ -12,7 +12,7 @@ import ModalDropdown from 'react-native-modal-dropdown';
 
 import {color, styles, itemHeight, db, TRACK_DIR, itemFontSize} from './styleConst';
 import {login} from './utils'
-import {AddToLstModal, DeleteModal} from './localModal'
+import {AddToLstModal, DeleteModal, AddPlstModal} from './localModal'
 
 import { Button, Icon } from 'react-native-elements';
 
@@ -70,7 +70,7 @@ export function LocalList(props){
   const [select_set, setSelectSet] = useState(new Set());
   const [noshow_set, setNoshowset] = useState(new Set());
   const [select_mode, setSelectMode] = useState();
-  const [order_idex, setOrdId] = useState(-1);
+  const [order_idex, setOrdId] = useState(1);
   const [filter_txt, setFilTx] = useState('');
 
   const [global_select, setGloSelect] = useState(false);
@@ -79,9 +79,12 @@ export function LocalList(props){
   const [show_modal_more, setModalMore] = useState(false);
   const [show_modal_playlist, setModalPlaylist] = useState(false);
   const [show_modal_delete, setModalDel] =  useState(false);
+  const [show_modal_add_plst, setModalAddPlst] =  useState(false);
+
 
   const key_ref = useRef();
   const data_lst_ref = useRef();
+  const plst_ref = useRef();
 
   var SelectControl;
   var ModalPlaylist;
@@ -90,13 +93,13 @@ export function LocalList(props){
 
   var db_fetch_query;
   if (all_ref.current){
-    db_fetch_query = `SELECT * FROM Tracks`
+    db_fetch_query = `SELECT * FROM Tracks ORDER BY date DESC`
   }else{
     db_fetch_query = `SELECT * FROM Tracks
                       WHERE track_name in (
                         SELECT fk_track_name FROM Linking
                         WHERE fk_lst_name = '${lst_ref.current}'
-                      )`
+                      ) ORDER BY date DESC`
   }
 
   const setDataLst = (lst) => {
@@ -126,11 +129,15 @@ export function LocalList(props){
   function onDbSuccessFetch(_, {rows: {_array}}){
     setDataLst(
       orderLst(
-        _array.map((it) => ({key: it.track_name, date: it.date.split(' ')[0]})),
+        _array.map((it) => ({key: it.track_name, date: it.date})),
         order_idex
       )
     );
   }
+
+  const afterAddPlst = useCallback(() => {
+    setModalPlaylist(true);
+  });
 
   const fetchShowLst = useCallback(() => {
       // console.log(db_fetch_query)
@@ -181,6 +188,8 @@ export function LocalList(props){
       <AddToLstModal
         show = {show_modal_playlist}
         setShow = {setModalPlaylist}
+        setModalAddPlst = {setModalAddPlst}
+        plst_ref={plst_ref}
         select_mode = {select_mode}
         select_set = {select_set}
         key_ref = {key_ref}
@@ -286,9 +295,18 @@ export function LocalList(props){
     />
   )
 
+  var ModalAddPlst = (
+    <AddPlstModal
+      show_modal = {show_modal_add_plst}
+      setShowModal = {setModalAddPlst}
+      plst_ref={plst_ref}
+      afterFunc = {afterAddPlst}
+    />
+  )
+
   var MainView = (
     <View style = {styles.afterStatus}>
-      { all_ref.current ||
+      { false &&
         <View style={{alignSelf: 'stretch'}}>
           <Text numberOfLines={1} style={{
             paddingTop: 10,
@@ -323,31 +341,17 @@ export function LocalList(props){
           onChangeText={text => setFilTx(text)}
           value={filter_txt}
         />
-        <ModalDropdown
-          style = {{
-            flex: 3,
-            alignItems:'center',
-            backgroundColor: color.light_grey,
-            justifyContent:'center',
-            height:40}}
-          textStyle = {{ fontSize: 20, alignItems: 'center'}}
-          dropdownStyle = {{backgroundColor: color.light_grey, height: 102}}
-          defaultIndex = {-1}
-          defaultValue = {'Order By'}
-          options={['     Name     ', '     Date     ']}
-          renderRow = {(option)=>(
-            <View style = {{alignItems: 'center', justifyContent: 'center', height: 50}}>
-              <Text style={{fontSize:20}}>{option}</Text>
-            </View>
-          )}
-          renderSeparator = { () => (<View
-              style={{
-                borderBottomColor: color.light_pup,
-                borderBottomWidth: 1,
-              }}
-          />)}
-          onSelect = {(index) => setOrdId(index)}
-        />
+        <TouchableOpacity
+          style = {{...styles.grayContainer, flex:2, height: 40, marginRight:7}}
+          onPress = {() => {
+            setOrdId(1 - order_idex);
+          }}
+        >
+          <Text style = {{
+            color: color.primary,
+            fontSize: 20,
+          }}>{['Name↓','Date↓'][order_idex]}</Text>
+        </TouchableOpacity>
       </View>
       <View style = {{
         flex: 1,
@@ -359,6 +363,7 @@ export function LocalList(props){
           data={data_lst}
           extraData={[noshow_set, select_mode, select_set]}
           getItemLayout={flatlist_getItemLayout}
+          initialNumToRender = {11}
           renderItem={({item, index}) => <Item
                                     title={item.key}
                                     date = {item.date}
@@ -386,6 +391,7 @@ export function LocalList(props){
       {ModalMore}
       {ModalPlaylist}
       {ModalDel}
+      {ModalAddPlst}
       { false &&
       (<View>
         <Button
@@ -504,7 +510,7 @@ function Item(props){
           <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{props.title}</Text>
         </View>
         <View style = {{justifyContent: 'center', flex: 3}}>
-          <Text style={{color: 'rgba(0,0,0,0.3)', fontSize:itemFontSize-4}}>{props.date}</Text>
+          <Text style={{color: 'rgba(0,0,0,0.3)', fontSize:itemFontSize-4}}>{props.date.split(' ')[0]}</Text>
         </View>
       </TouchableOpacity>
       <View style = {{flex:2, justifyContent:'center', alignItems:'center'}}>

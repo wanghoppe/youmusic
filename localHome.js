@@ -1,33 +1,39 @@
 import React from 'react';
-import { createAppContainer } from 'react-navigation';
+import { createAppContainer, withNavigationFocus } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
-import {styles, color} from './styleConst'
+import {styles, color, itemFontSize} from './styleConst'
 import {LocalList} from './localList'
 import {LocalView} from './localView'
 
 
 function getTitle({navigation}){
-  let plst = navigation.getParam('plst_name', false);
+  let plst = navigation.getParam('plst_name', 'All Tracks');
   return {
-    title: (plst)? 'Playlist': 'All Track',
+    title: plst,
   };
 }
 
-LocalView.navigationOptions = { title: 'Local'}
+LocalView.navigationOptions = {headerShown: false}
 LocalList.navigationOptions = getTitle
 
 export const LocalHome = createStackNavigator(
   {
-    LocalView: LocalView,
+    LocalView: withNavigationFocus(LocalView),
     LocalList: LocalList,
   },
   {
     defaultNavigationOptions:{
       headerStyle: {
-          backgroundColor: color.light_pup2,
-        },
+        height: 35,
+        backgroundColor: color.light_pup_header,
+      },
+      headerLeftContainerStyle:{
+        paddingBottom: 5
+      },
       headerTitleStyle: {
-        fontWeight: 'bold',
+        fontWeight: "bold",
+        fontSize: itemFontSize+2,
+        paddingBottom: 5
       }
     }
   }

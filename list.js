@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useCallback, useRef } from 'react';
 import { TouchableHighlight, TouchableOpacity, Alert, Picker,
-  StyleSheet, Text, View, Button, TextInput,
+  StyleSheet, Text, View, TextInput,
   ScrollView, KeyboardAvoidingView, StatusBar, FlatList } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Progress from 'react-native-progress';
@@ -9,13 +9,19 @@ import Constants from 'expo-constants';
 import { Storage, Auth } from 'aws-amplify';
 import { SearchBar, CheckBox } from 'react-native-elements';
 import ModalDropdown from 'react-native-modal-dropdown';
-import { Icon } from 'react-native-elements'
+import { Button, Icon } from 'react-native-elements'
 
 import { createStackNavigator } from 'react-navigation-stack';
 import { withNavigationFocus } from 'react-navigation';
 
 
-import {color, styles, itemHeight, TRACK_DIR, db, itemFontSize, itemOffset} from './styleConst';
+import {
+  color, styles,
+  itemHeight, TRACK_DIR,
+  db, itemFontSize,
+  itemOffset, global_debug
+} from './styleConst';
+
 import {login} from './utils'
 
 import {PlayComp} from './might';
@@ -59,24 +65,25 @@ function orderLst(lst, by){
   }
 }
 
-export const CloudList = createStackNavigator(
-  {
-    CloudList: withNavigationFocus(List)
-  },
-  {
-    defaultNavigationOptions:{
-      title: 'Cloud',
-      headerStyle: {
-          backgroundColor: color.light_pup2,
-        },
-      headerTitleStyle: {
-        fontWeight: 'bold',
-      }
-    }
-  }
-);
+// export const CloudList = createStackNavigator(
+//   {
+//     CloudList: withNavigationFocus(List)
+//   },
+//   {
+//     defaultNavigationOptions:{
+//       title: 'Cloud',
+//       headerStyle: {
+//           backgroundColor: color.light_pup2,
+//         },
+//       headerTitleStyle: {
+//         fontWeight: 'bold',
+//       }
+//     }
+//   }
+// );
+export const CloudList = withNavigationFocus(_CloudList);
 
-function List(props){
+function _CloudList(props){
   // console.log('updating whole view');
   const [ready, setReady] = useState(false);
   const data_map_ref = useRef();
@@ -311,6 +318,7 @@ function List(props){
           data={show_lst}
           extraData={[select_set, select_mode, global_select]}
           getItemLayout={flatlist_getItemLayout}
+          initialNumToRender = {11}
           renderItem={({item}) => <PureItem
                                     prog={item.prog}
                                     title={item.key}
@@ -342,6 +350,9 @@ function List(props){
 
   return (
     <View style={styles.allView} behavior={'padding'}>
+      <View style = {styles.statusBar}>
+        <Text style={{fontWeight: "bold", fontSize: itemFontSize+2}}>CLOUD</Text>
+      </View>
       <View style = {styles.afterStatus}>
         <View style = {{
           alignSelf : "stretch",
@@ -349,11 +360,11 @@ function List(props){
           alignItems:'center',
           borderBottomColor: color.light_pup,
           borderBottomWidth: 2,
-          borderRadius:5
+          borderRadius:5,
         }}>
           <SearchBar
             containerStyle = {{
-              flex: 8,
+              flex: 7,
               backgroundColor: 'white',
               borderBottomWidth: 0,
               borderTopWidth:0
@@ -367,19 +378,19 @@ function List(props){
             />
           <ModalDropdown
             style = {{
-              flex: 3,
+              flex: 2,
               alignItems:'center',
               backgroundColor: color.light_grey,
               justifyContent:'center',
               height:40}}
-            textStyle = {{fontSize: 20, alignItems: 'center'}}
+            textStyle = {{fontSize: 20, alignItems: 'center', color: color.primary}}
             dropdownStyle = {{backgroundColor: color.light_grey, height: 204}}
             defaultIndex = {0}
             defaultValue = {'All'}
             options={['All', 'Undownload', 'Loading', 'Downloaded']}
             renderRow = {(option)=>(
               <View style = {{alignItems: 'center', justifyContent: 'center', height: 50}}>
-                <Text style={{fontSize:20}}>{option}</Text>
+                <Text style={{fontSize:20, color: color.primary}}>{option}</Text>
               </View>
             )}
             renderSeparator = { () => (<View
@@ -390,42 +401,61 @@ function List(props){
             />)}
             onSelect = {(index) => setFilid(index)}
           />
-          <Button
-            style = {{
-              flex: 3,
-              height:40}}
-            title = {['Date', 'Size'][orderBy]}
+          <TouchableOpacity
+            style = {{...styles.grayContainer, flex:2, height: 40, marginRight:7}}
             onPress = {() => {
               setOrder(1 - orderBy);
             }}
-          />
-          <Button
-            style = {{flex:2}}
-            title = {'DA'}
-            onPress = { async () => {
+          >
+            <Text style = {{
+              color: color.primary,
+              fontSize: 20,
+            }}>{['Date↓', 'Size↓'][orderBy]}</Text>
+          </TouchableOpacity>
+          {global_debug && <TouchableOpacity
+            style = {{...styles.grayContainer, flex:2, height: 40, marginRight:7}}
+            onPress = {async () => {
               const local_lst = await FileSystem.readDirectoryAsync(TRACK_DIR);
               local_lst.forEach((item) => {
                 FileSystem.deleteAsync(TRACK_DIR + encodeURIComponent(item));
               })
-              console.log('Line205: delete all local files')
+              console.log('Line205: delete all local files');
             }}
-          />
-          <Button
-            style = {{flex:2}}
-            title = {'DA2'}
-            onPress = { async () => {
-              const data = [
-                'qZ5U7s8T5oI','VArUc-bCanQ','ZHFgk8Eo0FE','ioIEjzR7Xj8',
-                'Z16qw94gP4w','TV7DeM0Jqik','5XgnwopNyn0','p0GPJbdKhCw',
-                'NSwQ0OlwUn0','4HgNzGHbB5Y','cb2hVNAhPJ4','79t4chAseE',
-                'zcrx7OVoypM','C6YobfNjeqc','4ROBQMlh3Ew','8m7hxhyr4jc'
-              ];
-              data.forEach((item) =>{
-                download2cloud(item);
-              })
-            }}
-          />
-          <View style = {{flex:2}}>
+          >
+            <Text style = {{
+              color: color.primary,
+              fontSize: 20,
+            }}>delete</Text>
+          </TouchableOpacity>}
+          {false && (<View style={{flex:5, height:55}}>
+            <Button
+              style = {{flex:2}}
+              title = {'DA'}
+              onPress = { async () => {
+                const local_lst = await FileSystem.readDirectoryAsync(TRACK_DIR);
+                local_lst.forEach((item) => {
+                  FileSystem.deleteAsync(TRACK_DIR + encodeURIComponent(item));
+                })
+                console.log('Line205: delete all local files')
+              }}
+            />
+            <Button
+              style = {{flex:2}}
+              title = {'DA2'}
+              onPress = { async () => {
+                const data = [
+                  'qZ5U7s8T5oI','VArUc-bCanQ','ZHFgk8Eo0FE','ioIEjzR7Xj8',
+                  'Z16qw94gP4w','TV7DeM0Jqik','5XgnwopNyn0','p0GPJbdKhCw',
+                  'NSwQ0OlwUn0','4HgNzGHbB5Y','cb2hVNAhPJ4','79t4chAseE',
+                  'zcrx7OVoypM','C6YobfNjeqc','4ROBQMlh3Ew','8m7hxhyr4jc'
+                ];
+                data.forEach((item) =>{
+                  download2cloud(item);
+                })
+              }}
+            />
+          </View>)}
+          {false && <View style = {{flex:2}}>
             <Icon
               name = 'refresh'
               size = {35}
@@ -434,7 +464,7 @@ function List(props){
               }}
               color={color.dark_pup}
             />
-          </View>
+          </View>}
         </View>
         {mainView}
       </View>

@@ -57,6 +57,7 @@ const TabNavigator = createMaterialTopTabNavigator(
       },
     }),
     tabBarOptions: {
+      renderIndicator: () => (null),
       showIcon: true,
       activeTintColor: color.dark_pup,
       inactiveTintColor: 'gray',

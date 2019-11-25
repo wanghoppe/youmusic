@@ -4,28 +4,28 @@ import { WebView } from 'react-native-webview';
 import { showMessage, hideMessage } from "react-native-flash-message";
 import { Auth } from 'aws-amplify';
 import { createStackNavigator } from 'react-navigation-stack';
-import {color, styles} from './styleConst';
+import {color, styles, global_debug, itemFontSize} from './styleConst';
 import { Button, Icon } from 'react-native-elements';
 import ModalDropdown from 'react-native-modal-dropdown';
 
-export const ExploreView = createStackNavigator(
-  {
-    ExploreView: NewWebView
-  },
-  {
-    defaultNavigationOptions:{
-      title: 'Explore',
-      headerStyle: {
-          backgroundColor: color.light_pup2,
-        },
-      headerTitleStyle: {
-        fontWeight: 'bold',
-      }
-    }
-  }
-);
+// export const ExploreView = createStackNavigator(
+//   {
+//     ExploreView: NewWebView
+//   },
+//   {
+//     defaultNavigationOptions:{
+//       title: 'Explore',
+//       headerStyle: {
+//           backgroundColor: color.light_pup2,
+//         },
+//       headerTitleStyle: {
+//         fontWeight: 'bold',
+//       }
+//     }
+//   }
+// );
 
-function NewWebView(props){
+export function ExploreView(props){
   var ref_out = null;
 
   const [show_modal, setShowModal] = useState(false);
@@ -91,6 +91,9 @@ function NewWebView(props){
   return (
     <View style={styles.allView} behavior={'padding'}>
       {HomeModal}
+      <View style = {styles.statusBar}>
+        <Text style={{fontWeight: "bold", fontSize: itemFontSize+2}}>EXPLORE</Text>
+      </View>
       <View style = {styles.afterStatus}>
         <View style = {{flexDirection: 'row', justifyContent: 'space-around', alignSelf: 'stretch'}}>
           <TouchableOpacity
@@ -100,7 +103,7 @@ function NewWebView(props){
             <Icon
               name = 'first-page'
               color = {color.primary}
-              size = {35}
+              size = {30}
               />
           </TouchableOpacity>
           <TouchableOpacity
@@ -110,7 +113,7 @@ function NewWebView(props){
             <Icon
               name = 'last-page'
               color = {color.primary}
-              size = {35}
+              size = {30}
               />
           </TouchableOpacity>
           <TouchableOpacity
@@ -120,7 +123,7 @@ function NewWebView(props){
             <Icon
               name = 'cloud-upload'
               color = {color.primary}
-              size = {35}
+              size = {30}
               />
           </TouchableOpacity>
           <TouchableOpacity
@@ -130,7 +133,7 @@ function NewWebView(props){
             <Icon
               name = 'more-vert'
               color = {color.primary}
-              size = {35}
+              size = {30}
               />
           </TouchableOpacity>
         </View>

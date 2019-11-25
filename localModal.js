@@ -8,7 +8,7 @@ import Constants from 'expo-constants';
 import { Storage, Auth } from 'aws-amplify';
 import { SearchBar, CheckBox } from 'react-native-elements';
 
-import {color, styles, itemHeight, db, TRACK_DIR} from './styleConst';
+import {color, styles, itemHeight, db, TRACK_DIR, itemFontSize} from './styleConst';
 import {login} from './utils'
 import { Button, Icon } from 'react-native-elements';
 
@@ -25,7 +25,9 @@ function _AddToLstModal(props){
         `SELECT * FROM Playlists`,
         null,
         (_, {rows: {_array}}) => {
-          setDataLst(_array.map((it) => ({key: it.lst_name})));
+          let temp_lst = _array.map((it) => ({key: it.lst_name})).reverse();
+          props.plst_ref.current = temp_lst;
+          setDataLst(temp_lst);
         },
         (_, error) => console.log(error)
       );
@@ -58,7 +60,7 @@ function _AddToLstModal(props){
 
   useEffect(() => {
     fetch_pllst();
-  }, [])
+  }, [props.show])
 
   return(
     <Modal
@@ -71,8 +73,23 @@ function _AddToLstModal(props){
           <View style = {styles.modalTouchClose}/>
         </TouchableWithoutFeedback>
         <View style={{...styles.modalInCenter, justifyContent: 'space-around', height: '55%'}}>
-          <View style={{...styles.container, flex:1, alignSelf: 'stretch'}}>
+          <View style={{
+            flexDirection:'row' ,
+            justifyContent:'space-around',
+            alignItems: 'center',
+            flex:1,
+            alignSelf: 'stretch'}}
+          >
             <Text style={{fontSize:25, color: color.dark_pup}}>Add To Playlist</Text>
+            <Icon
+              name = 'add-circle'
+              size = {35}
+              onPress ={() => {
+                props.setShow(false);
+                props.setModalAddPlst(true);
+              }}
+              color={color.primary}
+            />
           </View>
           <View style = {{
             flex: 3,
@@ -119,7 +136,6 @@ function _AddToLstModal(props){
       </View>
     </Modal>
   )
-
 }
 
 function SelectLstItem(props){
@@ -157,6 +173,74 @@ function SelectLstItem(props){
     </View>
   )
 }
+
+export const AddPlstModal = React.memo((props) => {
+  return _AddPlstModal(props);
+});
+function _AddPlstModal(props){
+  const name_input_ref = useRef();
+
+  return(
+    <Modal
+      animationType="fade"
+      transparent={true}
+      visible={props.show_modal}
+    >
+      <KeyboardAvoidingView behavior="padding" style={{...styles.modalBack, justifyContent: 'center'}}>
+        <TouchableWithoutFeedback onPress = {() => props.setShowModal(false)}>
+          <View style = {styles.modalTouchClose}/>
+        </TouchableWithoutFeedback>
+        <View style={{...styles.modalInCenter, justifyContent: 'space-around'}}>
+          <Text style={{fontSize:25, color: color.dark_pup}}>Add Playlist</Text>
+          <TextInput
+            style = {{fontSize:20, padding: 10, backgroundColor: color.light_grey, width: '80%'}}
+            placeholder={'PlayList Name'}
+            ref = {name_input_ref}/>
+          <View style={{...styles.containerRow, justifyContent: 'space-around', height: null}}>
+            <Button
+              title='Cancel'
+              onPress={() => props.setShowModal(false)}
+              />
+            <Button
+              buttonStyle= {{backgroundColor:color.dark_pup}}
+              title='Check'
+              onPress={() => {
+                let get_txt = name_input_ref.current._lastNativeText;
+                if (get_txt){
+                  if (props.plst_ref.current.map((item) => item.key).includes(get_txt)){
+                    Alert.alert("Duplicate Playlist")
+                  }else{
+                    db.transaction(tx => {
+                      tx.executeSql(
+                        `INSERT INTO Playlists (lst_name, date)
+                          VALUES ('${get_txt}', datetime('now', 'localtime'))`,
+                        [],
+                        () => {
+                          console.log(`[Info] Playlist (${get_txt}) inserted into database`)
+                          showMessage({
+                            message: "Success",
+                            description: "Playlist Added",
+                            type: "success"
+                          })
+                          props.setShowModal(false);
+                          props.afterFunc();
+                        },
+                        (_, error) => console.log(error)
+                      );
+                    });
+                  }
+                }else{
+                  Alert.alert("Empty Input")
+                }
+              }}
+              />
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  )
+}
+
 
 export const DeleteModal = React.memo((props) => {
   return _DeleteModal(props);
@@ -310,14 +394,19 @@ export function _ViewDeleteModal(props){
         <TouchableWithoutFeedback onPress = {() => props.setShow(false)}>
           <View style = {styles.modalTouchClose}/>
         </TouchableWithoutFeedback>
-        <View style={{...styles.modalInCenter, justifyContent: 'space-around', height: '30%'}}>
-          <View style={{...styles.container, flex:1, alignSelf: 'stretch'}}>
-            <Text style={{fontSize:25, color: color.dark_pup}}>Delete Playlist: {props.lst_ref.current}</Text>
+        <View style={{...styles.modalInCenter, justifyContent: 'space-around', height: '40%'}}>
+          <View style={{...styles.container, flex:2, alignSelf: 'stretch'}}>
+            <Text style={{fontSize:25, color: color.dark_pup}}>Delete Playlist:</Text>
           </View>
-          <View style = {{flex:1, alignSelf: 'stretch', justifyContent:'center'}}>
+          <View style={{...styles.container, flex:1, alignSelf: 'stretch'}}>
+            <Text numberOfLines={1} style={{fontSize:itemFontSize+4}}>
+              {props.lst_ref.current}
+            </Text>
+          </View>
+          <View style = {{flex:2, alignSelf: 'stretch', justifyContent:'center'}}>
             <CheckBox
               center
-              title= {`Also delete ${count} tracks in this playlist`}
+              title= {`Delete ${count} tracks inside playlist`}
               size = {22}
               checked= {check}
               checkedColor = {color.dark_pup}
@@ -326,7 +415,7 @@ export function _ViewDeleteModal(props){
           </View>
           <View style={{
             ...styles.containerRow,
-            flex: 1,
+            flex: 2,
             justifyContent: 'space-around',
             height: null
           }}>
