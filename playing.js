@@ -331,7 +331,14 @@ function PlayControl(props){
   },[props.init_created])
 
   return(
-    <View style = {{flex:1, alignSelf:'stretch', backgroundColor: color.light_grey}}>
+    <View style = {{
+      flex:1,
+      alignSelf:'stretch',
+      backgroundColor: 'rgba(0,0,0,0.15)',
+      // backgroundColor: color.light_grey,
+      // borderBottomWidth: 1,
+      // borderColor: 'white'
+    }}>
       <View style={{flex:1, alignSelf:'center', justifyContent:'flex-end', paddingLeft:10, paddingRight:10}}>
         <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{props.title}</Text>
       </View>

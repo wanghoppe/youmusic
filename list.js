@@ -114,13 +114,12 @@ function _CloudList(props){
       // generate list
       const local_lst = await FileSystem.readDirectoryAsync(TRACK_DIR);
       // console.log(local_lst);
-      const local_set = new Set(local_lst);
-
+      const local_set = new Set(local_lst.map(item => item.split('-').pop() ));
+      // console.log(local_set)
       const cloud_lst = await Storage.list('', {level: 'private'});
 
-      // console.log(cloud_lst);
       data_map_ref.current = new Map(cloud_lst.map((item) => ([item.key, {
-        prog: local_set.has(item.key) ? 1: 0,
+        prog: local_set.has(item.key.split('-').pop()) ? 1: 0,
         date: date2string(item.lastModified),
         size: item.size
       }])));
@@ -352,6 +351,16 @@ function _CloudList(props){
     <View style={styles.allView} behavior={'padding'}>
       <View style = {styles.statusBar}>
         <Text style={{fontWeight: "bold", fontSize: itemFontSize+2}}>CLOUD</Text>
+        <View style = {{position: 'absolute', right: '5%'}}>
+          <Icon
+            name = 'refresh'
+            size = {30}
+            onPress ={() => {
+              generate_lst();
+            }}
+            color={color.primary}
+          />
+        </View>
       </View>
       <View style = {styles.afterStatus}>
         <View style = {{

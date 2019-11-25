@@ -93,13 +93,13 @@ export function LocalList(props){
 
   var db_fetch_query;
   if (all_ref.current){
-    db_fetch_query = `SELECT * FROM Tracks ORDER BY date DESC`
+    db_fetch_query = `SELECT * FROM Tracks`
   }else{
     db_fetch_query = `SELECT * FROM Tracks
                       WHERE track_name in (
                         SELECT fk_track_name FROM Linking
                         WHERE fk_lst_name = '${lst_ref.current}'
-                      ) ORDER BY date DESC`
+                      )`
   }
 
   const setDataLst = (lst) => {
