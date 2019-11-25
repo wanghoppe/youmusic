@@ -95,7 +95,8 @@ function _CloudList(props){
   const llst_ref = useRef([]);
   const lcount_ref = useRef(0);
 
-  const [select_set, setSelectSet] = useState(new Set());
+  const select_set_ref = useRef(new Set());
+
   const [select_mode, setSelectMode] = useState(false);
   const [global_select, setGloSelect] = useState(false);
 
@@ -189,15 +190,27 @@ function _CloudList(props){
     }
   }, [])
 
-  const updateSelectMap = useCallback((id) => {
-    let temp_set =  new Set(select_set);
-    if (temp_set.has(id)){
-      temp_set.delete(id);
+  const updateSelectRef = useCallback((id) => {
+    if (select_set_ref.current.has(id)){
+      select_set_ref.current.delete(id);
     }else{
-      temp_set.add(id);
+      select_set_ref.current.add(id);
     }
-    setSelectSet(temp_set);
-  }, [select_set])
+  })
+
+  const onGloSelect = useCallback((id) => {
+    var next_status_checked = !global_select;
+    show_lst.forEach(({key, show}) => {
+      if(show){
+        if(next_status_checked){
+          select_set_ref.current.add(key)
+        }else{
+          select_set_ref.current.delete(key)
+        }
+      }
+    });
+    setGloSelect(next_status_checked);
+  }, [show_lst, global_select]);
 
   const flatlist_getItemLayout = useCallback((data, index) => (
     {length: itemHeight, offset: itemHeight * index, index}
@@ -214,25 +227,6 @@ function _CloudList(props){
     generate_lst();
     console.log('Running1');
   }, []);
-
-  useEffect(() => {
-    if (show_lst != []){
-      let temp_set = new Set(select_set);
-
-      if (select_mode){
-        show_lst.forEach(({key, show}) => {
-          if(show){
-            if(global_select){
-              temp_set.add(key)
-            }else{
-              temp_set.delete(key)
-            }
-          }
-        })
-        setSelectSet(temp_set);
-      }
-    }
-  }, [global_select]);
 
   useEffect(() => {
     if (ready){
@@ -253,13 +247,13 @@ function _CloudList(props){
             size = {28}
             checked= {global_select}
             checkedColor = {color.light_pup}
-            onPress={() => {setGloSelect(!global_select)}}
+            onPress={onGloSelect}
             />
         <Button
           title = {'Download'}
           onPress = {() => {
             let temp_set = new Set();
-            select_set.forEach((item) => {
+            select_set_ref.current.forEach((item) => {
               if (data_map_ref.current.get(item).prog == 0){
                 temp_set.add(item);
               }
@@ -270,7 +264,7 @@ function _CloudList(props){
               [
                 {text: 'Yes', onPress: () => {
                   force_down_set_ref.current = temp_set;
-                  setSelectSet(new Set());
+                  select_set_ref.current = new Set();
                   setSelectMode(false);
                 }},
                 {text: 'Cancel', onPress: () => {}, style: 'cancel'}
@@ -283,14 +277,14 @@ function _CloudList(props){
           onPress = {() => {
             Alert.alert(
               "Comfirm Delete",
-              `Delete ${select_set.size} track from cloud?`,
+              `Delete ${select_set_ref.current.size} track from cloud?`,
               [
                 {text: 'Yes', onPress: () => {
-                  select_set.forEach(async (item) => {
+                  select_set_ref.current.forEach(async (item) => {
                     result = await Storage.remove(item, {level: 'private'});
                     deleteMapWithId(item);
                   });
-                  setSelectSet(new Set());
+                  select_set_ref.current = new Set();
                 }},
                 {text: 'Cancel', onPress: () => {}, style: 'cancel'}
               ],
@@ -300,7 +294,7 @@ function _CloudList(props){
         <Button
           title = {'Cancel'}
           onPress = {() => {
-            setSelectSet(new Set())
+            select_set_ref.current = new Set()
             setSelectMode(false);
           }}
           />
@@ -315,7 +309,7 @@ function _CloudList(props){
       <View style = {{alignSelf: 'stretch', flex:1, justifyContent: 'flex-end'}}>
         <FlatList
           data={show_lst}
-          extraData={[select_set, select_mode, global_select]}
+          extraData={[select_mode, global_select]}
           getItemLayout={flatlist_getItemLayout}
           initialNumToRender = {11}
           renderItem={({item}) => <PureItem
@@ -328,8 +322,8 @@ function _CloudList(props){
                                     deleteMapWithId = {deleteMapWithId}
                                     pushLoadingLst = {pushLoadingLst}
                                     updateCount = {updateCount}
-                                    updateSelectMap ={updateSelectMap}
-                                    selected = {select_set.has(item.key)}
+                                    updateSelectRef ={updateSelectRef}
+                                    selected = {select_set_ref.current.has(item.key)}
                                     select_mode = {select_mode}
                                     setSelectMode = {setSelectMode}
                                     force_down_set_ref = {force_down_set_ref}
@@ -367,10 +361,6 @@ function _CloudList(props){
           alignSelf : "stretch",
           flexDirection: 'row',
           alignItems:'center',
-          // borderBottomColor: color.light_pup,
-          // borderBottomWidth: 2,
-          // backgroundColor: color.light_pup3,
-          // borderRadius:5,
         }}>
           <SearchBar
             containerStyle = {{
@@ -491,10 +481,10 @@ function Item(props){
   var downButton;
   var checkBox;
   var buttonGrop;
-  var touchable;
 
   const [prog, setProg] = useState(props.prog);
   const [loading, setLoading] = useState(false);
+  const [checked, setChecked] = useState(false);
 
   async function downloadItemAsync(){
     try{
@@ -521,22 +511,6 @@ function Item(props){
       props.setProgWithId(props.title, 1);
       props.updateCount(false);
 
-      // insert records into database
-      // db.transaction(tx => {
-      //   tx.executeSql(
-      //     `SELECT
-      //         name
-      //     FROM
-      //         sqlite_master
-      //     WHERE
-      //         type ='table' AND
-      //         name NOT LIKE 'sqlite_%';`,
-      //     [],
-      //     (_, {rows: {_array}}) => console.log(_array),
-      //     (_, error) => console.log(error)
-      //   );
-      // });
-
       db.transaction(tx => {
         tx.executeSql(
           `INSERT INTO Tracks (track_name, date)
@@ -562,14 +536,20 @@ function Item(props){
     }
   }
 
+  const onCheckedClick = () => {
+    props.updateSelectRef(props.title);
+    setChecked(!checked);
+  }
+
   useEffect(() => {
-      if (props.force_down_set_ref.current.has(props.title)){
-        props.force_down_set_ref.current.delete(props.title);
-        setLoading(true);
-        props.setProgWithId(props.title, 2);
-        props.pushLoadingLst(downloadItemAsync);
+    if (props.force_down_set_ref.current.has(props.title)){
+      props.force_down_set_ref.current.delete(props.title);
+      setLoading(true);
+      props.setProgWithId(props.title, 2);
+      props.pushLoadingLst(downloadItemAsync);
     }
-  })
+    setChecked(props.selected);
+  }, [props])
 
   useEffect(() => {
     if ([0, 1].includes(props.prog)){
@@ -603,21 +583,12 @@ function Item(props){
         <CheckBox
             center
             size = {28}
-            checked= {props.selected}
+            checked= {checked}
             checkedColor = {color.light_pup}
-            onPress={() => props.updateSelectMap(props.title)}
+            onPress={onCheckedClick}
             />
       </View>);
       buttonGrop = null;
-      touchable = (
-        <TouchableOpacity
-          style = {{justifyContent:'center'}}
-          onPress = {() => {
-            props.updateSelectMap(props.title);
-          }}>
-          <Text style={{fontSize: itemFontSize}}>{props.title}</Text>
-        </TouchableOpacity>
-      );
     }else{
       checkBox = null;
       buttonGrop = (
@@ -644,16 +615,6 @@ function Item(props){
           </View>
         </View>
       );
-      touchable = (
-        <TouchableOpacity
-          style = {{justifyContent:'center'}}
-          onLongPress = {() => {
-            console.log(`you long pressed ${props.title}`);
-            props.setSelectMode(true);
-          }}>
-          <Text style={{fontSize: itemFontSize}}>{props.title}</Text>
-        </TouchableOpacity>
-      )
     }
 
   if (props.show){
@@ -676,7 +637,7 @@ function Item(props){
             <TouchableOpacity
               style = {{width: '100%', height: '100%', position: 'absolute', paddingLeft: 14}}
               onLongPress = {(props.select_mode)? null: () => props.setSelectMode(true)}
-              onPress = {(props.select_mode)? () => props.updateSelectMap(props.title) : null}
+              onPress = {(props.select_mode)? onCheckedClick : null}
             >
               <View style = {{justifyContent: 'flex-end',flex: 4}}>
                 <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{props.title}</Text>

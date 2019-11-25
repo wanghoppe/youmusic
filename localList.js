@@ -67,7 +67,8 @@ export function LocalList(props){
   const lst_ref = useRef(props.navigation.getParam('plst_name', null));
 
   const [data_lst, _setDataLst] = useState([]);
-  const [select_set, setSelectSet] = useState(new Set());
+  // const [select_set, setSelectSet] = useState(new Set());
+  const select_set_ref = useRef(new Set());
   const [noshow_set, setNoshowset] = useState(new Set());
   const [select_mode, setSelectMode] = useState();
   const [order_idex, setOrdId] = useState(1);
@@ -108,7 +109,7 @@ export function LocalList(props){
   }
 
   const exitSelectMode = useCallback(() => {
-    setSelectSet(new Set());
+    select_set_ref.current =  new Set();
     setSelectMode(false);
   },[]);
 
@@ -116,15 +117,14 @@ export function LocalList(props){
     {length: itemHeight, offset: itemHeight * index, index}
   ),[]);
 
+
   const updateSelectSet = useCallback((id) => {
-    let temp_set =  new Set(select_set);
-    if (temp_set.has(id)){
-      temp_set.delete(id);
+    if (select_set_ref.current.has(id)){
+      select_set_ref.current.delete(id);
     }else{
-      temp_set.add(id);
+      select_set_ref.current.add(id);
     }
-    setSelectSet(temp_set);
-  }, [select_set])
+  })
 
   function onDbSuccessFetch(_, {rows: {_array}}){
     setDataLst(
@@ -152,6 +152,20 @@ export function LocalList(props){
     },[order_idex]
   );
 
+  const onGloSelect = useCallback((id) => {
+    var next_status_checked = !global_select;
+    data_lst.forEach(({key}) => {
+      if(!noshow_set.has(key)) {
+        if(next_status_checked){
+          select_set_ref.current.add(key)
+        }else{
+          select_set_ref.current.delete(key)
+        }
+      }
+    });
+    setGloSelect(next_status_checked);
+  }, [data_lst, global_select, noshow_set]);
+
   useEffect(() => {
     fetchShowLst();
   },[])
@@ -166,20 +180,6 @@ export function LocalList(props){
     }
   },[order_idex])
 
-  useEffect(() => {
-    let temp_set = new Set(select_set);
-
-    if (select_mode){
-      show_set_ref.current.forEach((key) => {
-        if(global_select){
-          temp_set.add(key)
-        }else{
-          temp_set.delete(key)
-        }
-      })
-      setSelectSet(temp_set);
-    }
-  }, [global_select]);
 
   if (! all_ref.current ){
     ModalPlaylist = null
@@ -191,7 +191,7 @@ export function LocalList(props){
         setModalAddPlst = {setModalAddPlst}
         plst_ref={plst_ref}
         select_mode = {select_mode}
-        select_set = {select_set}
+        select_set_ref = {select_set_ref}
         key_ref = {key_ref}
         exitSelectMode = {exitSelectMode}
       />
@@ -204,7 +204,7 @@ export function LocalList(props){
         <Button
           title = {'DEL'}
           onPress = {() => {
-            if (select_set.size == 0){
+            if (select_set_ref.current.size == 0){
               Alert.alert('No track was selected!')
             }else {
               setModalDel(true);
@@ -216,7 +216,7 @@ export function LocalList(props){
           <Button
             title = {'ADD'}
             onPress = {() => {
-              if (select_set.size == 0){
+              if (select_set_ref.current.size == 0){
                 Alert.alert('No track was selected!')
               }else {
                 setModalPlaylist(true);
@@ -236,7 +236,7 @@ export function LocalList(props){
             size = {28}
             checked= {global_select}
             checkedColor = {color.dark_pup}
-            onPress={() => setGloSelect(!global_select)}
+            onPress={onGloSelect}
           />
       </View>
     )
@@ -286,7 +286,7 @@ export function LocalList(props){
       show = {show_modal_delete}
       setShow = {setModalDel}
       select_mode = {select_mode}
-      select_set = {select_set}
+      select_set_ref = {select_set_ref}
       all_ref = {all_ref}
       lst_ref = {lst_ref}
       key_ref = {key_ref}
@@ -359,7 +359,7 @@ export function LocalList(props){
       }}>
         <FlatList
           data={data_lst}
-          extraData={[noshow_set, select_mode, select_set]}
+          extraData={[noshow_set, select_mode]}
           getItemLayout={flatlist_getItemLayout}
           initialNumToRender = {11}
           renderItem={({item, index}) => <Item
@@ -369,7 +369,7 @@ export function LocalList(props){
                                     select_mode = {select_mode}
                                     setSelectMode = {setSelectMode}
                                     updateSelectSet = {updateSelectSet}
-                                    select = {select_set.has(item.key)}
+                                    select = {select_set_ref.current.has(item.key)}
                                     show_set_ref = {show_set_ref}
                                     key_ref = {key_ref}
                                     setModalMore = {setModalMore}
@@ -429,21 +429,26 @@ export function LocalList(props){
 }
 
 function Item(props){
-
-
   var onPressEvent;
   var onLongPressEvent;
   var MoreComp;
 
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    setChecked(props.select);
+  }, [props])
+
   if (!props.show){
     props.show_set_ref.current.delete(props.title);
     return null
-  }
+  };
 
   props.show_set_ref.current.add(props.title);
 
   if (props.select_mode){
     onPressEvent = () => {
+      setChecked(!checked);
       props.updateSelectSet(props.title);
     };
 
@@ -453,9 +458,9 @@ function Item(props){
       <CheckBox
           center
           size = {28}
-          checked= {props.select}
+          checked= {checked}
           checkedColor = {color.dark_pup}
-          onPress={() => props.updateSelectSet(props.title)}
+          onPress={onPressEvent}
           />
     )
   }else{
@@ -469,6 +474,7 @@ function Item(props){
     onLongPressEvent = () => {
       props.setSelectMode(true);
       props.updateSelectSet(props.title);
+      setChecked(true);
     }
 
     MoreComp = (
@@ -495,7 +501,7 @@ function Item(props){
       paddingLeft: 22,
       borderTopWidth: 1,
       borderColor: color.light_pup,
-      backgroundColor: (props.select) ? color.light_pup2 : 'white'
+      backgroundColor: (checked) ? color.light_pup2 : 'white'
     }}>
       <TouchableOpacity
         style = {{flex: 10,

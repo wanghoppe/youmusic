@@ -36,8 +36,9 @@ function _AddToLstModal(props){
 
   function dbAction(){
     if (props.select_mode){
+      var select_set = new Set(props.select_set_ref.current);
       db.transaction(tx => {
-        props.select_set.forEach((it) => {
+        select_set.forEach((it) => {
           tx.executeSql(
             `INSERT INTO Linking (fk_lst_name, fk_track_name) VALUES ('${checked}', '${it}')`,
             null,
@@ -254,8 +255,8 @@ function _DeleteModal(props){
   var lst2del;
 
   if (props.select_mode){
-    count = props.select_set.size
-    lst2del = Array.from(props.select_set)
+    count = props.select_set_ref.current.size
+    lst2del = Array.from(props.select_set_ref.current)
   }else{
     count = 1;
     lst2del = [props.key_ref.current]
