@@ -262,7 +262,7 @@ export function LocalList(props){
               setModalMore(false);
             }}
           >
-            <Text>Delete Track</Text>
+            <Text style = {{fontSize: itemFontSize + 2}}>Delete Track</Text>
           </TouchableOpacity>
           {
             all_ref.current &&
@@ -273,7 +273,7 @@ export function LocalList(props){
                 setModalMore(false);
               }}
             >
-              <Text>Add Track to Playlist</Text>
+              <Text style = {{fontSize: itemFontSize + 2}}>Add Track to Playlist</Text>
             </TouchableOpacity>
           }
         </View>

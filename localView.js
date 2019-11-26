@@ -54,11 +54,11 @@ export function LocalView(props){
         onPress = {() => {
           props.navigation.navigate('LocalList', {all_tracks: true})
         }}>
-        <Text style={{fontSize:20}}>All Tracks...</Text>
+        <Text style={{fontSize:itemFontSize+4}}>All Tracks...</Text>
       </TouchableOpacity>
       <View style = {styles.grayRow} />
       <View style = {{...styles.containerRow, justifyContent: 'space-between', paddingHorizontal:30}}>
-        <Text style={{fontSize:20}}>Playlist:</Text>
+        <Text style={{fontSize:itemFontSize+4}}>Playlist:</Text>
         <Button
           title = {'ADD'}
           onPress = {() => {
@@ -148,10 +148,10 @@ export function LocalView(props){
                 setShowModal3(true);
               }}
             >
-              <Text>Delete Playlist</Text>
+              <Text style = {{fontSize: itemFontSize + 2}}>Delete Playlist</Text>
             </TouchableOpacity>
             <TouchableOpacity style = {{...styles.touchableRow}}>
-              <Text>what2</Text>
+              <Text style = {{fontSize: itemFontSize + 2}}>what2</Text>
             </TouchableOpacity>
           </View>
         </View>

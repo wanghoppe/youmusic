@@ -22,6 +22,7 @@ export function PlayingComp(props){
   const [play_list, setPlayList] =  useState();
 
   const [playing, setPlaying] = useState(true);
+  const playing_override_ref = useRef(true);
   const [init_created, setInitCreated] = useState(false);
   const sound_ref = useRef();
   const flatlist_ref = useRef();
@@ -212,6 +213,7 @@ export function PlayingComp(props){
               nextTrack = {nextTrack}
               previousTrack = {previousTrack}
               play_mode_ref = {play_mode_ref}
+              playing_override_ref = {playing_override_ref}
             />
           </View>
         </View>
@@ -239,13 +241,14 @@ function PlayControl(props){
     props.play_mode_ref.current = mode;
   }
 
-  const onPlayClick = ()=> {
-    if (props.playing){
-      props.sound_ref.current.pauseAsync();
-    }else{
-      props.sound_ref.current.playAsync();
-    }
+  const onPlayClick = async () => {
+    props.playing_override_ref.current = true;
     props.setPlaying(!props.playing);
+    if (props.playing){
+      await props.sound_ref.current.pauseAsync();
+    }else{
+      await props.sound_ref.current.playAsync();
+    }
   }
 
   const onPlaybackStatusUpdate = (status) => {
@@ -258,6 +261,12 @@ function PlayControl(props){
       });
       if (status.didJustFinish) {
         props.nextTrack()
+      }
+      // console.log(`shoud play: ${status.shouldPlay}`)
+      // console.log(`playing: ${status.isPlaying}`)
+      // console.log(`isBuffering: ${status.isBuffering}`)
+      if (!status.isPlaying && status.shouldPlay && !status.isBuffering ){
+        props.setPlaying(false);
       }
     }
   }

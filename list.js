@@ -222,13 +222,6 @@ function _CloudList(props){
   }, [filter_idex, filter_txt, toggle_filter]);
 
   useEffect(() => {
-    // login()
-    //   .then(() => generate_lst());
-    generate_lst();
-    console.log('Running1');
-  }, []);
-
-  useEffect(() => {
     if (ready){
       setShowLst(orderLst(show_lst, ['Date', 'Size'][orderBy]))
     }
@@ -236,6 +229,7 @@ function _CloudList(props){
 
   useEffect(() => {
     focuse_ref.current = props.isFocused;
+    generate_lst();
     // console.log(props.isFocused);
   }, [props.isFocused])
 
@@ -364,6 +358,7 @@ function _CloudList(props){
         }}>
           <SearchBar
             containerStyle = {{
+              height: itemHeight-15,
               flex: 7,
               backgroundColor: 'rgba(0,0,0,0)',
               borderBottomWidth: 0,
@@ -382,7 +377,7 @@ function _CloudList(props){
               alignItems:'center',
               backgroundColor: color.light_grey,
               justifyContent:'center',
-              height:40}}
+              height:itemHeight-15}}
             textStyle = {{fontSize: itemFontSize+2, alignItems: 'center', color: color.primary}}
             dropdownStyle = {{backgroundColor: color.light_grey, height: 204}}
             defaultIndex = {0}
@@ -402,7 +397,7 @@ function _CloudList(props){
             onSelect = {(index) => setFilid(index)}
           />
           <TouchableOpacity
-            style = {{...styles.grayContainer, flex:2, height: 40, marginRight:7}}
+            style = {{...styles.grayContainer, flex:2, height: itemHeight-15, marginRight:7}}
             onPress = {() => {
               setOrder(1 - orderBy);
             }}

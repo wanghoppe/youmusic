@@ -81,7 +81,7 @@ function _AddToLstModal(props){
             flex:1,
             alignSelf: 'stretch'}}
           >
-            <Text style={{fontSize:25, color: color.dark_pup}}>Add To Playlist</Text>
+            <Text style={{fontSize:itemFontSize+8, color: color.dark_pup}}>Add To Playlist</Text>
             <Icon
               name = 'add-circle'
               size = {35}
@@ -169,7 +169,7 @@ function SelectLstItem(props){
         }}
         onPress ={() => {props.updateChecked(props.title)}}
       >
-        <Text numberOfLines={1} style={{fontSize:18}}>{props.title}</Text>
+        <Text numberOfLines={1} style={{fontSize:itemFontSize+2}}>{props.title}</Text>
       </TouchableOpacity>
     </View>
   )
@@ -192,9 +192,9 @@ function _AddPlstModal(props){
           <View style = {styles.modalTouchClose}/>
         </TouchableWithoutFeedback>
         <View style={{...styles.modalInCenter, justifyContent: 'space-around'}}>
-          <Text style={{fontSize:25, color: color.dark_pup}}>Add Playlist</Text>
+          <Text style={{fontSize:itemFontSize+8, color: color.dark_pup}}>Add Playlist</Text>
           <TextInput
-            style = {{fontSize:20, padding: 10, backgroundColor: color.light_grey, width: '80%'}}
+            style = {{fontSize:itemFontSize+4, padding: 10, backgroundColor: color.light_grey, width: '80%'}}
             placeholder={'PlayList Name'}
             ref = {name_input_ref}/>
           <View style={{...styles.containerRow, justifyContent: 'space-around', height: null}}>
@@ -306,7 +306,7 @@ function _DeleteModal(props){
         </TouchableWithoutFeedback>
         <View style={{...styles.modalInCenter, justifyContent: 'space-around', height: '30%'}}>
           <View style={{...styles.container, flex:1, alignSelf: 'stretch'}}>
-            <Text style={{fontSize:25, color: color.dark_pup}}>Delete {count} Track(s)</Text>
+            <Text style={{fontSize:itemFontSize+8, color: color.dark_pup}}>Delete {count} Track(s)</Text>
           </View>
           <View style = {{flex:1, alignSelf: 'stretch', justifyContent:'center'}}>
             <CheckBox
@@ -397,7 +397,7 @@ export function _ViewDeleteModal(props){
         </TouchableWithoutFeedback>
         <View style={{...styles.modalInCenter, justifyContent: 'space-around', height: '40%'}}>
           <View style={{...styles.container, flex:2, alignSelf: 'stretch'}}>
-            <Text style={{fontSize:25, color: color.dark_pup}}>Delete Playlist:</Text>
+            <Text style={{fontSize:itemFontSize+8, color: color.dark_pup}}>Delete Playlist:</Text>
           </View>
           <View style={{...styles.container, flex:1, alignSelf: 'stretch'}}>
             <Text numberOfLines={1} style={{fontSize:itemFontSize+4}}>

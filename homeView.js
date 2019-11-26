@@ -103,7 +103,7 @@ export function ExploreView(props){
             <Icon
               name = 'first-page'
               color = {color.primary}
-              size = {30}
+              size = {itemFontSize * 2}
               />
           </TouchableOpacity>
           <TouchableOpacity
@@ -113,7 +113,7 @@ export function ExploreView(props){
             <Icon
               name = 'last-page'
               color = {color.primary}
-              size = {30}
+              size = {itemFontSize * 2}
               />
           </TouchableOpacity>
           <TouchableOpacity
@@ -123,7 +123,7 @@ export function ExploreView(props){
             <Icon
               name = 'cloud-upload'
               color = {color.primary}
-              size = {30}
+              size = {itemFontSize * 2}
               />
           </TouchableOpacity>
           <TouchableOpacity
@@ -133,7 +133,7 @@ export function ExploreView(props){
             <Icon
               name = 'more-vert'
               color = {color.primary}
-              size = {30}
+              size = {itemFontSize * 2}
               />
           </TouchableOpacity>
         </View>

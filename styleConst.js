@@ -1,11 +1,11 @@
 import React, { useCallback } from 'react';
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
 import {SQLite} from 'expo-sqlite';
 
-export const itemHeight = 55;
-export const itemFontSize = 16;
+export const itemHeight = Platform.OS === 'ios' ? 55: 50;
+export const itemFontSize = Platform.OS === 'ios' ? 16: 14;
 export const itemOffset = 8;
 
 export const global_debug = false;
