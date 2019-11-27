@@ -110,29 +110,7 @@ function _CloudList(props){
   var mainView;
   var selectControl;
 
-  async function generate_lst(){
-    try{
-      // generate list
-      const local_lst = await FileSystem.readDirectoryAsync(TRACK_DIR);
-      // console.log(local_lst);
-      const local_set = new Set(local_lst.map(item => item.split('-').pop() ));
-      // console.log(local_set)
-      const cloud_lst = await Storage.list('', {level: 'private'});
-
-      data_map_ref.current = new Map(cloud_lst.map((item) => ([item.key, {
-        prog: local_set.has(item.key.split('-').pop()) ? 1: 0,
-        date: date2string(item.lastModified),
-        size: item.size
-      }])));
-      // setDataMap(data_map);
-      filter_lst();
-      setReady(true);
-    }catch(err){
-      console.log(err);
-    }
-  }
-
-  function filter_lst(){
+  const filter_lst = useCallback(() => {
     let lst = [[0,1,2], [0], [2], [1]];
 
     let temp_lst;
@@ -150,7 +128,37 @@ function _CloudList(props){
       console.log('Running filter_lst');
       setShowLst(temp_lst);
     }
+  }, [filter_idex, filter_txt, orderBy])
+
+  const _get_prog = (key, data_map, local_set) => {
+    try{
+      return data_map.get(key).prog == 2 ? 2:(local_set.has(key.split('-').pop()) ? 1: 0);
+    }catch{
+      return local_set.has(key.split('-').pop()) ? 1: 0
+    }
   }
+
+  const generate_lst = useCallback(async () => {
+    try{
+      // generate list
+      const local_lst = await FileSystem.readDirectoryAsync(TRACK_DIR);
+      // console.log(local_lst);
+      const local_set = new Set(local_lst.map(item => item.split('-').pop()));
+      // console.log(local_set)
+      const cloud_lst = await Storage.list('', {level: 'private'});
+
+      data_map_ref.current = new Map(cloud_lst.map((item) => ([item.key, {
+        prog: _get_prog(item.key, data_map_ref.current, local_set),
+        date: date2string(item.lastModified),
+        size: item.size
+      }])));
+      // setDataMap(data_map);
+      filter_lst();
+      setReady(true);
+    }catch(err){
+      console.log(err);
+    }
+  }, [filter_idex, filter_txt, orderBy]);
 
   const setProgWithId = useCallback((id, prog) => {
     data_map_ref.current.set(
@@ -216,6 +224,51 @@ function _CloudList(props){
     {length: itemHeight, offset: itemHeight * index, index}
   ),[])
 
+  const onGloDownloadClick = useCallback(() => {
+    let temp_set = new Set();
+    select_set_ref.current.forEach((item) => {
+      if (data_map_ref.current.get(item).prog == 0){
+        temp_set.add(item);
+      }
+    })
+    Alert.alert(
+      "Comfirm Download",
+      `Download ${temp_set.size} track from cloud?`,
+      [
+        {text: 'Yes', onPress: () => {
+          force_down_set_ref.current = temp_set;
+          select_set_ref.current = new Set();
+          setSelectMode(false);
+          setGloSelect(false);
+        }},
+        {text: 'Cancel', onPress: () => {}, style: 'cancel'}
+      ],
+    )
+  });
+
+  const onGloDeleteClick = useCallback(() => {
+    Alert.alert(
+      "Comfirm Delete",
+      `Delete ${select_set_ref.current.size} track from cloud?`,
+      [
+        {text: 'Yes', onPress: () => {
+          select_set_ref.current.forEach(async (item) => {
+            result = await Storage.remove(item, {level: 'private'});
+            deleteMapWithId(item);
+          });
+          select_set_ref.current = new Set();
+        }},
+        {text: 'Cancel', onPress: () => {}, style: 'cancel'}
+      ],
+    )
+  });
+
+  const onGloCancelClick = useCallback(() =>{
+    select_set_ref.current = new Set()
+    setSelectMode(false);
+    setGloSelect(false);
+  })
+
   useEffect(() => {
     filter_lst();
     console.log('Running2');
@@ -235,63 +288,44 @@ function _CloudList(props){
 
   if (select_mode){
     selectControl = (
-      <View style = {{...styles.containerRow, justifyContent: 'space-around', height: itemHeight}}>
-        <CheckBox
-            center
-            size = {28}
-            checked= {global_select}
-            checkedColor = {color.light_pup}
-            onPress={onGloSelect}
-            />
-        <Button
-          title = {'Download'}
-          onPress = {() => {
-            let temp_set = new Set();
-            select_set_ref.current.forEach((item) => {
-              if (data_map_ref.current.get(item).prog == 0){
-                temp_set.add(item);
-              }
-            })
-            Alert.alert(
-              "Comfirm Download",
-              `Download ${temp_set.size} track from cloud?`,
-              [
-                {text: 'Yes', onPress: () => {
-                  force_down_set_ref.current = temp_set;
-                  select_set_ref.current = new Set();
-                  setSelectMode(false);
-                }},
-                {text: 'Cancel', onPress: () => {}, style: 'cancel'}
-              ],
-            )
-          }}
-          />
-        <Button
-          title = {'Delete'}
-          onPress = {() => {
-            Alert.alert(
-              "Comfirm Delete",
-              `Delete ${select_set_ref.current.size} track from cloud?`,
-              [
-                {text: 'Yes', onPress: () => {
-                  select_set_ref.current.forEach(async (item) => {
-                    result = await Storage.remove(item, {level: 'private'});
-                    deleteMapWithId(item);
-                  });
-                  select_set_ref.current = new Set();
-                }},
-                {text: 'Cancel', onPress: () => {}, style: 'cancel'}
-              ],
-            )
-          }}
-          />
-        <Button
-          title = {'Cancel'}
-          onPress = {() => {
-            select_set_ref.current = new Set()
-            setSelectMode(false);
-          }}
-          />
+      <View style = {{...styles.containerRow, height: itemHeight, backgroundColor:color.light_grey}}>
+        <View style = {{
+          flexDirection: 'row',
+          flex: 9, alignSelf: 'stretch',
+          paddingLeft: 10, paddingRight:10,
+          alignItems:'center'
+        }}>
+          <TouchableOpacity
+            style = {{...styles.pupContainer, flex:3}}
+            onPress={onGloDownloadClick}
+          >
+            <Text style={{fontSize:itemFontSize+2, color:color.primary}}>Download</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style = {{...styles.pupContainer, flex:3}}
+            onPress={onGloDeleteClick}
+          >
+            <Text style={{fontSize:itemFontSize+2, color:color.primary}}>Delete</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style = {{...styles.pupContainer, flex:3}}
+            onPress={onGloCancelClick}
+          >
+            <Text style={{fontSize:itemFontSize+2, color:color.dark_pup}}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity
+          style = {{...styles.pupContainer, flex:1, height:null, backgroundColor: color.light_grey, marginRight:itemFontSize-8}}
+          onPress = {onGloSelect}
+        >
+          <CheckBox
+              center
+              Component = {View}
+              size = {itemFontSize+10}
+              checked= {global_select}
+              checkedColor = {color.light_pup}
+              />
+        </TouchableOpacity>
       </View>
     )
   }else{
@@ -342,7 +376,7 @@ function _CloudList(props){
         <View style = {{position: 'absolute', right: '5%'}}>
           <Icon
             name = 'refresh'
-            size = {30}
+            size = {itemFontSize*2}
             onPress ={() => {
               generate_lst();
             }}
@@ -358,7 +392,8 @@ function _CloudList(props){
         }}>
           <SearchBar
             containerStyle = {{
-              height: itemHeight-15,
+              height: itemHeight - 15 + (itemFontSize-10) * 2,
+              padding: itemFontSize-10,
               flex: 7,
               backgroundColor: 'rgba(0,0,0,0)',
               borderBottomWidth: 0,
@@ -366,6 +401,12 @@ function _CloudList(props){
             }}
             inputContainerStyle = {{
               backgroundColor: color.light_grey,
+              height: itemHeight -15,
+              borderRadius: 4
+            }}
+            inputStyle = {{
+              fontSize: itemFontSize + 2,
+              color: 'black'
             }}
             placeholder="Search Here..."
             onChangeText={text => setFilTx(text)}
@@ -377,7 +418,10 @@ function _CloudList(props){
               alignItems:'center',
               backgroundColor: color.light_grey,
               justifyContent:'center',
-              height:itemHeight-15}}
+              height:itemHeight-15,
+              borderRadius: 4,
+              marginRight:itemFontSize-10,
+            }}
             textStyle = {{fontSize: itemFontSize+2, alignItems: 'center', color: color.primary}}
             dropdownStyle = {{backgroundColor: color.light_grey, height: 204}}
             defaultIndex = {0}
@@ -397,7 +441,13 @@ function _CloudList(props){
             onSelect = {(index) => setFilid(index)}
           />
           <TouchableOpacity
-            style = {{...styles.grayContainer, flex:2, height: itemHeight-15, marginRight:7}}
+            style = {{
+              ...styles.grayContainer,
+              flex:2,
+              height: itemHeight-15,
+              marginRight:itemFontSize-10,
+              borderRadius:4
+            }}
             onPress = {() => {
               setOrder(1 - orderBy);
             }}
@@ -450,16 +500,6 @@ function _CloudList(props){
               }}
             />
           </View>)}
-          {false && <View style = {{flex:2}}>
-            <Icon
-              name = 'refresh'
-              size = {35}
-              onPress ={() => {
-                generate_lst();
-              }}
-              color={color.dark_pup}
-            />
-          </View>}
         </View>
         {mainView}
       </View>
@@ -481,7 +521,7 @@ function Item(props){
   const [loading, setLoading] = useState(false);
   const [checked, setChecked] = useState(false);
 
-  async function downloadItemAsync(){
+  const downloadItemAsync = useCallback(async () => {
     try{
       props.updateCount(true);
       const temp_url = await Storage.get(
@@ -520,21 +560,21 @@ function Item(props){
     }catch(err){
       console.log(err);
     }
-  }
+  });
 
-  async function deleteItemAsync(){
+  const deleteItemAsync = useCallback(async () => {
     try{
       result = await Storage.remove(props.title, {level: 'private'});
       props.deleteMapWithId(props.title);
     }catch(err){
       console.log(result);
     }
-  }
+  })
 
-  const onCheckedClick = () => {
+  const onCheckedClick = useCallback(() => {
     props.updateSelectRef(props.title);
     setChecked(!checked);
-  }
+  });
 
   useEffect(() => {
     if (props.force_down_set_ref.current.has(props.title)){
@@ -563,7 +603,7 @@ function Item(props){
         disabled = {prog == 1}
         disabledStyle = {{backgroundColor: null}}
         color = {(prog == 1)? 'grey': color.primary}
-        size = {30}
+        size = {itemFontSize*2}
         onPress={() => {
             setLoading(true);
             props.setProgWithId(props.title, 2);
@@ -574,10 +614,10 @@ function Item(props){
 
   if (props.select_mode){
     checkBox = (
-      <View style = {{flex:1, justifyContent:'center', alignItems:'center', marginLeft:10 }}>
+      <View style = {{flex:1, justifyContent:'center', alignItems:'center', marginRight:itemFontSize-8}}>
         <CheckBox
             center
-            size = {28}
+            size = {itemFontSize+10}
             checked= {checked}
             checkedColor = {color.light_pup}
             onPress={onCheckedClick}
@@ -594,7 +634,7 @@ function Item(props){
           <View style = {{flex:1, justifyContent:'center', alignItems:'center'}}>
             <Icon
               name = 'delete'
-              size = {30}
+              size = {itemFontSize*2}
               color = {color.dark_pup}
               onPress={ () => {
                 Alert.alert(
@@ -615,10 +655,9 @@ function Item(props){
   if (props.show){
     returnView = (
       <View style = {{...styles.containerRow}}>
-        {checkBox}
         <View
           style = {{
-            flex: 8, alignSelf: 'stretch',
+            flex: 9, alignSelf: 'stretch',
             paddingLeft: 10, paddingRight:10,
             paddingTop: itemOffset/2, paddingBottom: itemOffset/2,
             justifyContent:'center'
@@ -643,6 +682,7 @@ function Item(props){
               </View>
             </TouchableOpacity>
         </View>
+        {checkBox}
         {buttonGrop}
       </View>
     )

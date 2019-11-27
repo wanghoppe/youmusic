@@ -84,7 +84,7 @@ function _AddToLstModal(props){
             <Text style={{fontSize:itemFontSize+8, color: color.dark_pup}}>Add To Playlist</Text>
             <Icon
               name = 'add-circle'
-              size = {35}
+              size = {itemFontSize*2}
               onPress ={() => {
                 props.setShow(false);
                 props.setModalAddPlst(true);
@@ -153,7 +153,7 @@ function SelectLstItem(props){
       <View style = {{flex: 2, justifyContent:'center'}}>
         <CheckBox
           center
-          size={22}
+          size={itemFontSize+6}
           checkedIcon='dot-circle-o'
           uncheckedIcon='circle-o'
           checked={props.checked}

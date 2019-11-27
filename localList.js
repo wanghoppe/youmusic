@@ -329,20 +329,34 @@ export function LocalList(props){
       }}>
         <SearchBar
           containerStyle = {{
+            height: itemHeight - 15 + (itemFontSize-10) * 2,
+            padding: itemFontSize-10,
             flex: 8,
             backgroundColor: 'white',
             borderBottomWidth: 0,
             borderTopWidth:0
           }}
           inputContainerStyle = {{
-            backgroundColor: color.light_grey
+            backgroundColor: color.light_grey,
+            height: itemHeight -15,
+            borderRadius: 4
+          }}
+          inputStyle = {{
+            fontSize: itemFontSize + 2,
+            color: 'black'
           }}
           placeholder="Search Here..."
           onChangeText={text => setFilTx(text)}
           value={filter_txt}
         />
         <TouchableOpacity
-          style = {{...styles.grayContainer, flex:2, height: 40, marginRight:7}}
+          style = {{
+            ...styles.grayContainer,
+            flex:2,
+            height: itemHeight -15,
+            marginRight:itemFontSize-10,
+            borderRadius: 4
+          }}
           onPress = {() => {
             setOrdId(1 - order_idex);
           }}
@@ -483,7 +497,7 @@ function Item(props){
         icon={
           <Icon
            name="more-vert"
-           size={35}
+           size={itemFontSize*2}
            color={color.light_pup}
           />
            }

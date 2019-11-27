@@ -4,9 +4,9 @@ import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
 import {SQLite} from 'expo-sqlite';
 
-export const itemHeight = Platform.OS === 'ios' ? 55: 50;
+export const itemHeight = Platform.OS === 'ios' ? 55: 51;
 export const itemFontSize = Platform.OS === 'ios' ? 16: 14;
-export const itemOffset = 8;
+export const itemOffset = Platform.OS === 'ios' ? 8: 6;
 
 export const global_debug = false;
 
@@ -52,6 +52,16 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: color.light_grey,
     padding: 5
+  },
+
+  pupContainer: {
+    flex: 1,
+    height:itemHeight-15,
+    borderRadius:4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    marginLeft:itemFontSize-10,
   },
 
   container: {

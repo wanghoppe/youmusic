@@ -365,7 +365,7 @@ function PlayControl(props){
             name='step-backward'
             type='font-awesome'
             color = {color.primary}
-            size={20}
+            size={itemFontSize+6}
             Component={TouchableOpacity}
             onPress = {props.previousTrack}
           />
@@ -376,7 +376,7 @@ function PlayControl(props){
             name={(props.playing)? 'pause': 'play'}
             type='font-awesome'
             color ={color.primary}
-            size={30}
+            size={itemFontSize*2}
             Component={TouchableOpacity}
             onPress = {onPlayClick}
           />
@@ -387,7 +387,7 @@ function PlayControl(props){
             name='step-forward'
             type='font-awesome'
             color ={color.primary}
-            size={20}
+            size={itemFontSize+6}
             Component={TouchableOpacity}
             onPress = {props.nextTrack}
           />
@@ -408,7 +408,7 @@ function PlayControl(props){
             name={['list', 'shuffle', 'loop'][mode_id]}
             type={(mode_id == 3)? 'material-community': 'fundation'}
             color = {color.primary}
-            size={15}
+            size={itemFontSize}
             Component={TouchableOpacity}
             onPress = {() => setModeId((mode_id+1)% 3)}
           />
