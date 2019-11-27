@@ -89,6 +89,7 @@ export function PlayingComp(props){
   }
 
   const onItemClick = async (index) => {
+    updatePlayHistory(play_index_ref.current);
     loadSoundIndex(index);
   }
 

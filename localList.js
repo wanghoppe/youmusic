@@ -75,7 +75,7 @@ export function LocalList(props){
   const [filter_txt, setFilTx] = useState('');
 
   const [global_select, setGloSelect] = useState(false);
-  const show_set_ref = useRef(new Set());
+  // const show_set_ref = useRef(new Set());
 
   const [show_modal_more, setModalMore] = useState(false);
   const [show_modal_playlist, setModalPlaylist] = useState(false);
@@ -103,19 +103,19 @@ export function LocalList(props){
                       )`
   }
 
-  const setDataLst = (lst) => {
+  const setDataLst = useCallback((lst) => {
     _setDataLst(lst);
     data_lst_ref.current = lst.map((it) => it.key);
-  }
+  });
 
   const exitSelectMode = useCallback(() => {
     select_set_ref.current =  new Set();
     setSelectMode(false);
-  },[]);
+  });
 
   const flatlist_getItemLayout = useCallback((data, index) => (
     {length: itemHeight, offset: itemHeight * index, index}
-  ),[]);
+  ));
 
 
   const updateSelectSet = useCallback((id) => {
@@ -126,31 +126,30 @@ export function LocalList(props){
     }
   })
 
-  function onDbSuccessFetch(_, {rows: {_array}}){
+  const onDbSuccessFetch = useCallback((_, {rows: {_array}}) => {
     setDataLst(
       orderLst(
         _array.map((it) => ({key: it.track_name, date: it.date})),
         order_idex
       )
     );
-  }
+  }, [order_idex]);
 
   const afterAddPlst = useCallback(() => {
     setModalPlaylist(true);
   });
 
   const fetchShowLst = useCallback(() => {
-      // console.log(db_fetch_query)
-      db.transaction(tx => {
-        tx.executeSql(
-          db_fetch_query,
-          null,
-          onDbSuccessFetch,
-          (_, error) => console.log(error)
-        );
-      })
-    },[order_idex]
-  );
+    // console.log(db_fetch_query)
+    db.transaction(tx => {
+      tx.executeSql(
+        db_fetch_query,
+        null,
+        onDbSuccessFetch,
+        (_, error) => console.log(error)
+      );
+    });
+  },[order_idex]);
 
   const onGloSelect = useCallback((id) => {
     var next_status_checked = !global_select;
@@ -165,6 +164,22 @@ export function LocalList(props){
     });
     setGloSelect(next_status_checked);
   }, [data_lst, global_select, noshow_set]);
+
+  const onDeleteClick = useCallback(() => {
+    if (select_set_ref.current.size == 0){
+      Alert.alert('No track was selected!')
+    }else {
+      setModalDel(true);
+    }
+  });
+
+  const onAdd2PlstClick = useCallback(() => {
+    if (select_set_ref.current.size == 0){
+      Alert.alert('No track was selected!')
+    }else {
+      setModalPlaylist(true);
+    }
+  });
 
   useEffect(() => {
     fetchShowLst();
@@ -203,33 +218,19 @@ export function LocalList(props){
       <View style = {{...styles.containerRow, justifyContent: 'space-around', height: itemHeight}}>
         <Button
           title = {'DEL'}
-          onPress = {() => {
-            if (select_set_ref.current.size == 0){
-              Alert.alert('No track was selected!')
-            }else {
-              setModalDel(true);
-            }
-          }}
+          onPress = {onDeleteClick}
           />
         {
           (all_ref.current) &&
           <Button
             title = {'ADD'}
-            onPress = {() => {
-              if (select_set_ref.current.size == 0){
-                Alert.alert('No track was selected!')
-              }else {
-                setModalPlaylist(true);
-              }
-            }}
+            onPress = {onAdd2PlstClick}
             />
         }
 
         <Button
           title = {'Cancel'}
-          onPress = {() => {
-            exitSelectMode()
-          }}
+          onPress = {exitSelectMode}
           />
           <CheckBox
             center
@@ -384,7 +385,6 @@ export function LocalList(props){
                                     setSelectMode = {setSelectMode}
                                     updateSelectSet = {updateSelectSet}
                                     select = {select_set_ref.current.has(item.key)}
-                                    show_set_ref = {show_set_ref}
                                     key_ref = {key_ref}
                                     setModalMore = {setModalMore}
                                     index = {index}
@@ -454,11 +454,11 @@ function Item(props){
   }, [props])
 
   if (!props.show){
-    props.show_set_ref.current.delete(props.title);
+    // props.show_set_ref.current.delete(props.title);
     return null
   };
 
-  props.show_set_ref.current.add(props.title);
+  // props.show_set_ref.current.add(props.title);
 
   if (props.select_mode){
     onPressEvent = () => {
