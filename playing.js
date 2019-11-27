@@ -146,9 +146,29 @@ export function PlayingComp(props){
     }
   }
 
+  // useEffect(() => {
+  //
+  //   // console.log('[INFO] running here')
+  //   // console.log(init_created)
+  //   const init_data = props.navigation.getParam('init_data', false);
+  //
+  //   if (init_data){
+  //     if (! initdata_ref.current){
+  //       initdata_ref.current = init_data;
+  //       initLoadSound(init_data);
+  //     } else if (JSON.stringify(init_data) != JSON.stringify(initdata_ref.current)) {
+  //       initdata_ref.current = init_data;
+  //       changeLoadSound(init_data);
+  //     }
+  //   }
+  //
+  //   return cleanUpFunc;
+  //   // console.log(initdata);
+  // }, [JSON.stringify(props.navigation.getParam('init_data', false))])
+
   useEffect(() => {
 
-    // console.log('[INFO] running here')
+    console.log('[INFO] running here')
     // console.log(init_created)
     const init_data = props.navigation.getParam('init_data', false);
 
@@ -156,15 +176,19 @@ export function PlayingComp(props){
       if (! initdata_ref.current){
         initdata_ref.current = init_data;
         initLoadSound(init_data);
-      } else if (JSON.stringify(init_data) != JSON.stringify(initdata_ref.current)) {
+      } else if (JSON.stringify(init_data) != JSON.stringify(
+        {playlst: initdata_ref.current.playlst, init_index: play_index_ref.current}
+      )){
         initdata_ref.current = init_data;
         changeLoadSound(init_data);
       }
     }
-
-    return cleanUpFunc;
     // console.log(initdata);
-  }, [JSON.stringify(props.navigation.getParam('init_data', false))])
+  }, [props.navigation.getParam('init_data', {})])
+
+  useEffect(() => {
+    return cleanUpFunc;
+  }, [])
 
   // useEffect(() => {
   //   AppState.addEventListener('change', _handleAppStateChange);
@@ -177,56 +201,73 @@ export function PlayingComp(props){
 
   if (init_created){
     MainView = (
-      <View style={styles.allView} behavior={'padding'}>
-        <View style = {styles.statusBar}>
-          <Text style={{fontWeight: "bold", fontSize: itemFontSize+2}}>MUSIC</Text>
+      <View style={styles.afterStatus}>
+        <View style = {{
+          flex: 4,
+          alignSelf: 'stretch',
+          // borderBottomWidth: 1,
+          // borderColor: color.light_pup
+        }}>
+          <FlatList
+            ref = {flatlist_ref}
+            extraData = {[play_index]}
+            data={play_list}
+            getItemLayout={flatlist_getItemLayout}
+            renderItem={({item, index}) => <Item
+                                      title={item.key}
+                                      select = {(index == play_index)}
+                                      index = {index}
+                                      onItemClick = {onItemClick}
+                                    />}
+          />
         </View>
-        <View style={styles.afterStatus}>
-          <View style = {{
-            flex: 4,
-            alignSelf: 'stretch',
-            // borderBottomWidth: 1,
-            // borderColor: color.light_pup
-          }}>
-            <FlatList
-              ref = {flatlist_ref}
-              extraData = {[play_index]}
-              data={play_list}
-              getItemLayout={flatlist_getItemLayout}
-              renderItem={({item, index}) => <Item
-                                        title={item.key}
-                                        select = {(index == play_index)}
-                                        index = {index}
-                                        onItemClick = {onItemClick}
-                                      />}
-            />
-          </View>
-          <View style = {{
-            flex: 2,
-            alignSelf:'stretch'
-          }}>
-            <PlayControl
-              playing = {playing}
-              setPlaying = {setPlaying}
-              title = {(play_list[play_index]) ? play_list[play_index].key : ''}
-              sound_ref = {sound_ref}
-              init_created = {init_created}
-              nextTrack = {nextTrack}
-              previousTrack = {previousTrack}
-              play_mode_ref = {play_mode_ref}
-              playing_override_ref = {playing_override_ref}
-            />
-          </View>
+        <View style = {{
+          flex: 2,
+          alignSelf:'stretch'
+        }}>
+          <PlayControl
+            playing = {playing}
+            setPlaying = {setPlaying}
+            title = {(play_list[play_index]) ? play_list[play_index].key : ''}
+            sound_ref = {sound_ref}
+            init_created = {init_created}
+            nextTrack = {nextTrack}
+            previousTrack = {previousTrack}
+            play_mode_ref = {play_mode_ref}
+            playing_override_ref = {playing_override_ref}
+          />
         </View>
       </View>
     )
   }else{
     MainView = (
-      <Text> nothing got loaded </Text>
+      <View style={{...styles.afterStatus, justifyContent: 'center'}}>
+        <View style={{padding: 20}}>
+          <Text style = {{fontSize:itemFontSize+4}}> Please Select Songs from</Text>
+        </View>
+        <TouchableOpacity
+          style={{padding: 20, backgroundColor:color.light_grey}}
+          onPress={() => props.navigation.navigate('Local')}
+        >
+          <Icon name={'library-music'} size={25} color={color.dark_pup}/>
+          <View style = {{height:5}}/>
+          <Text style = {{fontSize:12, color:color.dark_pup}}>LOCAL</Text>
+        </TouchableOpacity>
+        <View style={{padding: 20}}>
+          <Text style = {{fontSize:itemFontSize+4}}>{'(ﾉ>ω<)ﾉ'}</Text>
+        </View>
+      </View>
     )
   }
 
-  return MainView
+  return (
+    <View style={styles.allView} behavior={'padding'}>
+      <View style = {styles.statusBar}>
+        <Text style={{fontWeight: "bold", fontSize: itemFontSize+2}}>MUSIC</Text>
+      </View>
+      {MainView}
+    </View>
+  )
 }
 
 

@@ -215,30 +215,47 @@ export function LocalList(props){
 
   if (select_mode){
     SelectControl = (
-      <View style = {{...styles.containerRow, justifyContent: 'space-around', height: itemHeight}}>
-        <Button
-          title = {'DEL'}
-          onPress = {onDeleteClick}
-          />
-        {
-          (all_ref.current) &&
-          <Button
-            title = {'ADD'}
-            onPress = {onAdd2PlstClick}
-            />
-        }
-
-        <Button
-          title = {'Cancel'}
-          onPress = {exitSelectMode}
-          />
+      <View style = {{...styles.containerRow, height: itemHeight, backgroundColor:color.light_grey}}>
+        <View style = {{
+          flexDirection: 'row',
+          flex: 10, alignSelf: 'stretch',
+          paddingLeft: 10, paddingRight:10,
+          alignItems:'center'
+        }}>
+          {
+            (all_ref.current) &&
+            <TouchableOpacity
+              style = {{...styles.pupContainer, flex:1}}
+              onPress={onAdd2PlstClick}
+            >
+              <Text style={{fontSize:itemFontSize+2, color:color.primary}}>Add To</Text>
+            </TouchableOpacity>
+          }
+          <TouchableOpacity
+            style = {{...styles.pupContainer, flex:1}}
+            onPress={onDeleteClick}
+          >
+            <Text style={{fontSize:itemFontSize+2, color:color.primary}}>Delete</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style = {{...styles.pupContainer, flex:1}}
+            onPress={exitSelectMode}
+          >
+            <Text style={{fontSize:itemFontSize+2, color:color.dark_pup}}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity
+          style = {{flex:2, justifyContent:'center', alignItems:'center'}}
+          onPress = {onGloSelect}
+        >
           <CheckBox
-            center
-            size = {28}
-            checked= {global_select}
-            checkedColor = {color.dark_pup}
-            onPress={onGloSelect}
-          />
+              center
+              Component = {View}
+              size = {itemFontSize+10}
+              checked= {global_select}
+              checkedColor = {color.light_pup}
+              />
+        </TouchableOpacity>
       </View>
     )
   }else{
@@ -324,27 +341,27 @@ export function LocalList(props){
         alignSelf : "stretch",
         flexDirection: 'row',
         alignItems:'center',
+        backgroundColor: color.light_grey
         // borderBottomColor: color.light_pup,
         // borderBottomWidth: 2,
         // borderRadius:5
       }}>
         <SearchBar
           containerStyle = {{
-            height: itemHeight - 15 + (itemFontSize-10) * 2,
-            padding: itemFontSize-10,
+            height: itemHeight,
             flex: 8,
-            backgroundColor: 'white',
+            backgroundColor: color.light_grey,
             borderBottomWidth: 0,
             borderTopWidth:0
           }}
           inputContainerStyle = {{
-            backgroundColor: color.light_grey,
+            backgroundColor: 'white',
             height: itemHeight -15,
             borderRadius: 4
           }}
           inputStyle = {{
             fontSize: itemFontSize + 2,
-            color: 'black'
+            // color: 'black'
           }}
           placeholder="Search Here..."
           onChangeText={text => setFilTx(text)}
@@ -353,6 +370,7 @@ export function LocalList(props){
         <TouchableOpacity
           style = {{
             ...styles.grayContainer,
+            backgroundColor: 'white',
             flex:2,
             height: itemHeight -15,
             marginRight:itemFontSize-10,
@@ -471,7 +489,7 @@ function Item(props){
     MoreComp = (
       <CheckBox
           center
-          size = {28}
+          size = {itemFontSize+10}
           checked= {checked}
           checkedColor = {color.dark_pup}
           onPress={onPressEvent}
@@ -513,9 +531,9 @@ function Item(props){
   return (
     <View style={{...styles.containerRow,
       paddingLeft: 22,
-      borderTopWidth: 1,
-      borderColor: color.light_pup,
-      backgroundColor: (checked) ? color.light_pup2 : 'white'
+      backgroundColor: (checked) ? color.light_pup2 : 'white',
+      borderBottomWidth:1,
+      borderColor: color.light_pup
     }}>
       <TouchableOpacity
         style = {{flex: 10,

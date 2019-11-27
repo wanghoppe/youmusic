@@ -282,8 +282,9 @@ function _CloudList(props){
 
   useEffect(() => {
     focuse_ref.current = props.isFocused;
-    generate_lst();
-    // console.log(props.isFocused);
+    if (props.isFocused){
+      generate_lst();
+    }
   }, [props.isFocused])
 
   if (select_mode){
@@ -386,27 +387,27 @@ function _CloudList(props){
       </View>
       <View style = {styles.afterStatus}>
         <View style = {{
+          backgroundColor: color.light_grey,
           alignSelf : "stretch",
           flexDirection: 'row',
           alignItems:'center',
         }}>
           <SearchBar
             containerStyle = {{
-              height: itemHeight - 15 + (itemFontSize-10) * 2,
-              padding: itemFontSize-10,
+              height: itemHeight,
+              padding: (itemFontSize)/2,
               flex: 7,
-              backgroundColor: 'rgba(0,0,0,0)',
+              backgroundColor: color.light_grey,
               borderBottomWidth: 0,
               borderTopWidth:0
             }}
             inputContainerStyle = {{
-              backgroundColor: color.light_grey,
-              height: itemHeight -15,
+              backgroundColor: 'white',
+              height: itemHeight - itemFontSize,
               borderRadius: 4
             }}
             inputStyle = {{
               fontSize: itemFontSize + 2,
-              color: 'black'
             }}
             placeholder="Search Here..."
             onChangeText={text => setFilTx(text)}
@@ -416,9 +417,9 @@ function _CloudList(props){
             style = {{
               flex: 2,
               alignItems:'center',
-              backgroundColor: color.light_grey,
+              backgroundColor: 'white',
               justifyContent:'center',
-              height:itemHeight-15,
+              height:itemHeight - itemFontSize,
               borderRadius: 4,
               marginRight:itemFontSize-10,
             }}
@@ -443,8 +444,9 @@ function _CloudList(props){
           <TouchableOpacity
             style = {{
               ...styles.grayContainer,
+              backgroundColor:'white',
               flex:2,
-              height: itemHeight-15,
+              height: itemHeight - itemFontSize,
               marginRight:itemFontSize-10,
               borderRadius:4
             }}

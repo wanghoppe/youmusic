@@ -56,12 +56,18 @@ export const styles = StyleSheet.create({
 
   pupContainer: {
     flex: 1,
-    height:itemHeight-15,
+    height:itemHeight-itemFontSize,
     borderRadius:4,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'white',
     marginLeft:itemFontSize-10,
+  },
+
+  pupSeparator: {
+    borderTopWidth: 1,
+    borderColor: color.light_pup,
+    alignSelf: 'stretch'
   },
 
   container: {
