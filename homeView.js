@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import { TouchableWithoutFeedback, Modal, TouchableOpacity, Alert, StyleSheet, Text, View, TextInput, ScrollView, KeyboardAvoidingView, StatusBar } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { showMessage, hideMessage } from "react-native-flash-message";
@@ -7,6 +7,8 @@ import { createStackNavigator } from 'react-navigation-stack';
 import {color, styles, global_debug, itemFontSize} from './styleConst';
 import { Button, Icon } from 'react-native-elements';
 import ModalDropdown from 'react-native-modal-dropdown';
+import { withNavigationFocus } from 'react-navigation';
+import { IconText } from './utilsComp';
 
 // export const ExploreView = createStackNavigator(
 //   {
@@ -24,8 +26,10 @@ import ModalDropdown from 'react-native-modal-dropdown';
 //     }
 //   }
 // );
+// export const ExploreView = withNavigationFocus(_ExploreView)
 
 export function ExploreView(props){
+  // console.log('updating home')
   var ref_out = null;
 
   const [show_modal, setShowModal] = useState(false);
@@ -73,18 +77,21 @@ export function ExploreView(props){
           <View style = {styles.modalTouchClose}/>
         </TouchableWithoutFeedback>
         <View style ={{...styles.modalInCenter, height: null}}>
-          <TouchableOpacity
-            style = {{...styles.touchableRow}}
-            onPress = {goBackHome}
-          >
-            <Text>Back to Youtube</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style = {{...styles.touchableRow}}
-            onPress = {logOut}
-            >
-            <Text>LOG OUT</Text>
-          </TouchableOpacity>
+          <IconText
+            title = 'Youtube Home'
+            iconName = 'youtube'
+            iconType = 'material-community'
+            iconColor = {'red'}
+            onItemClick = {goBackHome}
+          />
+          <View style = {styles.graySeparator}/>
+          <IconText
+            title = 'Sign Out'
+            iconName = 'sign-out'
+            iconType = 'font-awesome'
+            iconColor = {color.dark_pup}
+            onItemClick = {logOut}
+          />
         </View>
       </View>
     </Modal>

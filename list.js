@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useCallback, useRef } from 'react';
 import { TouchableHighlight, TouchableOpacity, Alert, Picker,
   StyleSheet, Text, View, TextInput,
-  ScrollView, KeyboardAvoidingView, StatusBar, FlatList } from 'react-native';
+  ScrollView, KeyboardAvoidingView, StatusBar, FlatList,RefreshControl } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Progress from 'react-native-progress';
 import { showMessage, hideMessage } from "react-native-flash-message";
@@ -106,6 +106,7 @@ function _CloudList(props){
 
   const focuse_ref = useRef(false);
 
+  const [refreshing, setRefresh] = useState(false);
 
   var mainView;
   var selectControl;
@@ -269,6 +270,12 @@ function _CloudList(props){
     setGloSelect(false);
   })
 
+  const onRefresh = useCallback(async () => {
+    setRefresh(true);
+    await generate_lst()
+    setRefresh(false);
+  }, [filter_idex, filter_txt, orderBy])
+
   useEffect(() => {
     filter_lst();
     console.log('Running2');
@@ -283,7 +290,7 @@ function _CloudList(props){
   useEffect(() => {
     focuse_ref.current = props.isFocused;
     if (props.isFocused){
-      generate_lst();
+      onRefresh();
     }
   }, [props.isFocused])
 
@@ -337,6 +344,15 @@ function _CloudList(props){
     mainView = (
       <View style = {{alignSelf: 'stretch', flex:1, justifyContent: 'flex-end'}}>
         <FlatList
+          refreshControl = {
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={color.dark_pup}
+              colors={[color.dark_pup]}
+            />
+          }
+          tintColor = {color.dark_pup}
           data={show_lst}
           extraData={[select_mode, global_select]}
           getItemLayout={flatlist_getItemLayout}
@@ -374,16 +390,16 @@ function _CloudList(props){
     <View style={styles.allView} behavior={'padding'}>
       <View style = {styles.statusBar}>
         <Text style={{fontWeight: "bold", fontSize: itemFontSize+2}}>CLOUD</Text>
-        <View style = {{position: 'absolute', right: '5%'}}>
+        {false && <View style = {{position: 'absolute', right: '5%'}}>
           <Icon
             name = 'refresh'
             size = {itemFontSize*2}
             onPress ={() => {
-              generate_lst();
+              onRefresh();
             }}
             color={color.primary}
           />
-        </View>
+        </View>}
       </View>
       <View style = {styles.afterStatus}>
         <View style = {{

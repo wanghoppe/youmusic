@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {ActivityIndicator, Alert, StyleSheet, Text, View, TextInput, ScrollView, KeyboardAvoidingView, StatusBar } from 'react-native';
 
 import Constants from 'expo-constants';
@@ -40,67 +40,99 @@ export function LoginView(props){
   const [username, setUsername] = useState('Email');
   const [pw, setPw] = useState('Password')
   const [need_confirm, setConfirm] = useState(false);
-  const [save_user, setUser] = useState(null);
+  const save_user_ref = useRef();
 
-  const [modal_show, setModalShow] = useState(false);
+  const [wait_modal_show, setWaitModal] = useState(false);
   var pwText;
 
   const signInFirst = async () => {
-    setModalShow(true);
+    setWaitModal(true);
     try{
       const user = await Auth.signIn(username, pw);
       if (user.challengeName === 'NEW_PASSWORD_REQUIRED'){
-        setModalShow(false);
-        Alert.alert('Please set new password');
-        setUser(user);
-        setConfirm(true);
+        Alert.alert(
+          'Please set new password',
+          null,
+          [{text:'OK', onPress: ()=>{
+            setWaitModal(false);
+            setConfirm(true);
+            save_user_ref.current = user;
+          }}],
+          {cancelable: false},
+        );
       }else{
         props.navigation.navigate('App');
         showMessage({
-          message: "SignIn Success",
+          message: "Sign In Success",
           type: "success"}
         );
       };
     }catch(err){
-      setModalShow(false);
-      Alert.alert(err.message);
+      Alert.alert(
+        'Failed',
+        err.message,
+        [{text:'OK', onPress: ()=>{
+          setWaitModal(false);
+        }}],
+        {cancelable: false},
+      );
     }
   };
 
   const setPasswd = async () => {
-    setModalShow(true);
+    setWaitModal(true);
     try{
       const loggedUser = await Auth.completeNewPassword(
-        save_user, pw
+        save_user_ref.current, pw
       );
       props.navigation.navigate('App');
       showMessage({
-        message: "SignIn Success",
+        message: "Sign In Success",
         type: "success"}
       );
     }catch(err){
-      setModalShow(false);
-      Alert.alert(err.message);
+      Alert.alert(
+        'Failed',
+        err.message,
+        [{text:'OK', onPress: ()=>{
+          setWaitModal(false);
+        }}],
+        {cancelable: false},
+      );
     }
   };
 
   // useEffect(()=> {
   //   if (need_confirm){
-  //     setModalShow(false);
+  //     setWaitModal(false);
   //   }
   // }, [need_confirm])
 
   if (need_confirm){
     button1 = (
-      <Button title={"SET PASSWORD"}
+      <Button
+        containerStyle = {{flex:1}}
+        title={"GO GO"}
         onPress={setPasswd}/>
+    );
+    button2 = (
+      <Button
+        containerStyle = {{flex:1, marginRight:10}}
+        buttonStyle={{backgroundColor:color.dark_pup}}
+        title={"BACK"}
+        onPress={()=>setConfirm(false)}
+      />
     );
     pwText = (<Text style={{fontSize: itemFontSize+6, color: color.dark_pup}}>New Password:</Text>)
   } else {
     button1 = (
-      <Button title={"GO GO"}
-        onPress={signInFirst}/>
-    )
+      <Button
+        containerStyle = {{flex:1}}
+        title={"GO GO"}
+        onPress={signInFirst}
+      />
+    );
+    button2 = null;
     pwText = (<Text style={{fontSize: itemFontSize+6, color: color.dark_pup}}>Password:</Text>)
   }
 
@@ -108,14 +140,16 @@ export function LoginView(props){
   return (
     <View style={{flex:1}}>
       <WaitingModal
-        show = {modal_show}
+        show = {wait_modal_show}
         title = 'Signing In'
       />
       <View style={styles.statusBar}/>
       <View style={styles.afterStatus}>
         <KeyboardAvoidingView flex={5} style={{alignSelf:'stretch'}} behavior="padding">
           <View flex={1} style={styles.container}>
-            <Text style = {{fontSize:itemFontSize*2, color: color.dark_pup}}>Sign In</Text>
+            <Text style = {{fontSize:itemFontSize*2, color: color.dark_pup}}>
+              {need_confirm?'Set New Password':'Sign In'}
+            </Text>
           </View>
           <View flex={5} style={{
             alignSelf:'stretch',
@@ -146,10 +180,12 @@ export function LoginView(props){
             </View>
           </View>
           <View flex={2} style={{
+            flexDirection: 'row',
             alignSelf:'stretch',
             marginRight:itemFontSize*2,
             marginLeft:itemFontSize*2
           }}>
+            {button2}
             {button1}
           </View>
           <View style = {{padding:itemFontSize}}/>
