@@ -8,14 +8,13 @@ import { showMessage, hideMessage } from "react-native-flash-message";
 import Constants from 'expo-constants';
 import { Storage, Auth } from 'aws-amplify';
 import { SearchBar, CheckBox } from 'react-native-elements';
-import ModalDropdown from 'react-native-modal-dropdown';
 
 import {color, styles, itemHeight, db, TRACK_DIR, itemFontSize} from './styleConst';
 import {login} from './utils'
 import {AddToLstModal, DeleteModal, AddPlstModal} from './localModal'
 
 import { Button, Icon } from 'react-native-elements';
-
+import { IconText } from './utilsComp';
 
 function orderLst(lst, idx){
 
@@ -273,27 +272,29 @@ export function LocalList(props){
           <View style = {styles.modalTouchClose}/>
         </TouchableWithoutFeedback>
         <View style ={{...styles.modalInCenter, height: null}}>
-          <TouchableOpacity
-            style = {{...styles.touchableRow}}
-            onPress = {() => {
+          {
+            all_ref.current &&
+            <View style = {{alignSelf:'stretch'}}>
+              <IconText
+                title = 'Add to Playlist'
+                iconName = 'playlist-add'
+                iconColor = {color.primary}
+                onItemClick = {()=> {
+                  setModalPlaylist(true);
+                  setModalMore(false);
+                }}
+              />
+              <View style = {styles.graySeparator}/>
+            </View>
+          }
+          <IconText
+            title = 'Delete Track'
+            iconName = 'delete'
+            onItemClick = {()=> {
               setModalDel(true);
               setModalMore(false);
             }}
-          >
-            <Text style = {{fontSize: itemFontSize + 2}}>Delete Track</Text>
-          </TouchableOpacity>
-          {
-            all_ref.current &&
-            <TouchableOpacity
-              style = {{...styles.touchableRow}}
-              onPress = {() => {
-                setModalPlaylist(true);
-                setModalMore(false);
-              }}
-            >
-              <Text style = {{fontSize: itemFontSize + 2}}>Add Track to Playlist</Text>
-            </TouchableOpacity>
-          }
+          />
         </View>
       </View>
     </Modal>
@@ -348,15 +349,14 @@ export function LocalList(props){
       }}>
         <SearchBar
           containerStyle = {{
-            height: itemHeight,
+            ...styles.grayControl,
             flex: 8,
-            backgroundColor: color.light_grey,
             borderBottomWidth: 0,
             borderTopWidth:0
           }}
           inputContainerStyle = {{
             backgroundColor: 'white',
-            height: itemHeight -15,
+            height: itemHeight - itemFontSize,
             borderRadius: 4
           }}
           inputStyle = {{
@@ -369,12 +369,9 @@ export function LocalList(props){
         />
         <TouchableOpacity
           style = {{
-            ...styles.grayContainer,
-            backgroundColor: 'white',
+            ...styles.whiteTouchable,
             flex:2,
-            height: itemHeight -15,
             marginRight:itemFontSize-10,
-            borderRadius: 4
           }}
           onPress = {() => {
             setOrdId(1 - order_idex);

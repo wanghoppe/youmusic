@@ -55,8 +55,10 @@ export function ExploreView(props){
   }
 
   const logOut = async () => {
-    await Auth.signOut({ global: true })
-        .then(data => console.log(data));
+    console.log('logging out')
+    let something = await Auth.signOut({ global: true })
+    console.log(something)
+        // .then(data => console.log(data));
     props.navigation.navigate('AuthLoading');
   }
 

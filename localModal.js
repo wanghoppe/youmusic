@@ -187,7 +187,7 @@ function _AddPlstModal(props){
       transparent={true}
       visible={props.show_modal}
     >
-      <KeyboardAvoidingView behavior="padding" style={{...styles.modalBack, justifyContent: 'center'}}>
+      <KeyboardAvoidingView behavior="height" style={{...styles.modalBack, justifyContent: 'center'}}>
         <TouchableWithoutFeedback onPress = {() => props.setShowModal(false)}>
           <View style = {styles.modalTouchClose}/>
         </TouchableWithoutFeedback>

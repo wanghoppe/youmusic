@@ -14,6 +14,7 @@ import {login} from './utils'
 import { ViewDeleteModal } from './localModal';
 import { Button, Icon } from 'react-native-elements';
 import { AddPlstModal } from './localModal';
+import { IconText } from './utilsComp';
 
 export function LocalView(props){
 
@@ -59,11 +60,13 @@ export function LocalView(props){
       <View style = {styles.grayRow} />
       <View style = {{...styles.containerRow, justifyContent: 'space-between', paddingHorizontal:30}}>
         <Text style={{fontSize:itemFontSize+4}}>Playlist:</Text>
-        <Button
-          title = {'ADD'}
-          onPress = {() => {
+        <Icon
+          name = 'add-circle'
+          size = {itemFontSize*2+5}
+          onPress ={() => {
             setShowModal1(true);
           }}
+          color={color.primary}
         />
       </View>
       <View style = {{
@@ -115,44 +118,14 @@ export function LocalView(props){
             <View style = {styles.modalTouchClose}/>
           </TouchableWithoutFeedback>
           <View style ={{...styles.modalInCenter, height: null}}>
-            <TouchableOpacity
-              style = {{...styles.touchableRow}}
-              onPress = {() => {
-                // Alert.alert(
-                //   "Comfirm Delete",
-                //   `Delete Playlist: ${key_ref.current}?`,
-                //   [
-                //     {text: 'Yes', onPress: () => {
-                //       db.transaction(tx => {
-                //         tx.executeSql(
-                //           `DELETE FROM Playlists WHERE lst_name = '${key_ref.current}'`,
-                //           [],
-                //           () => {
-                //             console.log(`[Info] Playlist (${key_ref.current}) deleted from database`)
-                //             showMessage({
-                //               message: "Success",
-                //               description: "Playlist Deleted",
-                //               type: "success"
-                //             })
-                //             setShowModal2(false);
-                //             fetch_pllst();
-                //           },
-                //           (_, error) => console.log(error)
-                //         );
-                //       });
-                //     }},
-                //     {text: 'Cancel', onPress: () => {}, style: 'cancel'}
-                //   ],
-                // )
+            <IconText
+              title = 'Delete Playlist'
+              iconName = 'delete'
+              onItemClick = {()=> {
                 setShowModal2(false);
                 setShowModal3(true);
               }}
-            >
-              <Text style = {{fontSize: itemFontSize + 2}}>Delete Playlist</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style = {{...styles.touchableRow}}>
-              <Text style = {{fontSize: itemFontSize + 2}}>what2</Text>
-            </TouchableOpacity>
+            />
           </View>
         </View>
       </Modal>
@@ -170,22 +143,31 @@ function Item(props){
 
   return (
     <View style={{...styles.containerRow,
-      paddingLeft: 30,
       borderTopWidth: 1,
       borderColor: color.light_pup
     }}>
       <TouchableOpacity
         style = {{flex: 10,
-          flexDirection: 'row',
+          // flexDirection: 'row',
           height:'100%',
-          alignItems:'center',
-          justifyContent: 'space-between'
+          // justifyContent:'center',
+          // justifyContent: 'space-between'
         }}
         onPress = {() => {
           props.navigation.navigate('LocalList', {plst_name: props.title})
         }}>
-        <Text numberOfLines={1} style={{fontSize:itemFontSize + 2, maxWidth:'70%'}}>{props.title}</Text>
-        <Text style={{color: 'rgba(0,0,0,0.3)', fontSize:itemFontSize - 2}}>{props.create_date}</Text>
+        <IconText
+          Component = {View}
+          containerStyle = {{flex:4, height:null}}
+          title = {props.title}
+          iconName = 'queue-music'
+          iconColor = {color.light_pup}
+        />
+        <View style={{flex:1}}/>
+        <View style = {{position: 'absolute', bottom:1, right:0}}>
+          <Text style={{color: 'rgba(0,0,0,0.3)', fontSize:itemFontSize - 2}}>{props.create_date}</Text>
+        </View>
+        {false && <Text style={{color: 'rgba(0,0,0,0.3)', fontSize:itemFontSize - 2}}>{props.create_date}</Text>}
       </TouchableOpacity>
       <View style = {{flex:2, justifyContent:'center', alignItems:'center'}}>
         <Button

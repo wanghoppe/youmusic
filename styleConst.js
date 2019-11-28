@@ -54,6 +54,29 @@ export const styles = StyleSheet.create({
     padding: 5
   },
 
+  whiteTouchable: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    height: itemHeight - itemFontSize,
+    borderRadius:4,
+    padding: 5
+  },
+
+  grayControl: {
+    flex: 1,
+    height: itemHeight,
+    padding: (itemFontSize)/2,
+    backgroundColor: color.light_grey,
+  },
+
+  graySeparator: {
+    alignSelf: 'stretch',
+    borderTopWidth:1,
+    borderColor: color.light_grey
+  },
+
   pupContainer: {
     flex: 1,
     height:itemHeight-itemFontSize,
@@ -93,7 +116,9 @@ export const styles = StyleSheet.create({
   },
 
   wrapText:{
+    flex:1,
     justifyContent: 'center',
+    alignSelf: 'stretch'
   },
 
   grayRow:{

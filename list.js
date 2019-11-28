@@ -394,12 +394,10 @@ function _CloudList(props){
         }}>
           <SearchBar
             containerStyle = {{
-              height: itemHeight,
-              padding: (itemFontSize)/2,
+              ...styles.grayControl,
               flex: 7,
-              backgroundColor: color.light_grey,
-              borderBottomWidth: 0,
-              borderTopWidth:0
+              borderTopWidth:0,
+              borderBottomWidth:0
             }}
             inputContainerStyle = {{
               backgroundColor: 'white',
@@ -424,31 +422,26 @@ function _CloudList(props){
               marginRight:itemFontSize-10,
             }}
             textStyle = {{fontSize: itemFontSize+2, alignItems: 'center', color: color.primary}}
-            dropdownStyle = {{backgroundColor: color.light_grey, height: 204}}
+            dropdownStyle = {{backgroundColor: color.light_grey, height: itemHeight*4}}
+            showsVerticalScrollIndicator={false}
             defaultIndex = {0}
             defaultValue = {'All'}
             options={['All', 'Undownload', 'Loading', 'Downloaded']}
             renderRow = {(option)=>(
-              <View style = {{alignItems: 'center', justifyContent: 'center', height: 50}}>
-                <Text style={{fontSize:itemFontSize+2, color: color.primary}}>{option}</Text>
-              </View>
+              <TouchableOpacity style = {styles.grayControl}>
+                <View style={{...styles.whiteTouchable, alignSelf:'stretch'}}>
+                  <Text style={{fontSize:itemFontSize+2, color: color.primary}}>{option}</Text>
+                </View>
+              </TouchableOpacity>
             )}
-            renderSeparator = { () => (<View
-                style={{
-                  borderBottomColor: color.light_pup,
-                  borderBottomWidth: 1,
-                }}
-            />)}
+            renderSeparator = {() => (<View/>)}
             onSelect = {(index) => setFilid(index)}
           />
           <TouchableOpacity
             style = {{
-              ...styles.grayContainer,
-              backgroundColor:'white',
+              ...styles.whiteTouchable,
               flex:2,
-              height: itemHeight - itemFontSize,
-              marginRight:itemFontSize-10,
-              borderRadius:4
+              marginRight:itemFontSize-10
             }}
             onPress = {() => {
               setOrder(1 - orderBy);
