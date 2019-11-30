@@ -39,6 +39,7 @@ const TabNavigator = createMaterialTopTabNavigator(
   },
   {
     lazy : true,
+    swipeEnabled: false,
     tabBarPosition: 'bottom',
     defaultNavigationOptions: ({ navigation }) => ({
       tabBarIcon: ({ focused, horizontal, tintColor }) => {
