@@ -114,10 +114,10 @@ function _AddToLstModal(props){
           }}>
             <Button
               title='Cancel'
+              buttonStyle= {{backgroundColor:color.dark_pup}}
               onPress={() => props.setShow(false)}
               />
             <Button
-              buttonStyle= {{backgroundColor:color.dark_pup}}
               title='Check'
               onPress={() => {
                 if (checked == undefined){
@@ -200,10 +200,10 @@ function _AddPlstModal(props){
           <View style={{...styles.containerRow, justifyContent: 'space-around', height: null}}>
             <Button
               title='Cancel'
+              buttonStyle= {{backgroundColor:color.dark_pup}}
               onPress={() => props.setShowModal(false)}
               />
             <Button
-              buttonStyle= {{backgroundColor:color.dark_pup}}
               title='Check'
               onPress={() => {
                 let get_txt = name_input_ref.current._lastNativeText;
@@ -327,10 +327,10 @@ function _DeleteModal(props){
           }}>
             <Button
               title='Cancel'
+              buttonStyle= {{backgroundColor:color.dark_pup}}
               onPress={() => props.setShow(false)}
               />
             <Button
-              buttonStyle= {{backgroundColor:color.dark_pup}}
               title='Check'
               onPress={() => {
                 if (check){
@@ -422,10 +422,10 @@ export function _ViewDeleteModal(props){
           }}>
             <Button
               title='Cancel'
+              buttonStyle= {{backgroundColor:color.dark_pup}}
               onPress={() => props.setShow(false)}
               />
             <Button
-              buttonStyle= {{backgroundColor:color.dark_pup}}
               title='Check'
               onPress={() => {
                 db.transaction(tx => {

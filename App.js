@@ -52,7 +52,7 @@ const TabNavigator = createMaterialTopTabNavigator(
         } else if (routeName === 'Local') {
           iconName = `library-music`;
         } else if (routeName === 'Play'){
-          iconName = `queue-music`;
+          iconName = `video-library`;
         }
         return <Icon name={iconName} size={25} color={tintColor} iconStyle={`${focused ? '' : 'outline'}`}/>;
       },

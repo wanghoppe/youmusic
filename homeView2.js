@@ -21,6 +21,8 @@ export function ExploreLambda(props){
   const last_query_ref = useRef('')
   const [data_lst, setDataLst] = useState([]);
   const [refreshing, setRefresh] = useState(false);
+  const flatlist_ref = useRef();
+  const [loading, setLoading] = useState(false);
 
   const searchYtb = async (query) => {
     console.log('fetching youtube search list');
@@ -56,9 +58,10 @@ export function ExploreLambda(props){
   }
 
   const onSearchClick = async () => {
-    setRefresh(true);
+
+    setLoading(true);
     await searchYtb(query_ref.current);
-    setRefresh(false);
+    setLoading(false);
   }
 
   const download2Cloud = async (you_id) => {
@@ -94,11 +97,13 @@ export function ExploreLambda(props){
     <View style={styles.allView}>
       <View style = {styles.afterStatus}>
         <MySearchBar
+          loading = {loading}
           onSearchClick = {onSearchClick}
           query_ref = {query_ref}
         />
         <View style = {{alignSelf: 'stretch', flex:1, justifyContent: 'flex-end'}}>
           <FlatList
+            ref = {flatlist_ref}
             refreshControl = {
               <RefreshControl
                 refreshing={refreshing}
@@ -149,6 +154,20 @@ function MySearchBar(props){
       backgroundColor: color.light_grey
     }}>
       <SearchBar
+        platform="ios"
+        cancelButtonTitle={'Cancel'}
+        cancelButtonProps={
+        {
+          buttonStyle:{
+            ...styles.whiteTouchable,
+            padding:0,
+            marginRight:itemFontSize-5
+          },
+          buttonTextStyle:{fontSize: itemFontSize+2}
+        }
+        }
+        showLoading = {props.loading}
+        loadingProps={{color: color.dark_pup}}
         containerStyle = {{
           ...styles.grayControl,
           flex: 8,
@@ -166,9 +185,10 @@ function MySearchBar(props){
         }}
         placeholder="Search Youtube"
         onChangeText={onTextChange}
+        onSubmitEditing={props.onSearchClick}
         value = {query}
       />
-      <TouchableOpacity
+      {false && <TouchableOpacity
         style = {{
           ...styles.whiteTouchable,
           flex:2,
@@ -180,7 +200,7 @@ function MySearchBar(props){
           color: color.primary,
           fontSize: itemFontSize+2,
         }}>Search</Text>
-      </TouchableOpacity>
+      </TouchableOpacity>}
     </View>
   )
 }
