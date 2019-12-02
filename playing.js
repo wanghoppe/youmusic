@@ -22,7 +22,6 @@ export function PlayingComp(props){
   const [play_list, setPlayList] =  useState();
 
   const [playing, setPlaying] = useState(true);
-  const playing_override_ref = useRef(true);
   const [init_created, setInitCreated] = useState(false);
   const sound_ref = useRef();
   const flatlist_ref = useRef();
@@ -32,12 +31,12 @@ export function PlayingComp(props){
 
   // const [appStatus, setAppStatus] = useState(AppState.currentState)
 
-  const updatePlayHistory = (pre_index) => {
+  const updatePlayHistory = useCallback((pre_index) => {
     if (play_history_ref.current.length > 50){
       play_history_ref.current.shift();
     }
     play_history_ref.current.push(pre_index);
-  }
+  }, []);
 
   const setPlayIndex = useCallback((index) => {
     _setPlayIndex(index);
@@ -46,9 +45,9 @@ export function PlayingComp(props){
     wait.then( () => {
       flatlist_ref.current.scrollToIndex({index:index});
     });
-  })
+  }, [])
 
-  const getNextIndex = () => {
+  const getNextIndex = useCallback(() => {
     if (play_mode_ref.current == 0){
       return (play_index_ref.current + 1) % initdata_ref.current.playlst.length;
     }else if(play_mode_ref.current == 1){
@@ -56,9 +55,9 @@ export function PlayingComp(props){
     }else if(play_mode_ref.current == 2){
       return play_index_ref.current;
     }
-  }
+  }, [])
 
-  const loadSoundIndex = async (index) => {
+  const loadSoundIndex = useCallback(async (index) => {
     await sound_ref.current.unloadAsync();
     const source = {
       uri: TRACK_DIR + encodeURIComponent(initdata_ref.current.playlst[index])
@@ -69,15 +68,15 @@ export function PlayingComp(props){
     await sound_ref.current.loadAsync(source, init_status);
     // await sound_ref.current.playAsync()
     setPlayIndex(index);
-  }
+  }, []);
 
-  const nextTrack = () => {
+  const nextTrack = useCallback(() => {
     updatePlayHistory(play_index_ref.current);
     const index = getNextIndex();
     loadSoundIndex(index);
-  }
+  }, []);
 
-  const previousTrack = () => {
+  const previousTrack = useCallback(() => {
     var index;
     const pre_index = play_history_ref.current.pop();
     if (pre_index){
@@ -86,14 +85,14 @@ export function PlayingComp(props){
       index = initdata_ref.current.init_index;
     }
     loadSoundIndex(index);
-  }
+  }, [])
 
-  const onItemClick = async (index) => {
+  const onItemClick = useCallback(async (index) => {
     updatePlayHistory(play_index_ref.current);
     loadSoundIndex(index);
-  }
+  }, []);
 
-  const changeLoadSound =  async (init_data) => {
+  const changeLoadSound = useCallback(async (init_data) => {
     await sound_ref.current.unloadAsync();
 
     const source = {
@@ -106,9 +105,9 @@ export function PlayingComp(props){
     play_history_ref.current = [];
     setPlayList(init_data.playlst.map((it) => ({key: it})));
     setPlayIndex(init_data.init_index);
-  }
+  }, [playing])
 
-  const initLoadSound = async (init_data) => {
+  const initLoadSound = useCallback(async (init_data) => {
     let track_name = init_data.playlst[init_data.init_index];
 
     await Audio.setAudioModeAsync({
@@ -138,33 +137,13 @@ export function PlayingComp(props){
     setPlayList(init_data.playlst.map((it) => ({key: it})));
     setInitCreated(true);
     setPlayIndex(init_data.init_index);
-  }
+  }, []);
 
-  const cleanUpFunc = async() => {
+  const cleanUpFunc = useCallback(async() => {
     if (sound_ref.current){
       await sound_ref.current.unloadAsync();
     }
-  }
-
-  // useEffect(() => {
-  //
-  //   // console.log('[INFO] running here')
-  //   // console.log(init_created)
-  //   const init_data = props.navigation.getParam('init_data', false);
-  //
-  //   if (init_data){
-  //     if (! initdata_ref.current){
-  //       initdata_ref.current = init_data;
-  //       initLoadSound(init_data);
-  //     } else if (JSON.stringify(init_data) != JSON.stringify(initdata_ref.current)) {
-  //       initdata_ref.current = init_data;
-  //       changeLoadSound(init_data);
-  //     }
-  //   }
-  //
-  //   return cleanUpFunc;
-  //   // console.log(initdata);
-  // }, [JSON.stringify(props.navigation.getParam('init_data', false))])
+  }, []);
 
   useEffect(() => {
 
@@ -195,9 +174,9 @@ export function PlayingComp(props){
   //   console.log(AppState.currentState);
   // }, [])
 
-  const _handleAppStateChange = (nextAppState) => {
-    console.log(`nextAppState: ${nextAppState}`)
-  }
+  // const _handleAppStateChange = (nextAppState) => {
+  //   console.log(`nextAppState: ${nextAppState}`)
+  // }
 
   if (init_created){
     MainView = (
@@ -234,7 +213,6 @@ export function PlayingComp(props){
             nextTrack = {nextTrack}
             previousTrack = {previousTrack}
             play_mode_ref = {play_mode_ref}
-            playing_override_ref = {playing_override_ref}
           />
         </View>
       </View>
@@ -278,22 +256,21 @@ function PlayControl(props){
   const [seeking, setSeeking] = useState(false);
   const [seek_value, setSeekValue] = useState(0);
 
-  const setModeId = (mode) => {
+  const setModeId = useCallback((mode) => {
     _setModeId(mode);
     props.play_mode_ref.current = mode;
-  }
+  }, []);
 
-  const onPlayClick = async () => {
-    props.playing_override_ref.current = true;
+  const onPlayClick = useCallback(async () => {
     props.setPlaying(!props.playing);
     if (props.playing){
       await props.sound_ref.current.pauseAsync();
     }else{
       await props.sound_ref.current.playAsync();
     }
-  }
+  }, [props.playing]);
 
-  const onPlaybackStatusUpdate = (status) => {
+  const onPlaybackStatusUpdate = useCallback((status) => {
     if (status.error){
       console.log(`FATAL PLAYER ERROR: ${status.error}`);
     }else{
@@ -311,9 +288,9 @@ function PlayControl(props){
         props.setPlaying(false);
       }
     }
-  }
+  }, [])
 
-  const _getMMSSFromMillis = (millis) => {
+  const _getMMSSFromMillis = useCallback((millis) => {
 		const totalSeconds = millis / 1000;
 		const seconds = Math.floor(totalSeconds % 60);
 		const minutes = Math.floor(totalSeconds / 60);
@@ -326,7 +303,7 @@ function PlayControl(props){
 			return string;
 		};
 		return padWithZero(minutes) + ':' + padWithZero(seconds);
-	}
+	}, [])
 
   const _getTimestamp = () => {
 		if (
@@ -355,27 +332,27 @@ function PlayControl(props){
 		return 0;
 	}
 
-  const _onSlidingComplete = async (value) => {
+  const _onSlidingComplete = useCallback(async (value) => {
     const seekPosition = value * play_back_status.duration;
     await props.sound_ref.current.setPositionAsync(seekPosition);
     setSeeking(false);
-  }
+  }, [play_back_status.duration]);
 
-  const _onValueChange = (value) => {
+  const _onValueChange = useCallback((value) => {
     setPlayBackStatus({
       position: value * play_back_status.duration,
       duration: play_back_status.duration
     })
-  }
+  }, [play_back_status.duration])
 
-  const initSetStatus = async () => {
+  const initSetStatus = useCallback(async () => {
     console.log('Running init')
     if (props.sound_ref.current){
       await props.sound_ref.current.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate);
       await props.sound_ref.current.setStatusAsync({shouldPlay: props.playing})
       // await props.sound_ref.current.playAsync()
     }
-  }
+  }, [])
 
   useEffect(() => {
     initSetStatus();

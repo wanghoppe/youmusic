@@ -122,7 +122,7 @@ function _CloudList(props){
         date: val.date,
         size: val.size,
         prog: val.prog,
-        show: lst[filter_idex].includes(val.prog) && key.toLowerCase().includes(filter_txt)
+        show: lst[filter_idex].includes(val.prog) && key.toLowerCase().includes(filter_txt.toLowerCase())
       }));
       temp_lst = orderLst(temp_lst, ['Date', 'Size'][orderBy]);
 
@@ -205,7 +205,7 @@ function _CloudList(props){
     }else{
       select_set_ref.current.add(id);
     }
-  })
+  }, [])
 
   const onGloSelect = useCallback((id) => {
     var next_status_checked = !global_select;
@@ -245,7 +245,7 @@ function _CloudList(props){
         {text: 'Cancel', onPress: () => {}, style: 'cancel'}
       ],
     )
-  });
+  }, []);
 
   const onGloDeleteClick = useCallback(() => {
     Alert.alert(
@@ -262,13 +262,13 @@ function _CloudList(props){
         {text: 'Cancel', onPress: () => {}, style: 'cancel'}
       ],
     )
-  });
+  }, []);
 
   const onGloCancelClick = useCallback(() =>{
     select_set_ref.current = new Set()
     setSelectMode(false);
     setGloSelect(false);
-  })
+  }, [])
 
   const onRefresh = useCallback(async () => {
     setRefresh(true);
@@ -278,7 +278,7 @@ function _CloudList(props){
 
   useEffect(() => {
     filter_lst();
-    console.log('Running2');
+    // console.log('Running');
   }, [filter_idex, filter_txt, toggle_filter]);
 
   useEffect(() => {
@@ -357,8 +357,9 @@ function _CloudList(props){
           extraData={[select_mode, global_select]}
           getItemLayout={flatlist_getItemLayout}
           initialNumToRender = {11}
-          renderItem={({item}) => <PureItem
+          renderItem={({item, index}) => <PureItem
                                     prog={item.prog}
+                                    index={index}
                                     title={item.key}
                                     date={item.date}
                                     size={size2string(item.size)}
@@ -518,20 +519,18 @@ function _CloudList(props){
   );
 }
 
-function areEqual(prevProps, nextProps) {
+function areItemEqual(prevProps, nextProps) {
   return (
     nextProps.prog == prevProps.prog &&
     nextProps.show == prevProps.show &&
     nextProps.selected ==  prevProps.selected &&
-    nextProps.select_mode == prevProps.select_mode)
+    nextProps.select_mode == prevProps.select_mode
+  )
 }
 
-const PureItem = React.memo(Item, areEqual);
+const PureItem = React.memo(Item, areItemEqual);
 
 function Item(props){
-  if(props.title=='Photograph - Ed Sheeran (Lyrics)-qgmXPCX4VzU.mp3'){
-    console.log(props.title);
-  }
 
   var returnView;
   var downButton;
@@ -581,7 +580,7 @@ function Item(props){
     }catch(err){
       console.log(err);
     }
-  });
+  }, []);
 
   const deleteItemAsync = useCallback(async () => {
     try{
@@ -590,12 +589,12 @@ function Item(props){
     }catch(err){
       console.log(result);
     }
-  })
+  }, [])
 
   const onCheckedClick = useCallback(() => {
     props.updateSelectRef(props.title);
     setChecked(!checked);
-  });
+  }, [checked]);
 
   useEffect(() => {
     if (props.force_down_set_ref.current.has(props.title)){

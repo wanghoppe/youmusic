@@ -51,7 +51,7 @@ function getNoshowSet(data_lst, filter_txt){
   let temp_set = new Set();
 
   data_lst.forEach((it) => {
-    if (!it.key.toLowerCase().includes(filter_txt)){
+    if (!it.key.toLowerCase().includes(filter_txt.toLowerCase())){
       temp_set.add(it.key);
     }
   })
@@ -60,6 +60,7 @@ function getNoshowSet(data_lst, filter_txt){
 }
 
 export function LocalList(props){
+  // console.log('updating Locallist')
 
   const all_ref = useRef(props.navigation.getParam('all_tracks', false));
   // const all_ref = useRef(true);
@@ -105,16 +106,17 @@ export function LocalList(props){
   const setDataLst = useCallback((lst) => {
     _setDataLst(lst);
     data_lst_ref.current = lst.map((it) => it.key);
-  });
+  }, []);
 
   const exitSelectMode = useCallback(() => {
     select_set_ref.current =  new Set();
     setSelectMode(false);
-  });
+    setGloSelect(false);
+  }, []);
 
   const flatlist_getItemLayout = useCallback((data, index) => (
     {length: itemHeight, offset: itemHeight * index, index}
-  ));
+  ), []);
 
 
   const updateSelectSet = useCallback((id) => {
@@ -123,7 +125,7 @@ export function LocalList(props){
     }else{
       select_set_ref.current.add(id);
     }
-  })
+  }, [])
 
   const onDbSuccessFetch = useCallback((_, {rows: {_array}}) => {
     setDataLst(
@@ -136,7 +138,7 @@ export function LocalList(props){
 
   const afterAddPlst = useCallback(() => {
     setModalPlaylist(true);
-  });
+  }, []);
 
   const fetchShowLst = useCallback(() => {
     // console.log(db_fetch_query)
@@ -170,7 +172,7 @@ export function LocalList(props){
     }else {
       setModalDel(true);
     }
-  });
+  }, []);
 
   const onAdd2PlstClick = useCallback(() => {
     if (select_set_ref.current.size == 0){
@@ -178,7 +180,7 @@ export function LocalList(props){
     }else {
       setModalPlaylist(true);
     }
-  });
+  }, []);
 
   useEffect(() => {
     fetchShowLst();
@@ -457,7 +459,20 @@ export function LocalList(props){
   )
 }
 
-function Item(props){
+function areItemEqual(prevProps, nextProps) {
+  return (
+    nextProps.show == prevProps.show &&
+    nextProps.select ==  prevProps.select &&
+    nextProps.select_mode == prevProps.select_mode
+  )
+}
+
+const Item = React.memo(_Item, areItemEqual);
+
+function _Item(props){
+  // if(props.title=='Photograph - Ed Sheeran (Lyrics)-qgmXPCX4VzU.mp3'){
+  //   console.log(props.title);
+  // }
   var onPressEvent;
   var onLongPressEvent;
   var MoreComp;
