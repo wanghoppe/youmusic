@@ -3,6 +3,8 @@ import {Platform, StyleSheet} from 'react-native';
 import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
 import {SQLite} from 'expo-sqlite';
+import * as Localization from 'expo-localization';
+import i18n from 'i18n-js';
 
 export const itemHeight = Platform.OS === 'ios' ? 55: 51;
 export const itemFontSize = Platform.OS === 'ios' ? 16: 14;
@@ -26,6 +28,19 @@ export const color = {light_pup: '#cc7a9b',
 export const flatlist_getItemLayout = (data, index) => (
   {length: itemHeight, offset: itemHeight * index, index}
 )
+
+const en = {
+  cloud: 'Cloud',
+};
+const zh = {
+  cloud: '云端',
+};
+
+i18n.fallbacks = true;
+i18n.translations = { zh, en };
+i18n.locale = Localization.locale;
+
+export const my_i18n = i18n
 
 export const styles = StyleSheet.create({
   allView: {

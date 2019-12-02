@@ -1,4 +1,5 @@
 import * as FileSystem from 'expo-file-system';
+import * as Localization from 'expo-localization';
 import {db, TRACK_DIR} from './styleConst';
 
 
@@ -66,6 +67,8 @@ export async function first_run(){
       (_, error) => console.log(error)
     );
   });
+  console.log(Localization.locale);
+
   const dir_info = await FileSystem.getInfoAsync(TRACK_DIR);
   if (!dir_info.exists){
     FileSystem.makeDirectoryAsync(TRACK_DIR);

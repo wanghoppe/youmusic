@@ -518,11 +518,21 @@ function _CloudList(props){
   );
 }
 
-const PureItem = React.memo((props) => {
-  return Item(props);
-});
+function areEqual(prevProps, nextProps) {
+  return (
+    nextProps.prog == prevProps.prog &&
+    nextProps.show == prevProps.show &&
+    nextProps.selected ==  prevProps.selected &&
+    nextProps.select_mode == prevProps.select_mode)
+}
+
+const PureItem = React.memo(Item, areEqual);
 
 function Item(props){
+  if(props.title=='Photograph - Ed Sheeran (Lyrics)-qgmXPCX4VzU.mp3'){
+    console.log(props.title);
+  }
+
   var returnView;
   var downButton;
   var checkBox;

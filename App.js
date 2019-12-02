@@ -23,7 +23,7 @@ import {first_run}  from './firstRun';
 import {LocalList} from './localList';
 import {LocalHome} from './localHome';
 import {PlayingComp} from './playing';
-import {color, styles, itemHeight, db, TRACK_DIR} from './styleConst';
+import {color, styles, itemHeight, db, TRACK_DIR, my_i18n} from './styleConst';
 
 Amplify.configure(awsconfig);
 first_run();
@@ -33,7 +33,7 @@ first_run();
 const TabNavigator = createMaterialTopTabNavigator(
   {
     Explore: ExploreView,
-    Cloud: CloudList,
+    [my_i18n.t('cloud')]: CloudList,
     Local: LocalHome,
     Play: PlayingComp
   },
