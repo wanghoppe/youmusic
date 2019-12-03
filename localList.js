@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useRef } from 'react';
+import React, {useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { TouchableHighlight, TouchableOpacity,TouchableWithoutFeedback, Alert, Picker,
   StyleSheet, Text, View, TextInput,
   ScrollView, KeyboardAvoidingView, StatusBar, FlatList, Modal } from 'react-native';
@@ -471,106 +471,102 @@ function areItemEqual(prevProps, nextProps) {
 const Item = React.memo(_Item, areItemEqual);
 
 function _Item(props){
-  // if(props.title=='Photograph - Ed Sheeran (Lyrics)-qgmXPCX4VzU.mp3'){
-  //   console.log(props.index);
-  // }
-  var onPressEvent;
-  var onLongPressEvent;
-  var MoreComp;
+  if(props.title=='Photograph - Ed Sheeran (Lyrics)-qgmXPCX4VzU.mp3'){
+    console.log(props.select)
+    console.log(props.index);
+  }
 
   const [checked, setChecked] = useState(false);
+  const index_ref = useRef(props.index);
 
   useEffect(() => {
     setChecked(props.select);
+    index_ref.current = props.index;
   }, [props])
-
-
 
   const navigateToPlay = useCallback(() => {
     console.log(props.index);
     props.navigation.navigate('Play', {init_data: {
       playlst: props.data_lst_ref.current,
-      init_index: props.index
+      init_index: index_ref.current
     }})
-  },[props.index])
+  },[]);
 
-  if (!props.show){
-    // props.show_set_ref.current.delete(props.title);
-    return null
-  };
+  const onPressEventSelectMode = useCallback(() => {
+    setChecked(!checked);
+    props.updateSelectSet(props.title);
+  },[checked])
+
+  const onLongPressEvent = useCallback(() => {
+    props.setSelectMode(true);
+    props.updateSelectSet(props.title);
+    setChecked(true);
+  }, [])
+
+  const TextView = useMemo(()=>(
+    <View style = {{height: '100%', width: '100%'}}>
+      <View style = {{justifyContent: 'flex-end',flex: 4}}>
+        <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{props.title}</Text>
+      </View>
+      <View style = {{justifyContent: 'center', flex: 3}}>
+        <Text style={{color: 'rgba(0,0,0,0.3)', fontSize:itemFontSize-4}}>{props.date.split(' ')[0]}</Text>
+      </View>
+    </View>
+  ),[])
+
+  const MainView = useMemo(()=>{
+    const MoreComp = props.select_mode ?
+        (<CheckBox
+            center
+            size = {itemFontSize+10}
+            checked= {checked}
+            checkedColor = {color.dark_pup}
+            onPress={onPressEventSelectMode}
+        />):
+        (<Button
+          flex={1}
+          icon={
+            <Icon
+             name="more-vert"
+             size={itemFontSize*2}
+             color={color.light_pup}
+            />
+             }
+          type="clear"
+          onPress={() => {
+            props.key_ref.current = props.title
+            props.setModalMore(true);
+          }}
+        />)
+    return(
+      <View style={{...styles.containerRow,
+        paddingLeft: 22,
+        backgroundColor: (checked) ? color.light_pup2 : 'white',
+        borderBottomWidth:1,
+        borderColor: color.light_pup
+      }}>
+        <TouchableOpacity
+          style = {{
+            flex: 10,
+            height:'100%'
+          }}
+          onPress = {props.select_mode?onPressEventSelectMode:navigateToPlay}
+          onLongPress = {props.select_mode?()=>{}:onLongPressEvent}
+        >
+          {TextView}
+        </TouchableOpacity>
+        <View style = {{flex:2, justifyContent:'center', alignItems:'center'}}>
+          {MoreComp}
+        </View>
+      </View>
+    )
+  }, [props.select_mode, checked])
 
   // props.show_set_ref.current.add(props.title);
 
-  if (props.select_mode){
-    onPressEvent = () => {
-      setChecked(!checked);
-      props.updateSelectSet(props.title);
-    };
-
-    onLongPressEvent = () => {}
-
-    MoreComp = (
-      <CheckBox
-          center
-          size = {itemFontSize+10}
-          checked= {checked}
-          checkedColor = {color.dark_pup}
-          onPress={onPressEvent}
-          />
-    )
+  if (!props.show){
+    return null
   }else{
-    onPressEvent = navigateToPlay;
-
-    onLongPressEvent = () => {
-      props.setSelectMode(true);
-      props.updateSelectSet(props.title);
-      setChecked(true);
-    }
-
-    MoreComp = (
-      <Button
-        flex={1}
-        icon={
-          <Icon
-           name="more-vert"
-           size={itemFontSize*2}
-           color={color.light_pup}
-          />
-           }
-        type="clear"
-        onPress={() => {
-          props.key_ref.current = props.title
-          props.setModalMore(true);
-        }}
-      />
-    )
+    return MainView
   }
-
-  return (
-    <View style={{...styles.containerRow,
-      paddingLeft: 22,
-      backgroundColor: (checked) ? color.light_pup2 : 'white',
-      borderBottomWidth:1,
-      borderColor: color.light_pup
-    }}>
-      <TouchableOpacity
-        style = {{flex: 10,
-          height:'100%'
-        }}
-        onPress = {onPressEvent}
-        onLongPress = {onLongPressEvent}
-      >
-        <View style = {{justifyContent: 'flex-end',flex: 4}}>
-          <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{props.title}</Text>
-        </View>
-        <View style = {{justifyContent: 'center', flex: 3}}>
-          <Text style={{color: 'rgba(0,0,0,0.3)', fontSize:itemFontSize-4}}>{props.date.split(' ')[0]}</Text>
-        </View>
-      </TouchableOpacity>
-      <View style = {{flex:2, justifyContent:'center', alignItems:'center'}}>
-        {MoreComp}
-      </View>
-    </View>
-  )
-
 }

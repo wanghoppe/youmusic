@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useRef } from 'react';
+import React, {useState, useEffect, useCallback, useRef, useMemo} from 'react';
 import { TouchableHighlight, TouchableOpacity, Alert, Picker,
   StyleSheet, Text, View, TextInput,
   ScrollView, KeyboardAvoidingView, StatusBar, FlatList,RefreshControl } from 'react-native';
@@ -526,13 +526,18 @@ function areItemEqual(prevProps, nextProps) {
     nextProps.prog == prevProps.prog &&
     nextProps.show == prevProps.show &&
     nextProps.selected ==  prevProps.selected &&
-    nextProps.select_mode == prevProps.select_mode
+    nextProps.select_mode == prevProps.select_mode &&
+    nextProps.index == prevProps.index
   )
 }
 
 const PureItem = React.memo(Item, areItemEqual);
 
 function Item(props){
+  if(props.title=='Photograph - Ed Sheeran (Lyrics)-qgmXPCX4VzU.mp3'){
+    // console.log(props.select)
+    console.log(props.index);
+  }
 
   var returnView;
   var downButton;
@@ -613,6 +618,23 @@ function Item(props){
     )
   }, [props.index]);
 
+  const onDownloadClick = useCallback(() => {
+    setLoading(true);
+    props.setProgWithId(props.title, 2);
+    props.pushLoadingLst(downloadItemAsync);
+  },[])
+
+  const onDeleteClick = useCallback(() => {
+    Alert.alert(
+      "Comfirm Delete",
+      `Delete ${props.title} from cloud?`,
+      [
+        {text: 'Yes', onPress: deleteItemAsync },
+        {text: 'Cancel', onPress: () => {}, style: 'cancel'}
+      ],
+    )
+  },[])
+
   useEffect(() => {
     if (props.force_down_set_ref.current.has(props.title)){
       props.force_down_set_ref.current.delete(props.title);
@@ -629,69 +651,21 @@ function Item(props){
     }
   }, [props.prog])
 
+  const CheckB = useMemo(()=>(
+    <View style = {{flex:1, justifyContent:'center', alignItems:'center', marginRight:itemFontSize-8}}>
+      <CheckBox
+          center
+          size = {itemFontSize+10}
+          checked= {checked}
+          checkedColor = {color.light_pup}
+          onPress={onCheckedClick}
+          />
+    </View>
+  ), [checked]);
+
   if (!props.show){
     return null;
   }
-
-  if (loading){
-    downButton = (
-        <Progress.CircleSnail size={26} color={color.light_pup} thickness={3}/>
-    )
-  }else{
-    downButton = (
-      <Icon
-        name = 'cloud-download'
-        disabled = {prog == 1}
-        disabledStyle = {{backgroundColor: null}}
-        color = {(prog == 1)? 'grey': color.primary}
-        size = {itemFontSize*2}
-        onPress={() => {
-            setLoading(true);
-            props.setProgWithId(props.title, 2);
-            props.pushLoadingLst(downloadItemAsync);
-        }}/>
-    )
-  }
-
-  if (props.select_mode){
-    checkBox = (
-      <View style = {{flex:1, justifyContent:'center', alignItems:'center', marginRight:itemFontSize-8}}>
-        <CheckBox
-            center
-            size = {itemFontSize+10}
-            checked= {checked}
-            checkedColor = {color.light_pup}
-            onPress={onCheckedClick}
-            />
-      </View>);
-      buttonGrop = null;
-    }else{
-      checkBox = null;
-      buttonGrop = (
-        <View style = {{flex:2, alignItems:'center', flexDirection:'row'}}>
-          <View style = {{flex:1, justifyContent:'center', alignItems:'center'}}>
-            {downButton}
-          </View>
-          <View style = {{flex:1, justifyContent:'center', alignItems:'center'}}>
-            <Icon
-              name = 'delete'
-              size = {itemFontSize*2}
-              color = {color.dark_pup}
-              onPress={ () => {
-                Alert.alert(
-                  "Comfirm Delete",
-                  `Delete ${props.title} from cloud?`,
-                  [
-                    {text: 'Yes', onPress: deleteItemAsync },
-                    {text: 'Cancel', onPress: () => {}, style: 'cancel'}
-                  ],
-                )
-              }
-          }/>
-          </View>
-        </View>
-      );
-    }
 
   returnView = (
     <View style = {{...styles.containerRow}}>
@@ -722,12 +696,48 @@ function Item(props){
             </View>
           </TouchableOpacity>
       </View>
-      {checkBox}
-      {buttonGrop}
+      {props.select_mode? CheckB: null}
+      {props.select_mode ||
+        <ItemControl
+          loading = {loading}
+          prog = {prog}
+          onDownloadClick = {onDownloadClick}
+          onDeleteClick = {onDeleteClick}
+        />
+      }
     </View>
   )
   return returnView;
 }
+
+const ItemControl = React.memo(_ItemControl);
+function _ItemControl(props){
+  const {loading, prog, onDownloadClick, onDeleteClick} = props
+  return(
+    <View style = {{flex:2, alignItems:'center', flexDirection:'row'}}>
+      <View style = {{flex:1, justifyContent:'center', alignItems:'center'}}>
+        {loading?
+          (<Progress.CircleSnail size={26} color={color.light_pup} thickness={3}/>):
+          (<Icon
+            name = 'cloud-download'
+            disabled = {prog == 1}
+            disabledStyle = {{backgroundColor: null}}
+            color = {(prog == 1)? 'grey': color.primary}
+            size = {itemFontSize*2}
+            onPress={onDownloadClick}/>)
+        }
+      </View>
+      <View style = {{flex:1, justifyContent:'center', alignItems:'center'}}>
+        <Icon
+          name = 'delete'
+          size = {itemFontSize*2}
+          color = {color.dark_pup}
+          onPress={onDeleteClick}/>
+      </View>
+    </View>
+  )
+}
+
 
 async function download2cloud(you_id){
   const user_info = await Auth.currentUserInfo();
