@@ -463,7 +463,8 @@ function areItemEqual(prevProps, nextProps) {
   return (
     nextProps.show == prevProps.show &&
     nextProps.select ==  prevProps.select &&
-    nextProps.select_mode == prevProps.select_mode
+    nextProps.select_mode == prevProps.select_mode &&
+    nextProps.index == prevProps.index
   )
 }
 
@@ -482,6 +483,16 @@ function _Item(props){
   useEffect(() => {
     setChecked(props.select);
   }, [props])
+
+
+
+  const navigateToPlay = useCallback(() => {
+    console.log(props.index);
+    props.navigation.navigate('Play', {init_data: {
+      playlst: props.data_lst_ref.current,
+      init_index: props.index
+    }})
+  },[props.index])
 
   if (!props.show){
     // props.show_set_ref.current.delete(props.title);
@@ -508,12 +519,7 @@ function _Item(props){
           />
     )
   }else{
-    onPressEvent = () => {
-      props.navigation.navigate('Play', {init_data: {
-        playlst: props.data_lst_ref.current,
-        init_index: props.index
-      }})
-    };
+    onPressEvent = navigateToPlay;
 
     onLongPressEvent = () => {
       props.setSelectMode(true);

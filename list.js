@@ -600,13 +600,13 @@ function Item(props){
 
   const onItemClick = useCallback(() => {
     Alert.alert(
-      'Streamming Music?',
+      'Streaming Music?',
       null,
       [{text: 'Yes', onPress: () =>{
         props.navigation.navigate('Play', {init_data: {
           playlst: props.show_lst.map(({key}) => (key)),
           init_index: props.index,
-          streamming: true
+          streaming: true
         }})
       }},
       {text: 'Cancel', onPress: () => {}, style: 'cancel'}]

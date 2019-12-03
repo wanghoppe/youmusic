@@ -9,12 +9,12 @@ import { Audio } from 'expo-av';
 import {color, styles, itemHeight, TRACK_DIR, itemFontSize, flatlist_getItemLayout} from './styleConst';
 import { Button, Icon, Slider } from 'react-native-elements';
 import { Storage } from 'aws-amplify';
+import * as FileSystem from 'expo-file-system';
 
 
 export function PlayingComp(props){
-
-  const [loaded, setLoaded] = useState(false);
-  const initdata_ref = useRef();
+  // console.log('updating play all');
+  const initdata_ref = useRef({});
 
   var MainView;
 
@@ -30,9 +30,14 @@ export function PlayingComp(props){
   const play_mode_ref = useRef(0);
   const play_history_ref = useRef([]);
 
-  const [loading_id, setLoadingId] = useState(0);
+  const [loading_id, _setLoadingId] = useState(0);
+  const loading_id_ref = useRef(loading_id);
 
   // const [appStatus, setAppStatus] = useState(AppState.currentState)
+  const setLoadingId = useCallback((id)=>{
+    _setLoadingId(id);
+    loading_id_ref.current = id;
+  }, [])
 
   const updatePlayHistory = useCallback((pre_index) => {
     if (play_history_ref.current.length > 50){
@@ -49,7 +54,7 @@ export function PlayingComp(props){
     wait.then( () => {
       flatlist_ref.current.scrollToIndex({index:index});
     });
-  }, [])
+  }, []);
 
   const getNextIndex = useCallback(() => {
     if (play_mode_ref.current == 0){
@@ -61,26 +66,44 @@ export function PlayingComp(props){
     }
   }, [])
 
+  const _getTrackUriAsync = useCallback(async (track_name)=>{
+
+    const local_uri = TRACK_DIR + encodeURIComponent(track_name);
+    const file_info = await FileSystem.getInfoAsync(local_uri);
+    if (initdata_ref.current.streaming){
+      if (file_info.exists){
+        return local_uri
+      }else{
+        try{
+          return await Storage.get(track_name, { level: 'private'})
+        }catch{
+          return null;
+        }
+      }
+    }else{
+      return local_uri
+    }
+  }, [])
+
   const loadSoundIndex = useCallback(async (index) => {
     setPlayIndex(index);
-    await sound_ref.current.unloadAsync();
 
     const track_name = initdata_ref.current.playlst[index];
+    const track_uri = await _getTrackUriAsync(track_name);
 
-    var uri;
-    if (initdata_ref.current.streamming){
-      uri = await Storage.get(track_name, { level: 'private'});
-    }else{
-      uri = TRACK_DIR + encodeURIComponent(track_name);
-    }
-
-    const source = {uri: uri};
+    await sound_ref.current.unloadAsync();
+    const source = {uri: track_uri};
     const init_status = {
       shouldPlay: playing
     };
-    await sound_ref.current.loadAsync(source, init_status);
+    // console.log({playing: playing});
+    try{
+      await sound_ref.current.loadAsync(source, init_status, downloadFirst = false);
+    }catch{
+      nextTrack()
+    }
     // await sound_ref.current.playAsync()
-  }, []);
+  }, [playing]);
 
   const nextTrack = useCallback(() => {
     updatePlayHistory(play_index_ref.current);
@@ -100,28 +123,15 @@ export function PlayingComp(props){
   }, [])
 
   const onItemClick = useCallback(async (index) => {
+    // if (loading_id_ref.current == 2){
     updatePlayHistory(play_index_ref.current);
     loadSoundIndex(index);
+    // }
   }, []);
 
   const changeLoadSound = useCallback(async (init_data) => {
-    setPlayIndex(init_data.init_index);
     setPlayList(init_data.playlst.map((it) => ({key: it})));
-    await sound_ref.current.unloadAsync();
-
-    let track_name = init_data.playlst[init_data.init_index];
-    var uri;
-    if (init_data.streamming){
-      uri = await Storage.get(track_name, { level: 'private'});
-    }else{
-      uri = TRACK_DIR + encodeURIComponent(track_name)
-    }
-
-    const source = {uri: uri};
-    const init_status = {
-      shouldPlay: playing
-    };
-    await sound_ref.current.loadAsync(source, init_status);
+    loadSoundIndex(init_data.init_index);
     play_history_ref.current = [];
 
   }, [playing])
@@ -142,23 +152,11 @@ export function PlayingComp(props){
       shouldDuckAndroid : true,
       playThroughEarpieceAndroid : false,
     });
-    // console.log(`sound_ref: `)
-    // console.log(sound_ref.current)
-    // if (sound_ref.current){
-    //   await sound_ref.current.unloadAsync();
-    // }
 
     const soundObject = new Audio.Sound();
 
-    var uri;
-    if (init_data.streamming){
-      uri = await Storage.get(track_name, { level: 'private'});
-    }else{
-      uri = TRACK_DIR + encodeURIComponent(track_name)
-    }
-
-    const source = {uri: uri};
-    await soundObject.loadAsync(source);
+    const source = {uri: await _getTrackUriAsync(track_name)};
+    await soundObject.loadAsync(source, {}, downloadFirst = false);
 
     sound_ref.current = soundObject;
     setInitCreated(true);
@@ -178,11 +176,15 @@ export function PlayingComp(props){
     const init_data = props.navigation.getParam('init_data', false);
 
     if (init_data){
-      if (! initdata_ref.current){
+      if (JSON.stringify(initdata_ref.current) == JSON.stringify({})) {
         initdata_ref.current = init_data;
         initLoadSound(init_data);
       } else if (JSON.stringify(init_data) != JSON.stringify(
-        {playlst: initdata_ref.current.playlst, init_index: play_index_ref.current}
+        {
+          playlst: initdata_ref.current.playlst,
+          init_index: play_index_ref.current,
+          streaming: initdata_ref.current.streaming
+        }
       )){
         initdata_ref.current = init_data;
         changeLoadSound(init_data);
@@ -223,7 +225,6 @@ export function PlayingComp(props){
                                       select = {(index == play_index)}
                                       index = {index}
                                       onItemClick = {onItemClick}
-                                      loading_id = {loading_id}
                                     />}
           />
         </View>
@@ -270,7 +271,9 @@ export function PlayingComp(props){
   return (
     <View style={styles.allView} behavior={'padding'}>
       <View style = {styles.statusBar}>
-        <Text style={{fontWeight: "bold", fontSize: itemFontSize+2}}>MUSIC</Text>
+        <Text style={{fontWeight: "bold", fontSize: itemFontSize+2}}>
+          {initdata_ref.current.streaming? 'STREAMING MUSIC':'MUSIC'}
+        </Text>
       </View>
       {MainView}
     </View>
@@ -279,7 +282,7 @@ export function PlayingComp(props){
 
 
 function PlayControl(props){
-
+  // console.log('updating control');
   const [mode_id, _setModeId] = useState(0);
   const [play_back_status, setPlayBackStatus] = useState({});
   const [seeking, setSeeking] = useState(false);
@@ -312,10 +315,7 @@ function PlayControl(props){
       if (status.didJustFinish) {
         props.nextTrack()
       }
-      // console.log(`shoud play: ${status.shouldPlay}`)
-      // console.log(`playing: ${status.isPlaying}`)
-      // console.log(`isBuffering: ${status.isBuffering}`)
-      if (!status.isPlaying && status.shouldPlay && !status.isBuffering ){
+      if (!status.isPlaying && status.shouldPlay && !status.isBuffering && !status.didJustFinish && status.isLoaded){
         props.setPlaying(false);
       }
     }
@@ -378,8 +378,9 @@ function PlayControl(props){
   }, [play_back_status.duration])
 
   const initSetStatus = useCallback(async () => {
-    console.log('Running init')
+
     if (props.sound_ref.current){
+      console.log('Running init')
       await props.sound_ref.current.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate);
       await props.sound_ref.current.setStatusAsync({shouldPlay: props.playing})
       // await props.sound_ref.current.playAsync()
@@ -410,8 +411,8 @@ function PlayControl(props){
         // justifyContent:'space-around',
         // backgroundColor:color.light_gre
       }}>
-        <View style = {{position: 'absolute', left:10, bottom:2}}>
-          <Text>{play_back_status.isBuffering? 'Buffering...': ''}</Text>
+        <View style = {{position: 'absolute', left:20, bottom:2}}>
+          <Text style={{color:color.primary}}>{play_back_status.isBuffering? 'Buffering...': ''}</Text>
         </View>
         <View style = {{flex:1, alignItems:'center'}}>
           <Icon
@@ -485,7 +486,7 @@ function PlayControl(props){
             onSlidingComplete = {_onSlidingComplete}
             onSlidingStart = {() => setSeeking(true)}
             thumbTintColor = {color.primary}
-            disabled = {props.loading_id != 2}
+            disabled = {(props.loading_id != 2 || play_back_status.duration == 0)}
           />
         </View>
       </View>
@@ -493,7 +494,12 @@ function PlayControl(props){
   )
 }
 
-function Item(props){
+const Item = React.memo(_Item);
+
+function _Item(props){
+  // if(props.title=='Photograph - Ed Sheeran (Lyrics)-qgmXPCX4VzU.mp3'){
+  //   console.log(props.title);
+  // }
   return (
     <TouchableOpacity
       style={{...styles.containerRow,
@@ -504,7 +510,6 @@ function Item(props){
       onPress = {() =>{
         props.onItemClick(props.index)
       }}
-      disabled = {(props.loading_id != 2)}
     >
       <View style = {{flex:2}}>
         <Icon
