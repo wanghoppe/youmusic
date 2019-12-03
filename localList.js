@@ -471,7 +471,7 @@ const Item = React.memo(_Item, areItemEqual);
 
 function _Item(props){
   // if(props.title=='Photograph - Ed Sheeran (Lyrics)-qgmXPCX4VzU.mp3'){
-  //   console.log(props.title);
+  //   console.log(props.index);
   // }
   var onPressEvent;
   var onLongPressEvent;

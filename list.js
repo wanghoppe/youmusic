@@ -374,6 +374,8 @@ function _CloudList(props){
                                     setSelectMode = {setSelectMode}
                                     force_down_set_ref = {force_down_set_ref}
                                     focuse_ref = {focuse_ref}
+                                    show_lst = {show_lst}
+                                    navigation={props.navigation}
                                   />}
         />
         {selectControl}
@@ -596,6 +598,21 @@ function Item(props){
     setChecked(!checked);
   }, [checked]);
 
+  const onItemClick = useCallback(() => {
+    Alert.alert(
+      'Streamming Music?',
+      null,
+      [{text: 'Yes', onPress: () =>{
+        props.navigation.navigate('Play', {init_data: {
+          playlst: props.show_lst.map(({key}) => (key)),
+          init_index: props.index,
+          streamming: true
+        }})
+      }},
+      {text: 'Cancel', onPress: () => {}, style: 'cancel'}]
+    )
+  }, [props.index]);
+
   useEffect(() => {
     if (props.force_down_set_ref.current.has(props.title)){
       props.force_down_set_ref.current.delete(props.title);
@@ -611,6 +628,10 @@ function Item(props){
       setProg(props.prog);
     }
   }, [props.prog])
+
+  if (!props.show){
+    return null;
+  }
 
   if (loading){
     downButton = (
@@ -672,44 +693,39 @@ function Item(props){
       );
     }
 
-  if (props.show){
-    returnView = (
-      <View style = {{...styles.containerRow}}>
-        <View
-          style = {{
-            flex: 9, alignSelf: 'stretch',
-            paddingLeft: 10, paddingRight:10,
-            paddingTop: itemOffset/2, paddingBottom: itemOffset/2,
-            justifyContent:'center'
-          }}>
-            <Progress.Bar styles = {{alignSelf: 'stretch', position: 'absolute'}}
-                                    color = 'rgba(204, 122, 155, 0.5)'
-                                    progress={prog}
-                                    borderRadius={15}
-                                    width = {null}
-                                    height = {itemHeight-itemOffset}/>
-            <TouchableOpacity
-              style = {{width: '100%', height: '100%', position: 'absolute', paddingLeft: 14}}
-              onLongPress = {(props.select_mode)? null: () => props.setSelectMode(true)}
-              onPress = {(props.select_mode)? onCheckedClick : null}
-            >
-              <View style = {{justifyContent: 'flex-end',flex: 4}}>
-                <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{props.title}</Text>
-              </View>
-              <View style = {{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flex: 3}}>
-                <Text style={{color: 'rgba(0,0,0,0.6)', fontSize:itemFontSize-4}}>{props.date}</Text>
-                <Text style={{color: 'rgba(0,0,0,0.6)', fontSize:itemFontSize-4}}>{props.size}</Text>
-              </View>
-            </TouchableOpacity>
-        </View>
-        {checkBox}
-        {buttonGrop}
+  returnView = (
+    <View style = {{...styles.containerRow}}>
+      <View
+        style = {{
+          flex: 9, alignSelf: 'stretch',
+          paddingLeft: 10, paddingRight:10,
+          paddingTop: itemOffset/2, paddingBottom: itemOffset/2,
+          justifyContent:'center'
+        }}>
+          <Progress.Bar styles = {{alignSelf: 'stretch', position: 'absolute'}}
+                                  color = 'rgba(204, 122, 155, 0.5)'
+                                  progress={prog}
+                                  borderRadius={15}
+                                  width = {null}
+                                  height = {itemHeight-itemOffset}/>
+          <TouchableOpacity
+            style = {{width: '100%', height: '100%', position: 'absolute', paddingLeft: 14}}
+            onLongPress = {(props.select_mode)? null: () => props.setSelectMode(true)}
+            onPress = {(props.select_mode)? onCheckedClick : onItemClick}
+          >
+            <View style = {{justifyContent: 'flex-end',flex: 4}}>
+              <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{props.title}</Text>
+            </View>
+            <View style = {{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flex: 3}}>
+              <Text style={{color: 'rgba(0,0,0,0.6)', fontSize:itemFontSize-4}}>{props.date}</Text>
+              <Text style={{color: 'rgba(0,0,0,0.6)', fontSize:itemFontSize-4}}>{props.size}</Text>
+            </View>
+          </TouchableOpacity>
       </View>
-    )
-  }else{
-    returnView = null;
-  }
-
+      {checkBox}
+      {buttonGrop}
+    </View>
+  )
   return returnView;
 }
 

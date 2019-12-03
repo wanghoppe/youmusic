@@ -8,6 +8,7 @@ import { Audio } from 'expo-av';
 
 import {color, styles, itemHeight, TRACK_DIR, itemFontSize, flatlist_getItemLayout} from './styleConst';
 import { Button, Icon, Slider } from 'react-native-elements';
+import { Storage } from 'aws-amplify';
 
 
 export function PlayingComp(props){
@@ -29,6 +30,8 @@ export function PlayingComp(props){
   const play_mode_ref = useRef(0);
   const play_history_ref = useRef([]);
 
+  const [loading_id, setLoadingId] = useState(0);
+
   // const [appStatus, setAppStatus] = useState(AppState.currentState)
 
   const updatePlayHistory = useCallback((pre_index) => {
@@ -40,6 +43,7 @@ export function PlayingComp(props){
 
   const setPlayIndex = useCallback((index) => {
     _setPlayIndex(index);
+    setLoadingId(1);
     play_index_ref.current = index;
     let wait = new Promise((resolve) => setTimeout(resolve, 100));  // Smaller number should work
     wait.then( () => {
@@ -58,16 +62,24 @@ export function PlayingComp(props){
   }, [])
 
   const loadSoundIndex = useCallback(async (index) => {
+    setPlayIndex(index);
     await sound_ref.current.unloadAsync();
-    const source = {
-      uri: TRACK_DIR + encodeURIComponent(initdata_ref.current.playlst[index])
-    };
+
+    const track_name = initdata_ref.current.playlst[index];
+
+    var uri;
+    if (initdata_ref.current.streamming){
+      uri = await Storage.get(track_name, { level: 'private'});
+    }else{
+      uri = TRACK_DIR + encodeURIComponent(track_name);
+    }
+
+    const source = {uri: uri};
     const init_status = {
       shouldPlay: playing
     };
     await sound_ref.current.loadAsync(source, init_status);
     // await sound_ref.current.playAsync()
-    setPlayIndex(index);
   }, []);
 
   const nextTrack = useCallback(() => {
@@ -93,23 +105,34 @@ export function PlayingComp(props){
   }, []);
 
   const changeLoadSound = useCallback(async (init_data) => {
+    setPlayIndex(init_data.init_index);
+    setPlayList(init_data.playlst.map((it) => ({key: it})));
     await sound_ref.current.unloadAsync();
 
-    const source = {
-      uri: TRACK_DIR + encodeURIComponent(init_data.playlst[init_data.init_index])
-    };
+    let track_name = init_data.playlst[init_data.init_index];
+    var uri;
+    if (init_data.streamming){
+      uri = await Storage.get(track_name, { level: 'private'});
+    }else{
+      uri = TRACK_DIR + encodeURIComponent(track_name)
+    }
+
+    const source = {uri: uri};
     const init_status = {
       shouldPlay: playing
     };
     await sound_ref.current.loadAsync(source, init_status);
     play_history_ref.current = [];
-    setPlayList(init_data.playlst.map((it) => ({key: it})));
-    setPlayIndex(init_data.init_index);
+
   }, [playing])
 
   const initLoadSound = useCallback(async (init_data) => {
-    let track_name = init_data.playlst[init_data.init_index];
 
+    setPlayIndex(init_data.init_index);
+    setPlayList(init_data.playlst.map((it) => ({key: it})));
+
+
+    let track_name = init_data.playlst[init_data.init_index];
     await Audio.setAudioModeAsync({
       staysActiveInBackground: true,
       allowsRecordingIOS: false,
@@ -127,16 +150,19 @@ export function PlayingComp(props){
 
     const soundObject = new Audio.Sound();
 
-    const source = {
-      uri: TRACK_DIR + encodeURIComponent(track_name)
-    };
+    var uri;
+    if (init_data.streamming){
+      uri = await Storage.get(track_name, { level: 'private'});
+    }else{
+      uri = TRACK_DIR + encodeURIComponent(track_name)
+    }
+
+    const source = {uri: uri};
     await soundObject.loadAsync(source);
 
     sound_ref.current = soundObject;
-
-    setPlayList(init_data.playlst.map((it) => ({key: it})));
     setInitCreated(true);
-    setPlayIndex(init_data.init_index);
+
   }, []);
 
   const cleanUpFunc = useCallback(async() => {
@@ -178,7 +204,7 @@ export function PlayingComp(props){
   //   console.log(`nextAppState: ${nextAppState}`)
   // }
 
-  if (init_created){
+  if (loading_id != 0){
     MainView = (
       <View style={styles.afterStatus}>
         <View style = {{
@@ -197,6 +223,7 @@ export function PlayingComp(props){
                                       select = {(index == play_index)}
                                       index = {index}
                                       onItemClick = {onItemClick}
+                                      loading_id = {loading_id}
                                     />}
           />
         </View>
@@ -207,12 +234,14 @@ export function PlayingComp(props){
           <PlayControl
             playing = {playing}
             setPlaying = {setPlaying}
-            title = {(play_list[play_index]) ? play_list[play_index].key : ''}
+            title = {(loading_id == 2) ? play_list[play_index].key : 'Loading...'}
             sound_ref = {sound_ref}
             init_created = {init_created}
             nextTrack = {nextTrack}
             previousTrack = {previousTrack}
             play_mode_ref = {play_mode_ref}
+            loading_id = {loading_id}
+            setLoadingId ={setLoadingId}
           />
         </View>
       </View>
@@ -277,7 +306,9 @@ function PlayControl(props){
       setPlayBackStatus({
         position: status.positionMillis,
 				duration: status.durationMillis,
+        isBuffering: status.isBuffering
       });
+      props.setLoadingId(status.isLoaded? 2:1);
       if (status.didJustFinish) {
         props.nextTrack()
       }
@@ -322,7 +353,8 @@ function PlayControl(props){
   const _getSeekSliderPosition = () => {
 		if (
       play_back_status.position != null &&
-			play_back_status.duration != null
+			play_back_status.duration != null &&
+      play_back_status.duration != 0
 		) {
 			return (
 				(seeking? (seek_value * play_back_status.duration): (play_back_status.position)) /
@@ -378,6 +410,9 @@ function PlayControl(props){
         // justifyContent:'space-around',
         // backgroundColor:color.light_gre
       }}>
+        <View style = {{position: 'absolute', left:10, bottom:2}}>
+          <Text>{play_back_status.isBuffering? 'Buffering...': ''}</Text>
+        </View>
         <View style = {{flex:1, alignItems:'center'}}>
           <Icon
             reverse
@@ -387,6 +422,7 @@ function PlayControl(props){
             size={itemFontSize+6}
             Component={TouchableOpacity}
             onPress = {props.previousTrack}
+            disabled = {(props.loading_id != 2)}
           />
         </View>
         <View style = {{flex:3, alignItems:'center'}}>
@@ -398,6 +434,7 @@ function PlayControl(props){
             size={itemFontSize*2}
             Component={TouchableOpacity}
             onPress = {onPlayClick}
+            disabled = {(props.loading_id != 2)}
           />
         </View>
         <View style = {{flex:1, alignItems:'center'}}>
@@ -409,6 +446,7 @@ function PlayControl(props){
             size={itemFontSize+6}
             Component={TouchableOpacity}
             onPress = {props.nextTrack}
+            disabled = {(props.loading_id != 2)}
           />
         </View>
         <View
@@ -447,6 +485,7 @@ function PlayControl(props){
             onSlidingComplete = {_onSlidingComplete}
             onSlidingStart = {() => setSeeking(true)}
             thumbTintColor = {color.primary}
+            disabled = {props.loading_id != 2}
           />
         </View>
       </View>
@@ -465,6 +504,7 @@ function Item(props){
       onPress = {() =>{
         props.onItemClick(props.index)
       }}
+      disabled = {(props.loading_id != 2)}
     >
       <View style = {{flex:2}}>
         <Icon
