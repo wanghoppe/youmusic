@@ -89,7 +89,8 @@ function _CloudList(props){
   const data_map_ref = useRef();
   const [filter_idex, setFilid] = useState(0);
   const [filter_txt, setFilTx] = useState('');
-  const [show_lst, setShowLst] = useState([]);
+  const [show_lst, _setShowLst] = useState([]);
+  const show_lst_ref = useRef();
   const [toggle_filter, setToggleFil] = useState(true);
   const toggle_ref = useRef(toggle_filter);
   const llst_ref = useRef([]);
@@ -110,6 +111,11 @@ function _CloudList(props){
 
   var mainView;
   var selectControl;
+
+  const setShowLst = useCallback((lst)=>{
+    _setShowLst(lst);
+    show_lst_ref.current = lst;
+  }, [])
 
   const filter_lst = useCallback(() => {
     let lst = [[0,1,2], [0], [2], [1]];
@@ -374,7 +380,7 @@ function _CloudList(props){
                                     setSelectMode = {setSelectMode}
                                     force_down_set_ref = {force_down_set_ref}
                                     focuse_ref = {focuse_ref}
-                                    show_lst = {show_lst}
+                                    show_lst_ref = {show_lst_ref}
                                     navigation={props.navigation}
                                   />}
         />
@@ -546,6 +552,7 @@ function Item(props){
   const checked_ref =  useRef(checked);
   const select_mode_ref = useRef(props.select_mode);
   const progress_bar_ref = useRef();
+  const index_ref = useRef(props.index)
 
   const setChecked = useCallback((value)=>{
     _setChecked(value);
@@ -616,8 +623,8 @@ function Item(props){
       null,
       [{text: 'Yes', onPress: () =>{
         props.navigation.navigate('Play', {init_data: {
-          playlst: props.show_lst.map(({key}) => (key)),
-          init_index: props.index,
+          playlst: props.show_lst_ref.current.map(({key}) => (key)),
+          init_index: index_ref.current,
           streaming: true
         }})
       }},
@@ -644,7 +651,8 @@ function Item(props){
 
   const onItemTextLongPress = useCallback(() => {
     if (!select_mode_ref.current){
-      props.setSelectMode(true)
+      props.updateSelectRef(props.title);
+      props.setSelectMode(true);
     }
   }, [])
 
@@ -665,14 +673,14 @@ function Item(props){
     }
     setChecked(props.selected);
 
-    select_mode_ref.current = props.select_mode
-  }, [props])
-
-  useEffect(() => {
     if ([0, 1].includes(props.prog)){
       setProg(props.prog);
     }
-  }, [props.prog])
+
+    select_mode_ref.current = props.select_mode;
+    index_ref.current = props.index;
+  }, [props])
+
 
   const CheckB = useMemo(()=>(
     <View style = {{flex:1, justifyContent:'center', alignItems:'center', marginRight:itemFontSize-8}}>
@@ -694,11 +702,11 @@ function Item(props){
     <View style = {{...styles.containerRow}}>
       <ItemText
         prog = {prog}
-        onItemTextLongPress ={onItemTextLongPress}
-        onItemTextPress={onItemTextPress}
         title = {props.title}
         date = {props.date}
         size = {props.size}
+        onItemTextLongPress ={onItemTextLongPress}
+        onItemTextPress={onItemTextPress}
         progress_bar_ref = {progress_bar_ref}
       />
       {props.select_mode? CheckB: null}
@@ -745,11 +753,11 @@ function _ItemControl(props){
 
 const ItemText = React.memo(_ItemText);
 function _ItemText(props){
-  if(props.title=='Photograph - Ed Sheeran (Lyrics)-qgmXPCX4VzU.mp3'){
-    // console.log(props.select)
-    console.log(props.title);
-  }
-  const {title, date, size, prog, onItemTextLongPress, onItemTextPress, progress_bar_ref} = props
+  // if(props.title=='Photograph - Ed Sheeran (Lyrics)-qgmXPCX4VzU.mp3'){
+  //   // console.log(props.select)
+  //   console.log(props.title);
+  // }
+  const {title, date, size, prog, onItemTextLongPress, onItemTextPress, progress_bar_ref} = props;
   return(
     <View
       style = {{
