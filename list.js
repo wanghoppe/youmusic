@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useCallback, useRef, useMemo} from 'react';
 import { TouchableHighlight, TouchableOpacity, Alert, Picker,
-  StyleSheet, Text, View, TextInput,
+  StyleSheet, Text, View, TextInput, Animated,
   ScrollView, KeyboardAvoidingView, StatusBar, FlatList,RefreshControl } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Progress from 'react-native-progress';
@@ -567,7 +567,9 @@ function Item(props){
 
           if (props.focuse_ref.current || progress == 1){
             // setProg(progress);
-            progress_bar_ref.current.setNativeProps({progress:progress})
+            if (progress_bar_ref.current){
+              progress_bar_ref.current.setNativeProps({style:{width: `${progress*100}%`}})
+            }
           }
           // props.updateMapProgWithId(props.title, progress);
         }
@@ -754,10 +756,28 @@ function _ItemText(props){
         flex: 9, alignSelf: 'stretch',
         paddingLeft: 10, paddingRight:10,
         paddingTop: itemOffset/2, paddingBottom: itemOffset/2,
-        justifyContent:'center'
+        justifyContent:'center',
       }}>
-        <View ref ={progress_bar_ref} style = {{width:'100%', height:'100%'}}>
-          <Progress.Bar
+
+        <View
+          style = {{
+            width:'100%',
+            height:'100%',
+            borderRadius:15,
+            borderWidth:1,
+            borderColor: color.light_pup2,
+            backgroundColor:'white',
+            overflow:'hidden'
+          }}>
+            <Animated.View ref ={progress_bar_ref}
+              style = {{
+                width: `${prog*100}%`,
+                height:'100%',
+                borderColor: color.light_pup2,
+                backgroundColor: color.light_pup2
+              }}
+            />
+          {false && <Progress.Bar
             ref = {progress_bar_ref}
             styles = {{alignSelf: 'stretch', position: 'absolute'}}
             color = 'rgba(204, 122, 155, 0.5)'
@@ -765,7 +785,7 @@ function _ItemText(props){
             borderRadius={15}
             width = {null}
             height = {itemHeight-itemOffset}
-          />
+          />}
         </View>
         <TouchableOpacity
           style = {{width: '100%', height: '100%', position: 'absolute', paddingLeft: 14}}
