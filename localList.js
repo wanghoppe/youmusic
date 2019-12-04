@@ -471,18 +471,20 @@ function areItemEqual(prevProps, nextProps) {
 const Item = React.memo(_Item, areItemEqual);
 
 function _Item(props){
-  if(props.title=='Photograph - Ed Sheeran (Lyrics)-qgmXPCX4VzU.mp3'){
-    console.log(props.select)
-    console.log(props.index);
-  }
+  // if(props.title=='Photograph - Ed Sheeran (Lyrics)-qgmXPCX4VzU.mp3'){
+  //   console.log(props.select)
+  //   console.log(props.index);
+  // }
 
-  const [checked, setChecked] = useState(false);
+  const [checked, _setChecked] = useState(false);
+  const checked_ref = useRef(checked);
   const index_ref = useRef(props.index);
+  const select_mode_ref = useRef(props.select_mode)
 
-  useEffect(() => {
-    setChecked(props.select);
-    index_ref.current = props.index;
-  }, [props])
+  const setChecked = useCallback((value)=>{
+    _setChecked(value);
+    checked_ref.current = value;
+  })
 
   const navigateToPlay = useCallback(() => {
     console.log(props.index);
@@ -492,87 +494,116 @@ function _Item(props){
     }})
   },[]);
 
-  const onPressEventSelectMode = useCallback(() => {
-    setChecked(!checked);
-    props.updateSelectSet(props.title);
-  },[checked])
-
-  const onLongPressEvent = useCallback(() => {
-    props.setSelectMode(true);
-    props.updateSelectSet(props.title);
-    setChecked(true);
+  const onMoreButtClick = useCallback(()=>{
+    props.setModalMore(true);
+    props.key_ref.current = props.title
   }, [])
 
-  const MainView = useMemo(()=>{
-    const MoreComp = props.select_mode ?
-        (<CheckBox
-            center
-            size = {itemFontSize+10}
-            checked= {checked}
-            checkedColor = {color.dark_pup}
-            onPress={onPressEventSelectMode}
-        />):
-        (<Button
-          flex={1}
-          icon={
-            <Icon
-             name="more-vert"
-             size={itemFontSize*2}
-             color={color.light_pup}
-            />
-             }
-          type="clear"
-          onPress={() => {
-            props.key_ref.current = props.title
-            props.setModalMore(true);
-          }}
-        />)
-    return(
-      <View style={{...styles.containerRow,
-        paddingLeft: 22,
-        backgroundColor: (checked) ? color.light_pup2 : 'white',
-        borderBottomWidth:1,
-        borderColor: color.light_pup
-      }}>
-        <TouchableOpacity
-          style = {{
-            flex: 10,
-            height:'100%'
-          }}
-          onPress = {props.select_mode?onPressEventSelectMode:navigateToPlay}
-          onLongPress = {props.select_mode?()=>{}:onLongPressEvent}
-        >
-          <ItemTextView
-            title={props.title}
-            date={props.date}
-          />
-        </TouchableOpacity>
-        <View style = {{flex:2, justifyContent:'center', alignItems:'center'}}>
-          {MoreComp}
-        </View>
-      </View>
-    )
-  }, [props.select_mode, checked])
+  const onPressEventSelectMode = useCallback(() => {
+    setChecked(!checked_ref.current);
+    props.updateSelectSet(props.title);
+  },[])
 
-  // props.show_set_ref.current.add(props.title);
+  const onLongPressEvent = useCallback(() => {
+    if (!select_mode_ref.current){
+      props.updateSelectSet(props.title);
+      props.setSelectMode(true);
+    }
+  }, [])
+
+  const onItemTextPress = useCallback(()=>{
+    if (select_mode_ref.current){
+      onPressEventSelectMode()
+    }else{
+      navigateToPlay()
+    }
+  }, [])
+
+
+  useEffect(() => {
+    setChecked(props.select);
+    index_ref.current = props.index;
+    select_mode_ref.current = props.select_mode;
+  }, [props])
 
   if (!props.show){
     return null
-  }else{
-    return MainView
   }
+
+  return(
+    <View style={{...styles.containerRow,
+      paddingLeft: 22,
+      backgroundColor: (checked) ? color.light_pup2 : 'white',
+      borderBottomWidth:1,
+      borderColor: color.light_pup
+    }}>
+      <ItemTextView
+        title={props.title}
+        date={props.date}
+        onLongPressEvent={onLongPressEvent}
+        onItemTextPress={onItemTextPress}
+      />
+      <MoreComp
+        checked = {checked}
+        select_mode = {props.select_mode}
+        onPressEventSelectMode={onPressEventSelectMode}
+        onMoreButtClick={onMoreButtClick}
+      />
+    </View>
+  )
 }
 
 const ItemTextView = React.memo(_ItemTextView);
 function _ItemTextView(props){
+  const {title, date, onLongPressEvent, onItemTextPress} = props;
   return(
-    <View style = {{height: '100%', width: '100%'}}>
-      <View style = {{justifyContent: 'flex-end',flex: 4}}>
-        <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{props.title}</Text>
+    <TouchableOpacity
+      style = {{
+        flex: 10,
+        height:'100%'
+      }}
+      onPress = {onItemTextPress}
+      onLongPress = {onLongPressEvent}
+    >
+      <View style = {{height: '100%', width: '100%'}}>
+        <View style = {{justifyContent: 'flex-end',flex: 4}}>
+          <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{title}</Text>
+        </View>
+        <View style = {{justifyContent: 'center', flex: 3}}>
+          <Text style={{color: 'rgba(0,0,0,0.3)', fontSize:itemFontSize-4}}>{date.split(' ')[0]}</Text>
+        </View>
       </View>
-      <View style = {{justifyContent: 'center', flex: 3}}>
-        <Text style={{color: 'rgba(0,0,0,0.3)', fontSize:itemFontSize-4}}>{props.date.split(' ')[0]}</Text>
-      </View>
+    </TouchableOpacity>
+  )
+};
+
+const MoreComp = React.memo(_MoreComp);
+function _MoreComp(props){
+  var more;
+  const {checked, select_mode, onPressEventSelectMode, onMoreButtClick} = props;
+  if(select_mode){
+    more = (
+      <CheckBox
+        center
+        size = {itemFontSize+10}
+        checked= {checked}
+        checkedColor = {color.dark_pup}
+        onPress={onPressEventSelectMode}
+      />
+    )
+  }else{
+    more = (
+      <Icon
+       name="more-vert"
+       size={itemFontSize*2}
+       color={color.light_pup}
+        onPress={onMoreButtClick}
+      />
+    )
+  }
+  return(
+    <View style = {{flex:2, justifyContent:'center', alignItems:'center'}}>
+      {more}
     </View>
   )
 };

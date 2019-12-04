@@ -450,8 +450,8 @@ function _CloudList(props){
             dropdownStyle = {{backgroundColor: color.light_grey, height: itemHeight*4}}
             showsVerticalScrollIndicator={false}
             defaultIndex = {0}
-            defaultValue = {'All'}
-            options={['All', 'Undownload', 'Loading', 'Downloaded']}
+            defaultValue = {'  All  '}
+            options={['  All  ', 'Undownload', 'Loading', 'Downloaded']}
             renderRow = {(option)=>(
               <TouchableOpacity style = {styles.grayControl}>
                 <View style={{...styles.whiteTouchable, alignSelf:'stretch'}}>
@@ -542,9 +542,6 @@ const PureItem = React.memo(Item, areItemEqual);
 function Item(props){
 
   var returnView;
-  var downButton;
-  var checkBox;
-  var buttonGrop;
 
   const [prog, setProg] = useState(props.prog);
   const [loading, setLoading] = useState(false);
