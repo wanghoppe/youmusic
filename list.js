@@ -534,10 +534,6 @@ function areItemEqual(prevProps, nextProps) {
 const PureItem = React.memo(Item, areItemEqual);
 
 function Item(props){
-  if(props.title=='Photograph - Ed Sheeran (Lyrics)-qgmXPCX4VzU.mp3'){
-    // console.log(props.select)
-    console.log(props.index);
-  }
 
   var returnView;
   var downButton;
@@ -546,7 +542,15 @@ function Item(props){
 
   const [prog, setProg] = useState(props.prog);
   const [loading, setLoading] = useState(false);
-  const [checked, setChecked] = useState(false);
+  const [checked, _setChecked] = useState(false);
+  const checked_ref =  useRef(checked);
+  const select_mode_ref = useRef(props.select_mode);
+  const progress_bar_ref = useRef();
+
+  const setChecked = useCallback((value)=>{
+    _setChecked(value);
+    checked_ref.current = value;
+  },[])
 
   const downloadItemAsync = useCallback(async () => {
     try{
@@ -562,7 +566,8 @@ function Item(props){
           const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
 
           if (props.focuse_ref.current || progress == 1){
-            setProg(progress);
+            // setProg(progress);
+            progress_bar_ref.current.setNativeProps({progress:progress})
           }
           // props.updateMapProgWithId(props.title, progress);
         }
@@ -600,8 +605,8 @@ function Item(props){
 
   const onCheckedClick = useCallback(() => {
     props.updateSelectRef(props.title);
-    setChecked(!checked);
-  }, [checked]);
+    setChecked(!checked_ref.current);
+  }, []);
 
   const onItemClick = useCallback(() => {
     Alert.alert(
@@ -616,7 +621,7 @@ function Item(props){
       }},
       {text: 'Cancel', onPress: () => {}, style: 'cancel'}]
     )
-  }, [props.index]);
+  }, []);
 
   const onDownloadClick = useCallback(() => {
     setLoading(true);
@@ -635,6 +640,20 @@ function Item(props){
     )
   },[])
 
+  const onItemTextLongPress = useCallback(() => {
+    if (!select_mode_ref.current){
+      props.setSelectMode(true)
+    }
+  }, [])
+
+  const onItemTextPress = useCallback(() => {
+    if (select_mode_ref.current){
+      onCheckedClick()
+    }else{
+      onItemClick()
+    }
+  }, [])
+
   useEffect(() => {
     if (props.force_down_set_ref.current.has(props.title)){
       props.force_down_set_ref.current.delete(props.title);
@@ -643,6 +662,8 @@ function Item(props){
       props.pushLoadingLst(downloadItemAsync);
     }
     setChecked(props.selected);
+
+    select_mode_ref.current = props.select_mode
   }, [props])
 
   useEffect(() => {
@@ -669,33 +690,15 @@ function Item(props){
 
   returnView = (
     <View style = {{...styles.containerRow}}>
-      <View
-        style = {{
-          flex: 9, alignSelf: 'stretch',
-          paddingLeft: 10, paddingRight:10,
-          paddingTop: itemOffset/2, paddingBottom: itemOffset/2,
-          justifyContent:'center'
-        }}>
-          <Progress.Bar styles = {{alignSelf: 'stretch', position: 'absolute'}}
-                                  color = 'rgba(204, 122, 155, 0.5)'
-                                  progress={prog}
-                                  borderRadius={15}
-                                  width = {null}
-                                  height = {itemHeight-itemOffset}/>
-          <TouchableOpacity
-            style = {{width: '100%', height: '100%', position: 'absolute', paddingLeft: 14}}
-            onLongPress = {(props.select_mode)? null: () => props.setSelectMode(true)}
-            onPress = {(props.select_mode)? onCheckedClick : onItemClick}
-          >
-            <View style = {{justifyContent: 'flex-end',flex: 4}}>
-              <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{props.title}</Text>
-            </View>
-            <View style = {{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flex: 3}}>
-              <Text style={{color: 'rgba(0,0,0,0.6)', fontSize:itemFontSize-4}}>{props.date}</Text>
-              <Text style={{color: 'rgba(0,0,0,0.6)', fontSize:itemFontSize-4}}>{props.size}</Text>
-            </View>
-          </TouchableOpacity>
-      </View>
+      <ItemText
+        prog = {prog}
+        onItemTextLongPress ={onItemTextLongPress}
+        onItemTextPress={onItemTextPress}
+        title = {props.title}
+        date = {props.date}
+        size = {props.size}
+        progress_bar_ref = {progress_bar_ref}
+      />
       {props.select_mode? CheckB: null}
       {props.select_mode ||
         <ItemControl
@@ -738,7 +741,50 @@ function _ItemControl(props){
   )
 }
 
+const ItemText = React.memo(_ItemText);
+function _ItemText(props){
+  if(props.title=='Photograph - Ed Sheeran (Lyrics)-qgmXPCX4VzU.mp3'){
+    // console.log(props.select)
+    console.log(props.title);
+  }
+  const {title, date, size, prog, onItemTextLongPress, onItemTextPress, progress_bar_ref} = props
+  return(
+    <View
+      style = {{
+        flex: 9, alignSelf: 'stretch',
+        paddingLeft: 10, paddingRight:10,
+        paddingTop: itemOffset/2, paddingBottom: itemOffset/2,
+        justifyContent:'center'
+      }}>
+        <View ref ={progress_bar_ref} style = {{width:'100%', height:'100%'}}>
+          <Progress.Bar
+            ref = {progress_bar_ref}
+            styles = {{alignSelf: 'stretch', position: 'absolute'}}
+            color = 'rgba(204, 122, 155, 0.5)'
+            progress={prog}
+            borderRadius={15}
+            width = {null}
+            height = {itemHeight-itemOffset}
+          />
+        </View>
+        <TouchableOpacity
+          style = {{width: '100%', height: '100%', position: 'absolute', paddingLeft: 14}}
+          onLongPress = {onItemTextLongPress}
+          onPress = {onItemTextPress}
+        >
+          <View style = {{justifyContent: 'flex-end',flex: 4}}>
+            <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{title}</Text>
+          </View>
+          <View style = {{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flex: 3}}>
+            <Text style={{color: 'rgba(0,0,0,0.6)', fontSize:itemFontSize-4}}>{date}</Text>
+            <Text style={{color: 'rgba(0,0,0,0.6)', fontSize:itemFontSize-4}}>{size}</Text>
+          </View>
+        </TouchableOpacity>
+    </View>
+  )
+}
 
+//
 async function download2cloud(you_id){
   const user_info = await Auth.currentUserInfo();
   const user_id = info.id;

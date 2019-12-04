@@ -503,17 +503,6 @@ function _Item(props){
     setChecked(true);
   }, [])
 
-  const TextView = useMemo(()=>(
-    <View style = {{height: '100%', width: '100%'}}>
-      <View style = {{justifyContent: 'flex-end',flex: 4}}>
-        <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{props.title}</Text>
-      </View>
-      <View style = {{justifyContent: 'center', flex: 3}}>
-        <Text style={{color: 'rgba(0,0,0,0.3)', fontSize:itemFontSize-4}}>{props.date.split(' ')[0]}</Text>
-      </View>
-    </View>
-  ),[])
-
   const MainView = useMemo(()=>{
     const MoreComp = props.select_mode ?
         (<CheckBox
@@ -553,7 +542,10 @@ function _Item(props){
           onPress = {props.select_mode?onPressEventSelectMode:navigateToPlay}
           onLongPress = {props.select_mode?()=>{}:onLongPressEvent}
         >
-          {TextView}
+          <ItemTextView
+            title={props.title}
+            date={props.date}
+          />
         </TouchableOpacity>
         <View style = {{flex:2, justifyContent:'center', alignItems:'center'}}>
           {MoreComp}
@@ -570,3 +562,17 @@ function _Item(props){
     return MainView
   }
 }
+
+const ItemTextView = React.memo(_ItemTextView);
+function _ItemTextView(props){
+  return(
+    <View style = {{height: '100%', width: '100%'}}>
+      <View style = {{justifyContent: 'flex-end',flex: 4}}>
+        <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{props.title}</Text>
+      </View>
+      <View style = {{justifyContent: 'center', flex: 3}}>
+        <Text style={{color: 'rgba(0,0,0,0.3)', fontSize:itemFontSize-4}}>{props.date.split(' ')[0]}</Text>
+      </View>
+    </View>
+  )
+};
