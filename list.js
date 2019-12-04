@@ -446,7 +446,7 @@ function _CloudList(props){
               borderRadius: 4,
               marginRight:itemFontSize-10,
             }}
-            textStyle = {{fontSize: itemFontSize+2, alignItems: 'center', color: color.primary}}
+            textStyle = {{fontSize: itemFontSize+2, padding:10, alignItems: 'center', color: color.primary}}
             dropdownStyle = {{backgroundColor: color.light_grey, height: itemHeight*4}}
             showsVerticalScrollIndicator={false}
             defaultIndex = {0}
@@ -548,7 +548,7 @@ function Item(props){
   const [checked, _setChecked] = useState(false);
   const checked_ref =  useRef(checked);
   const select_mode_ref = useRef(props.select_mode);
-  const progress_bar_ref = useRef();
+  const setProg_ref = useRef();
   const index_ref = useRef(props.index)
 
   const setChecked = useCallback((value)=>{
@@ -570,12 +570,10 @@ function Item(props){
           const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
 
           if (props.focuse_ref.current || progress == 1){
-            // setProg(progress);
-            if (progress_bar_ref.current){
-              progress_bar_ref.current.setNativeProps({style:{width: `${progress*100}%`}})
+            if (setProg_ref.current){
+              setProg_ref.current(progress)
             }
           }
-          // props.updateMapProgWithId(props.title, progress);
         }
       );
       const xx = await downloadResumable.downloadAsync();
@@ -704,7 +702,7 @@ function Item(props){
         size = {props.size}
         onItemTextLongPress ={onItemTextLongPress}
         onItemTextPress={onItemTextPress}
-        progress_bar_ref = {progress_bar_ref}
+        setProg_ref = {setProg_ref}
       />
       {props.select_mode? CheckB: null}
       {props.select_mode ||
@@ -750,11 +748,11 @@ function _ItemControl(props){
 
 const ItemText = React.memo(_ItemText);
 function _ItemText(props){
-  // if(props.title=='Photograph - Ed Sheeran (Lyrics)-qgmXPCX4VzU.mp3'){
-  //   // console.log(props.select)
-  //   console.log(props.title);
-  // }
-  const {title, date, size, prog, onItemTextLongPress, onItemTextPress, progress_bar_ref} = props;
+  if(props.title=='Photograph - Ed Sheeran (Lyrics)-qgmXPCX4VzU.mp3'){
+    // console.log(props.select)
+    console.log(props.title);
+  }
+  const {title, date, size, prog, onItemTextLongPress, onItemTextPress, setProg_ref} = props;
   return(
     <View
       style = {{
@@ -769,28 +767,21 @@ function _ItemText(props){
             width:'100%',
             height:'100%',
             borderRadius:15,
-            borderWidth:1,
-            borderColor: color.light_pup2,
-            backgroundColor:'white',
-            overflow:'hidden'
           }}>
-            <Animated.View ref ={progress_bar_ref}
-              style = {{
-                width: `${prog*100}%`,
-                height:'100%',
-                borderColor: color.light_pup2,
-                backgroundColor: color.light_pup2
-              }}
-            />
-          {false && <Progress.Bar
-            ref = {progress_bar_ref}
-            styles = {{alignSelf: 'stretch', position: 'absolute'}}
-            color = 'rgba(204, 122, 155, 0.5)'
-            progress={prog}
-            borderRadius={15}
-            width = {null}
-            height = {itemHeight-itemOffset}
+          {false && <View ref ={progress_bar_ref}
+            style = {{
+              width: `${prog*100}%`,
+              height:'100%',
+              borderColor: color.light_pup2,
+              backgroundColor: color.light_pup2
+            }}
           />}
+          {true &&
+            <MyProgressBar
+              prog={prog}
+              setProg_ref={setProg_ref}
+            />
+          }
         </View>
         <TouchableOpacity
           style = {{width: '100%', height: '100%', position: 'absolute', paddingLeft: 14}}
@@ -806,6 +797,26 @@ function _ItemText(props){
           </View>
         </TouchableOpacity>
     </View>
+  )
+}
+
+function MyProgressBar(props){
+  const [prog, setProg] = useState(props.prog);
+
+  useEffect(() =>{
+    setProg(props.prog)
+    props.setProg_ref.current = setProg;
+  }, [props.prog])
+
+  return(
+    <Progress.Bar
+      styles = {{alignSelf: 'stretch', position: 'absolute'}}
+      color = 'rgba(204, 122, 155, 0.5)'
+      progress={prog}
+      borderRadius={15}
+      width = {null}
+      height = {itemHeight-itemOffset}
+    />
   )
 }
 
