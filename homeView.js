@@ -14,6 +14,7 @@ import ModalDropdown from 'react-native-modal-dropdown';
 import { withNavigationFocus } from 'react-navigation';
 import { IconText } from './utilsComp';
 import { ExploreLambda } from './homeView2'
+import {process_upload_json} from './utils'
 
 export const ExploreView = createMaterialTopTabNavigator(
   {
@@ -97,12 +98,7 @@ function ExploreYoutube(props){
         })
       });
       res_json = await response.json();
-      console.log(res_json);
-      showMessage({
-        message: "Success",
-        description: res_json.download + " is downloaded to cloud",
-        type: "success"})
-      console.log(res_json.download + " is downloaded to cloud");
+      process_upload_json(res_json);
     }
   });
 

@@ -13,6 +13,7 @@ import { Button, Icon, Image, SearchBar } from 'react-native-elements';
 import ModalDropdown from 'react-native-modal-dropdown';
 import { withNavigationFocus } from 'react-navigation';
 import { IconText } from './utilsComp';
+import {process_upload_json} from './utils'
 
 
 export function ExploreLambda(props){
@@ -82,11 +83,7 @@ export function ExploreLambda(props){
     });
     res_json = await response.json();
     console.log(you_id);
-    showMessage({
-      message: "Success",
-      description: res_json.download + " is downloaded to cloud",
-      type: "success"})
-    console.log(res_json.download + " is downloaded to cloud");
+    process_upload_json(res_json);
   };
 
   const flatlist_getItemLayout = useCallback((data, index) => (
