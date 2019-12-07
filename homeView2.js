@@ -82,7 +82,7 @@ export function ExploreLambda(props){
       })
     });
     res_json = await response.json();
-    console.log(you_id);
+    console.log(res_json);
     process_upload_json(res_json);
   };
 

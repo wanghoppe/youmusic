@@ -13,6 +13,7 @@ import { Button, Icon } from 'react-native-elements'
 
 import { createStackNavigator } from 'react-navigation-stack';
 import { withNavigationFocus } from 'react-navigation';
+import {process_upload_json} from './utils'
 
 
 import {
@@ -492,11 +493,12 @@ function _CloudList(props){
               fontSize: 20,
             }}>delete</Text>
           </TouchableOpacity>}
-          {false && (<View style={{flex:5, height:55}}>
+          {global_debug && (<View style={{flex:5, height:55}}>
             <Button
               style = {{flex:2}}
               title = {'DA'}
               onPress = { async () => {
+                console.log('da is pressed')
                 const local_lst = await FileSystem.readDirectoryAsync(TRACK_DIR);
                 local_lst.forEach((item) => {
                   FileSystem.deleteAsync(TRACK_DIR + encodeURIComponent(item));
@@ -508,6 +510,7 @@ function _CloudList(props){
               style = {{flex:2}}
               title = {'DA2'}
               onPress = { async () => {
+                console.log('da2 is pressed')
                 const data = [
                   'qZ5U7s8T5oI','VArUc-bCanQ','ZHFgk8Eo0FE','ioIEjzR7Xj8',
                   'Z16qw94gP4w','TV7DeM0Jqik','5XgnwopNyn0','p0GPJbdKhCw',
@@ -822,8 +825,11 @@ function MyProgressBar(props){
 
 //
 async function download2cloud(you_id){
+  // console.log('here'+you_id)
   const user_info = await Auth.currentUserInfo();
-  const user_id = info.id;
+  // console.log('here1'+you_id)
+  const user_id = user_info.id;
+  // console.log(user_id)
   console.log('Downloading ' + you_id + ' for ' + user_id);
 
   response = await fetch('https://vxmaikxa2m.execute-api.us-west-2.amazonaws.com/beta/trans', {
@@ -838,9 +844,6 @@ async function download2cloud(you_id){
     })
   });
   res_json = await response.json();
-  key_ref.currentssage({
-    message: "Success",
-    description: res_json.download + " is downloaded to cloud",
-    type: "success"})
-  console.log(res_json.download + " is downloaded to cloud");
+  console.log(res_json)
+  process_upload_json(res_json)
 }
