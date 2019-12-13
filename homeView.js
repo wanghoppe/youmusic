@@ -28,7 +28,7 @@ export const ExploreView = createMaterialTopTabNavigator(
       labelStyle: {fontWeight: "bold", fontSize: itemFontSize+2, color:'black'},
       style: {
         flexDirection:'column-reverse',
-        paddingBottom:8,
+        paddingBottom:5,
         backgroundColor: color.light_pup_header,
         height: Constants.statusBarHeight + 35,
       },
@@ -70,7 +70,7 @@ function ExploreYoutube(props){
 
   const logOut = async () => {
     console.log('logging out')
-    let something = await Auth.signOut({ global: true })
+    let something = await Auth.signOut();
     console.log(something)
         // .then(data => console.log(data));
     props.navigation.navigate('AuthLoading');

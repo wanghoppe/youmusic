@@ -119,7 +119,7 @@ export function LoginView(props){
       <Button
         containerStyle = {{flex:1, marginRight:10}}
         buttonStyle={{backgroundColor:color.dark_pup}}
-        title={my_i18n.t('back').toUpperCase()}
+        title={my_i18n.t('header_back').toUpperCase()}
         onPress={()=>setConfirm(false)}
       />
     );

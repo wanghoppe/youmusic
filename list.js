@@ -296,6 +296,7 @@ function _CloudList(props){
 
   useEffect(() => {
     focuse_ref.current = props.isFocused;
+    // console.log({focus: props.isFocused}) 
     if (props.isFocused){
       onRefresh();
     }

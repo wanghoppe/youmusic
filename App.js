@@ -30,7 +30,7 @@ first_run();
 // console.log('what 2')
 
 
-const TabNavigator = createMaterialTopTabNavigator(
+const TabNavigator = createBottomTabNavigator(
   {
     explore: ExploreView,
     cloud: CloudList,
@@ -38,9 +38,9 @@ const TabNavigator = createMaterialTopTabNavigator(
     play: PlayingComp
   },
   {
-    lazy : true,
-    swipeEnabled: false,
-    tabBarPosition: 'bottom',
+    // lazy : true,
+    // swipeEnabled: false,
+    // tabBarPosition: 'bottom',
     defaultNavigationOptions: ({ navigation }) => ({
       title: my_i18n.t(navigation.state.routeName),
       tabBarIcon: ({ focused, horizontal, tintColor }) => {
@@ -67,12 +67,12 @@ const TabNavigator = createMaterialTopTabNavigator(
         fontSize: 12,
       },
       style: {
-        paddingTop: 5,
+        paddingTop: 2,
         backgroundColor: color.light_grey,
-        height: Platform.OS === 'ios' ? 72 : 55,
+        // height: Platform.OS === 'ios' ? 72 : 55,
       },
       tabStyle:{
-        height: 46
+        paddingBottom: 2
       }
     },
   }

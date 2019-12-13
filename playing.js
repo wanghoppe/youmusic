@@ -258,7 +258,7 @@ export function PlayingComp(props){
           onPress={() => props.navigation.navigate('local')}
         >
           <Icon name={'library-music'} size={25} color={color.dark_pup}/>
-          <View style = {{height:5}}/>
+          <View style = {{height:3}}/>
           <Text style = {{fontSize:12, color:color.dark_pup}}>{my_i18n.t('local').toUpperCase()}</Text>
         </TouchableOpacity>
         <View style={{padding: 20}}>

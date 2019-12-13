@@ -192,7 +192,7 @@ export const styles = StyleSheet.create({
     height: Constants.statusBarHeight + 35,
     justifyContent: 'flex-end',
     alignItems: 'center',
-    paddingBottom: 8
+    paddingBottom: 10
   },
 
   afterStatus: {
