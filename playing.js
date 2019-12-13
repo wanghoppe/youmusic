@@ -6,7 +6,7 @@ import Constants from 'expo-constants';
 import ModalDropdown from 'react-native-modal-dropdown';
 import { Audio } from 'expo-av';
 
-import {color, styles, itemHeight, TRACK_DIR, itemFontSize, flatlist_getItemLayout} from './styleConst';
+import {color, styles, itemHeight, TRACK_DIR, itemFontSize, flatlist_getItemLayout, my_i18n} from './styleConst';
 import { Button, Icon, Slider } from 'react-native-elements';
 import { Storage } from 'aws-amplify';
 import * as FileSystem from 'expo-file-system';
@@ -251,15 +251,15 @@ export function PlayingComp(props){
     MainView = (
       <View style={{...styles.afterStatus, justifyContent: 'center'}}>
         <View style={{padding: 20}}>
-          <Text style = {{fontSize:itemFontSize+4}}> Please Select Songs from</Text>
+          <Text style = {{fontSize:itemFontSize+4}}>{my_i18n.t('playing_ph')}</Text>
         </View>
         <TouchableOpacity
           style={{padding: 20, backgroundColor:color.light_grey}}
-          onPress={() => props.navigation.navigate('Local')}
+          onPress={() => props.navigation.navigate('local')}
         >
           <Icon name={'library-music'} size={25} color={color.dark_pup}/>
           <View style = {{height:5}}/>
-          <Text style = {{fontSize:12, color:color.dark_pup}}>LOCAL</Text>
+          <Text style = {{fontSize:12, color:color.dark_pup}}>{my_i18n.t('local').toUpperCase()}</Text>
         </TouchableOpacity>
         <View style={{padding: 20}}>
           <Text style = {{fontSize:itemFontSize+4}}>{'(ﾉ>ω<)ﾉ'}</Text>
@@ -272,7 +272,7 @@ export function PlayingComp(props){
     <View style={styles.allView} behavior={'padding'}>
       <View style = {styles.statusBar}>
         <Text style={{fontWeight: "bold", fontSize: itemFontSize+2}}>
-          {initdata_ref.current.streaming? 'STREAMING MUSIC':'MUSIC'}
+          {initdata_ref.current.streaming? my_i18n.t('stream_music'): my_i18n.t('playing_music')}
         </Text>
       </View>
       {MainView}

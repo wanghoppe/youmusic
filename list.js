@@ -20,7 +20,7 @@ import {
   color, styles,
   itemHeight, TRACK_DIR,
   db, itemFontSize,
-  itemOffset, global_debug
+  itemOffset, global_debug,my_i18n
 } from './styleConst';
 
 import {login} from './utils'
@@ -240,33 +240,33 @@ function _CloudList(props){
       }
     })
     Alert.alert(
-      "Comfirm Download",
-      `Download ${temp_set.size} track from cloud?`,
+      my_i18n.t('list_alr1_1'),
+      my_i18n.t('list_alr1_2', {size: temp_set.size}),
       [
-        {text: 'Yes', onPress: () => {
+        {text: my_i18n.t('ok_butt'), onPress: () => {
           force_down_set_ref.current = temp_set;
           select_set_ref.current = new Set();
           setSelectMode(false);
           setGloSelect(false);
         }},
-        {text: 'Cancel', onPress: () => {}, style: 'cancel'}
+        {text: my_i18n.t('cancel_butt'), onPress: () => {}, style: 'cancel'}
       ],
     )
   }, []);
 
   const onGloDeleteClick = useCallback(() => {
     Alert.alert(
-      "Comfirm Delete",
-      `Delete ${select_set_ref.current.size} track from cloud?`,
+      my_i18n.t('list_alr2_1'),
+      my_i18n.t('list_alr2_2', {size: select_set_ref.current.size}),
       [
-        {text: 'Yes', onPress: () => {
+        {text: my_i18n.t('ok_butt'), onPress: () => {
           select_set_ref.current.forEach(async (item) => {
             result = await Storage.remove(item, {level: 'private'});
             deleteMapWithId(item);
           });
           select_set_ref.current = new Set();
         }},
-        {text: 'Cancel', onPress: () => {}, style: 'cancel'}
+        {text: my_i18n.t('cancel_butt'), onPress: () => {}, style: 'cancel'}
       ],
     )
   }, []);
@@ -314,19 +314,19 @@ function _CloudList(props){
             style = {{...styles.pupContainer, flex:3}}
             onPress={onGloDownloadClick}
           >
-            <Text style={{fontSize:itemFontSize+2, color:color.primary}}>Download</Text>
+            <Text style={{fontSize:itemFontSize+2, color:color.primary}}>{my_i18n.t('download')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style = {{...styles.pupContainer, flex:3}}
             onPress={onGloDeleteClick}
           >
-            <Text style={{fontSize:itemFontSize+2, color:color.primary}}>Delete</Text>
+            <Text style={{fontSize:itemFontSize+2, color:color.primary}}>{my_i18n.t('delete')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style = {{...styles.pupContainer, flex:3}}
             onPress={onGloCancelClick}
           >
-            <Text style={{fontSize:itemFontSize+2, color:color.dark_pup}}>Cancel</Text>
+            <Text style={{fontSize:itemFontSize+2, color:color.dark_pup}}>{my_i18n.t('cancel_butt')}</Text>
           </TouchableOpacity>
         </View>
         <TouchableOpacity
@@ -399,7 +399,7 @@ function _CloudList(props){
   return (
     <View style={styles.allView} behavior={'padding'}>
       <View style = {styles.statusBar}>
-        <Text style={{fontWeight: "bold", fontSize: itemFontSize+2}}>CLOUD</Text>
+        <Text style={{fontWeight: "bold", fontSize: itemFontSize+2}}>{my_i18n.t('cloud')}</Text>
         {false && <View style = {{position: 'absolute', right: '5%'}}>
           <Icon
             name = 'refresh'
@@ -433,7 +433,7 @@ function _CloudList(props){
             inputStyle = {{
               fontSize: itemFontSize + 2,
             }}
-            placeholder="Search Here..."
+            placeholder={my_i18n.t('list_sr')}
             onChangeText={text => setFilTx(text)}
             value={filter_txt}
             />
@@ -451,8 +451,8 @@ function _CloudList(props){
             dropdownStyle = {{backgroundColor: color.light_grey, height: itemHeight*4}}
             showsVerticalScrollIndicator={false}
             defaultIndex = {0}
-            defaultValue = {'  All  '}
-            options={['  All  ', 'Undownload', 'Loading', 'Downloaded']}
+            defaultValue = {my_i18n.t('list_all')}
+            options={[my_i18n.t('list_all'), my_i18n.t('list_un'), my_i18n.t('list_lo'), my_i18n.t('list_do')]}
             renderRow = {(option)=>(
               <TouchableOpacity style = {styles.grayControl}>
                 <View style={{...styles.whiteTouchable, alignSelf:'stretch'}}>
@@ -476,7 +476,7 @@ function _CloudList(props){
             <Text style = {{
               color: color.primary,
               fontSize: itemFontSize+2,
-            }}>{['Date↓', 'Size↓'][orderBy]}</Text>
+            }}>{[my_i18n.t('list_date'), my_i18n.t('list_size')][orderBy]}</Text>
           </TouchableOpacity>
           {global_debug && <TouchableOpacity
             style = {{...styles.grayContainer, flex:2, height: 40, marginRight:7}}
@@ -617,16 +617,16 @@ function Item(props){
 
   const onItemClick = useCallback(() => {
     Alert.alert(
-      'Streaming Music?',
+      my_i18n.t('stream_music') + '?',
       null,
-      [{text: 'Yes', onPress: () =>{
-        props.navigation.navigate('Play', {init_data: {
+      [{text: my_i18n.t('ok_butt'), onPress: () =>{
+        props.navigation.navigate('play', {init_data: {
           playlst: props.show_lst_ref.current.map(({key}) => (key)),
           init_index: index_ref.current,
           streaming: true
         }})
       }},
-      {text: 'Cancel', onPress: () => {}, style: 'cancel'}]
+      {text: my_i18n.t('cancel_butt'), onPress: () => {}, style: 'cancel'}]
     )
   }, []);
 
@@ -638,11 +638,11 @@ function Item(props){
 
   const onDeleteClick = useCallback(() => {
     Alert.alert(
-      "Comfirm Delete",
-      `Delete ${props.title} from cloud?`,
+      my_i18n.t('list_alr2_1'),
+      my_i18n.t('list_alt4', {title: props.title}),
       [
-        {text: 'Yes', onPress: deleteItemAsync },
-        {text: 'Cancel', onPress: () => {}, style: 'cancel'}
+        {text: my_i18n.t('ok_butt'), onPress: deleteItemAsync },
+        {text: my_i18n.t('cancel_butt'), onPress: () => {}, style: 'cancel'}
       ],
     )
   },[])

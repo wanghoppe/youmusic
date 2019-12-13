@@ -3,7 +3,7 @@ import {ActivityIndicator, Alert, StyleSheet, Text, View, TextInput, ScrollView,
 
 import Constants from 'expo-constants';
 import Amplify, { Storage, Auth } from 'aws-amplify';
-import {styles, color, itemHeight, itemFontSize} from './styleConst'
+import {styles, color, itemHeight, itemFontSize, my_i18n} from './styleConst'
 import * as Progress from 'react-native-progress';
 import { showMessage, hideMessage } from "react-native-flash-message";
 import {WaitingModal} from './utilsComp';
@@ -51,9 +51,9 @@ export function LoginView(props){
       const user = await Auth.signIn(username, pw);
       if (user.challengeName === 'NEW_PASSWORD_REQUIRED'){
         Alert.alert(
-          'Please set new password',
+          my_i18n.t('set_new_pw'),
           null,
-          [{text:'OK', onPress: ()=>{
+          [{text: my_i18n.t('ok_butt'), onPress: ()=>{
             setWaitModal(false);
             setConfirm(true);
             save_user_ref.current = user;
@@ -63,15 +63,15 @@ export function LoginView(props){
       }else{
         props.navigation.navigate('App');
         showMessage({
-          message: "Sign In Success",
+          message: my_i18n.t('signin_success'),
           type: "success"}
         );
       };
     }catch(err){
       Alert.alert(
-        'Failed',
+        my_i18n.t('failed'),
         err.message,
-        [{text:'OK', onPress: ()=>{
+        [{text:my_i18n.t('ok_butt'), onPress: ()=>{
           setWaitModal(false);
         }}],
         {cancelable: false},
@@ -87,14 +87,14 @@ export function LoginView(props){
       );
       props.navigation.navigate('App');
       showMessage({
-        message: "Sign In Success",
+        message: my_i18n.t('signin_success'),
         type: "success"}
       );
     }catch(err){
       Alert.alert(
-        'Failed',
+        my_i18n.t('failed'),
         err.message,
-        [{text:'OK', onPress: ()=>{
+        [{text:my_i18n.t('ok_butt'), onPress: ()=>{
           setWaitModal(false);
         }}],
         {cancelable: false},
@@ -112,28 +112,28 @@ export function LoginView(props){
     button1 = (
       <Button
         containerStyle = {{flex:1}}
-        title={"GO GO"}
+        title={my_i18n.t('ok_butt')}
         onPress={setPasswd}/>
     );
     button2 = (
       <Button
         containerStyle = {{flex:1, marginRight:10}}
         buttonStyle={{backgroundColor:color.dark_pup}}
-        title={"BACK"}
+        title={my_i18n.t('back').toUpperCase()}
         onPress={()=>setConfirm(false)}
       />
     );
-    pwText = (<Text style={{fontSize: itemFontSize+6, color: color.dark_pup}}>New Password:</Text>)
+    pwText = (<Text style={{fontSize: itemFontSize+6, color: color.dark_pup}}>{my_i18n.t('new_password') + ':'}</Text>)
   } else {
     button1 = (
       <Button
         containerStyle = {{flex:1}}
-        title={"GO GO"}
+        title={my_i18n.t('ok_butt')}
         onPress={signInFirst}
       />
     );
     button2 = null;
-    pwText = (<Text style={{fontSize: itemFontSize+6, color: color.dark_pup}}>Password:</Text>)
+    pwText = (<Text style={{fontSize: itemFontSize+6, color: color.dark_pup}}>{my_i18n.t('password') + ':'}</Text>)
   }
 
 
@@ -141,14 +141,14 @@ export function LoginView(props){
     <View style={{flex:1}}>
       <WaitingModal
         show = {wait_modal_show}
-        title = 'Signing In'
+        title = {my_i18n.t('signingin')}
       />
       <View style={styles.statusBar}/>
       <View style={styles.afterStatus}>
         <KeyboardAvoidingView flex={5} style={{alignSelf:'stretch'}} behavior="padding">
           <View flex={1} style={styles.container}>
             <Text style = {{fontSize:itemFontSize*2, color: color.dark_pup}}>
-              {need_confirm?'Set New Password':'Sign In'}
+              {need_confirm?my_i18n.t('set_new_pw'):my_i18n.t('signin')}
             </Text>
           </View>
           <View flex={5} style={{
@@ -158,12 +158,12 @@ export function LoginView(props){
             marginBottom:itemFontSize
           }}>
             <View style={styles.wrapText}>
-              <Text style={{fontSize: itemFontSize+6, color: color.dark_pup}}>Username: </Text>
+              <Text style={{fontSize: itemFontSize+6, color: color.dark_pup}}>{my_i18n.t('username')+":"}</Text>
               <View style = {{padding: 5}}/>
               <TextInput
                 style = {{backgroundColor: color.light_grey, padding:itemFontSize/2}}
                 onChangeText={text => setUsername(text)}
-                placeholder={'Email'}
+                placeholder={my_i18n.t('email')}
                 fontSize= {itemFontSize+4}
               />
             </View>
@@ -175,7 +175,7 @@ export function LoginView(props){
                 textContentType = 'password'
                 style = {{backgroundColor: color.light_grey, padding:itemFontSize/2}}
                 onChangeText={text => setPw(text)}
-                placeholder={'Password'}
+                placeholder={'***'}
                 fontSize= {itemFontSize+4}/>
             </View>
           </View>

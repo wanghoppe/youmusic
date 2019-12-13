@@ -8,7 +8,7 @@ import { showMessage, hideMessage } from "react-native-flash-message";
 import { Auth } from 'aws-amplify';
 import { createStackNavigator } from 'react-navigation-stack';
 import { createBottomTabNavigator, createMaterialTopTabNavigator  } from 'react-navigation-tabs';
-import {color, styles, global_debug, itemFontSize, itemHeight} from './styleConst';
+import {color, styles, global_debug, itemFontSize, itemHeight, my_i18n} from './styleConst';
 import { Button, Icon, Image, SearchBar } from 'react-native-elements';
 import ModalDropdown from 'react-native-modal-dropdown';
 import { withNavigationFocus } from 'react-navigation';
@@ -29,7 +29,7 @@ export function ExploreLambda(props){
     console.log('fetching youtube search list');
 
     if (query == ''){
-      Alert.alert('Empty Input!')
+      Alert.alert(my_i18n.t('homeView2_alr1'))
       if (refreshing){
         setRefresh(false);
       }
@@ -152,7 +152,7 @@ function MySearchBar(props){
     }}>
       <SearchBar
         platform="ios"
-        cancelButtonTitle={'Cancel'}
+        cancelButtonTitle={my_i18n.t('cancel_butt')}
         cancelButtonProps={
         {
           buttonStyle:{
@@ -180,7 +180,7 @@ function MySearchBar(props){
           fontSize: itemFontSize + 2,
           color: 'black'
         }}
-        placeholder="Search Youtube"
+        placeholder = {my_i18n.t('homeView2_sy')}
         onChangeText={onTextChange}
         onSubmitEditing={props.onSearchClick}
         value = {query}
@@ -210,11 +210,11 @@ function _Item(props){
 
   const onItemClick = () => {
     Alert.alert(
-      "Comfirm",
-      `Download ${props.title} to Cloud?`,
+      my_i18n.t('comfirm'),
+      my_i18n.t('homeView2_alr2', {title: props.title}),
       [
-        {text: 'OK', onPress: () => props.download2Cloud(props.you_id)},
-        {text: 'Cancel', onPress: () => {}, style: 'cancel'}
+        {text: my_i18n.t('ok_butt'), onPress: () => props.download2Cloud(props.you_id)},
+        {text: my_i18n.t('cancel_butt'), onPress: () => {}, style: 'cancel'}
       ],
     )
   }

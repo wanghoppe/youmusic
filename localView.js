@@ -9,7 +9,7 @@ import Constants from 'expo-constants';
 import { Storage, Auth } from 'aws-amplify';
 import { SearchBar, CheckBox } from 'react-native-elements';
 
-import {color, styles, itemHeight, db, TRACK_DIR, itemFontSize, global_debug} from './styleConst';
+import {color, styles, itemHeight, db, TRACK_DIR, itemFontSize, global_debug, my_i18n} from './styleConst';
 import {login} from './utils'
 import { ViewDeleteModal } from './localModal';
 import { Button, Icon } from 'react-native-elements';
@@ -55,11 +55,11 @@ export function LocalView(props){
         onPress = {() => {
           props.navigation.navigate('LocalList', {all_tracks: true})
         }}>
-        <Text style={{fontSize:itemFontSize+4}}>All Tracks...</Text>
+        <Text style={{fontSize:itemFontSize+4}}>{my_i18n.t('localView_at')}</Text>
       </TouchableOpacity>
       <View style = {styles.grayRow} />
       <View style = {{...styles.containerRow, justifyContent: 'space-between', paddingHorizontal:30}}>
-        <Text style={{fontSize:itemFontSize+4}}>Playlist:</Text>
+        <Text style={{fontSize:itemFontSize+4}}>{my_i18n.t('localView_pl')}</Text>
         <Icon
           name = 'add-circle'
           size = {itemFontSize*2+5}
@@ -92,7 +92,7 @@ export function LocalView(props){
   return (
     <View style={styles.allView} behavior={'padding'}>
       <View style = {styles.statusBar}>
-        <Text style={{fontWeight: "bold", fontSize: itemFontSize+2}}>LOCAL</Text>
+        <Text style={{fontWeight: "bold", fontSize: itemFontSize+2}}>{my_i18n.t('local')}</Text>
       </View>
       {MainView}
       { global_debug && <Button
@@ -119,7 +119,7 @@ export function LocalView(props){
           </TouchableWithoutFeedback>
           <View style ={{...styles.modalInCenter, height: null}}>
             <IconText
-              title = 'Delete Playlist'
+              title = {my_i18n.t('localView_dp')}
               iconName = 'delete'
               onItemClick = {()=> {
                 setShowModal2(false);

@@ -8,7 +8,7 @@ import { showMessage, hideMessage } from "react-native-flash-message";
 import { Auth } from 'aws-amplify';
 import { createStackNavigator } from 'react-navigation-stack';
 import { createBottomTabNavigator, createMaterialTopTabNavigator  } from 'react-navigation-tabs';
-import {color, styles, global_debug, itemFontSize, itemHeight} from './styleConst';
+import {color, styles, global_debug, itemFontSize, itemHeight, my_i18n} from './styleConst';
 import { Button, Icon, Image, SearchBar } from 'react-native-elements';
 import ModalDropdown from 'react-native-modal-dropdown';
 import { withNavigationFocus } from 'react-navigation';
@@ -18,16 +18,17 @@ import {process_upload_json} from './utils'
 
 export const ExploreView = createMaterialTopTabNavigator(
   {
-    Youtube: ExploreYoutube,
-    翻墙: ExploreLambda
+    [my_i18n.t('youtube')]: ExploreYoutube,
+    [my_i18n.t('ladder')]: ExploreLambda
   },
   {
     tabBarOptions: {
+      upperCaseLabel: false,
       indicatorStyle: {backgroundColor:color.dark_pup},
       labelStyle: {fontWeight: "bold", fontSize: itemFontSize+2, color:'black'},
       style: {
         flexDirection:'column-reverse',
-        paddingBottom:5,
+        paddingBottom:8,
         backgroundColor: color.light_pup_header,
         height: Constants.statusBarHeight + 35,
       },
@@ -45,11 +46,11 @@ function ExploreYoutube(props){
 
   const upload2Cloud = () => {
     Alert.alert(
-      "Comfirm",
-      "Download to Cloud?",
+      my_i18n.t('homeView_alr1'),
+      null,
       [
-        {text: 'OK', onPress: () => ref_out.injectJavaScript("window.ReactNativeWebView.postMessage(window.location.href);")},
-        {text: 'Cancel', onPress: () => {}, style: 'cancel'}
+        {text: my_i18n.t('ok_butt'), onPress: () => ref_out.injectJavaScript("window.ReactNativeWebView.postMessage(window.location.href);")},
+        {text: my_i18n.t('cancel_butt'), onPress: () => {}, style: 'cancel'}
       ],
     )
   }
@@ -79,7 +80,7 @@ function ExploreYoutube(props){
     const parsed = state.data.match(/http.:\/\/(www|m)\.youtube\.com.*\?*v=([^&]*).*/);
 
     if (parsed == '' || parsed == null){
-      Alert.alert('Invalid URL', 'Cannot parse video ID')
+      Alert.alert(my_i18n.t('homeView_alr2_1'), my_i18n.t('homeView_alr2_2'))
     }else{
       const you_id = parsed[2];
       const user_info = await Auth.currentUserInfo();
@@ -114,7 +115,7 @@ function ExploreYoutube(props){
         </TouchableWithoutFeedback>
         <View style ={{...styles.modalInCenter, height: null}}>
           <IconText
-            title = 'Youtube Home'
+            title = {my_i18n.t('homeView_yh')}
             iconName = 'youtube'
             iconType = 'material-community'
             iconColor = {'red'}
@@ -122,7 +123,7 @@ function ExploreYoutube(props){
           />
           <View style = {styles.graySeparator}/>
           <IconText
-            title = 'Sign Out'
+            title = {my_i18n.t('homeView_so')}
             iconName = 'sign-out'
             iconType = 'font-awesome'
             iconColor = {color.dark_pup}

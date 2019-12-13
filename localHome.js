@@ -1,13 +1,13 @@
 import React from 'react';
 import { createAppContainer, withNavigationFocus } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
-import {styles, color, itemFontSize} from './styleConst'
+import {styles, color, itemFontSize ,my_i18n} from './styleConst'
 import {LocalList} from './localList'
 import {LocalView} from './localView'
 
 
 function getTitle({navigation}){
-  let plst = navigation.getParam('plst_name', 'All Tracks');
+  let plst = navigation.getParam('plst_name', my_i18n.t('localView_at'));
   return {
     title: plst,
   };
@@ -34,7 +34,8 @@ export const LocalHome = createStackNavigator(
         fontWeight: "bold",
         fontSize: itemFontSize+2,
         paddingBottom: 5
-      }
+      },
+      headerBackTitle: my_i18n.t('header_back')
     }
   }
 );

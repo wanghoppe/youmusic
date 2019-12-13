@@ -8,7 +8,7 @@ import Constants from 'expo-constants';
 import { Storage, Auth } from 'aws-amplify';
 import { SearchBar, CheckBox } from 'react-native-elements';
 
-import {color, styles, itemHeight, db, TRACK_DIR, itemFontSize} from './styleConst';
+import {color, styles, itemHeight, db, TRACK_DIR, itemFontSize, my_i18n} from './styleConst';
 import {login} from './utils'
 import { Button, Icon } from 'react-native-elements';
 
@@ -81,7 +81,7 @@ function _AddToLstModal(props){
             flex:1,
             alignSelf: 'stretch'}}
           >
-            <Text style={{fontSize:itemFontSize+8, color: color.dark_pup}}>Add To Playlist</Text>
+            <Text style={{fontSize:itemFontSize+8, color: color.dark_pup}}>{my_i18n.t('localList_atp')}</Text>
             <Icon
               name = 'add-circle'
               size = {itemFontSize*2}
@@ -113,20 +113,20 @@ function _AddToLstModal(props){
             height: null
           }}>
             <Button
-              title='Cancel'
+              title={my_i18n.t('cancel_butt')}
               buttonStyle= {{backgroundColor:color.dark_pup}}
               onPress={() => props.setShow(false)}
               />
             <Button
-              title='Check'
+              title={my_i18n.t('check')}
               onPress={() => {
                 if (checked == undefined){
-                  Alert.alert('No Playlist was selected')
+                  Alert.alert(my_i18n.t('localModal_at_alt'))
                 }else{
                   dbAction();
                   props.exitSelectMode();
                   showMessage({
-                    message: "Add Success",
+                    message: my_i18n.t('add_success'),
                     type: "success"});
                   props.setShow(false);
                 }
@@ -192,24 +192,24 @@ function _AddPlstModal(props){
           <View style = {styles.modalTouchClose}/>
         </TouchableWithoutFeedback>
         <View style={{...styles.modalInCenter, justifyContent: 'space-around'}}>
-          <Text style={{fontSize:itemFontSize+8, color: color.dark_pup}}>Add Playlist</Text>
+          <Text style={{fontSize:itemFontSize+8, color: color.dark_pup}}>{my_i18n.t('localModal_ap')}</Text>
           <TextInput
             style = {{fontSize:itemFontSize+4, padding: 10, backgroundColor: color.light_grey, width: '80%'}}
-            placeholder={'PlayList Name'}
+            placeholder={my_i18n.t('localModal_ap_ph')}
             ref = {name_input_ref}/>
           <View style={{...styles.containerRow, justifyContent: 'space-around', height: null}}>
             <Button
-              title='Cancel'
+              title={my_i18n.t('cancel_butt')}
               buttonStyle= {{backgroundColor:color.dark_pup}}
               onPress={() => props.setShowModal(false)}
               />
             <Button
-              title='Check'
+              title={my_i18n.t('check')}
               onPress={() => {
                 let get_txt = name_input_ref.current._lastNativeText;
                 if (get_txt){
                   if (props.plst_ref.current.map((item) => item.key).includes(get_txt)){
-                    Alert.alert("Duplicate Playlist")
+                    Alert.alert(my_i18n.t('localModal_ap_alt1'))
                   }else{
                     db.transaction(tx => {
                       tx.executeSql(
@@ -219,8 +219,8 @@ function _AddPlstModal(props){
                         () => {
                           console.log(`[Info] Playlist (${get_txt}) inserted into database`)
                           showMessage({
-                            message: "Success",
-                            description: "Playlist Added",
+                            message: my_i18n.t('success'),
+                            description: my_i18n.t('localModal_ap_mes'),
                             type: "success"
                           })
                           props.setShowModal(false);
@@ -231,7 +231,7 @@ function _AddPlstModal(props){
                     });
                   }
                 }else{
-                  Alert.alert("Empty Input")
+                  Alert.alert(my_i18n.t('homeView2_alr1'))
                 }
               }}
               />
@@ -241,7 +241,6 @@ function _AddPlstModal(props){
     </Modal>
   )
 }
-
 
 export const DeleteModal = React.memo((props) => {
   return _DeleteModal(props);
@@ -306,12 +305,12 @@ function _DeleteModal(props){
         </TouchableWithoutFeedback>
         <View style={{...styles.modalInCenter, justifyContent: 'space-around', height: '30%'}}>
           <View style={{...styles.container, flex:1, alignSelf: 'stretch'}}>
-            <Text style={{fontSize:itemFontSize+8, color: color.dark_pup}}>Delete {count} Track(s)</Text>
+            <Text style={{fontSize:itemFontSize+8, color: color.dark_pup}}>{my_i18n.t('localModal_dt', {count:count})}</Text>
           </View>
           <View style = {{flex:1, alignSelf: 'stretch', justifyContent:'center'}}>
             <CheckBox
               center
-              title='Delete tracks from local storage'
+              title={my_i18n.t('localModal_dt_ck')}
               Component = {props.all_ref.current ? TouchableWithoutFeedback: TouchableOpacity}
               size = {22}
               checked= {check}
@@ -326,12 +325,12 @@ function _DeleteModal(props){
             height: null
           }}>
             <Button
-              title='Cancel'
+              title={my_i18n.t('cancel_butt')}
               buttonStyle= {{backgroundColor:color.dark_pup}}
               onPress={() => props.setShow(false)}
               />
             <Button
-              title='Check'
+              title={my_i18n.t('check')}
               onPress={() => {
                 if (check){
                   deleteLocalFile();
@@ -345,7 +344,7 @@ function _DeleteModal(props){
                 props.setShow(false);
                 props.fetchShowLst();
                 showMessage({
-                  message: "Delete Success",
+                  message: my_i18n.t('delete_success'),
                   type: "success"}
                 );
               }}
@@ -360,7 +359,6 @@ function _DeleteModal(props){
 export const ViewDeleteModal = React.memo((props) => {
   return _ViewDeleteModal(props);
 });
-
 export function _ViewDeleteModal(props){
 
   const [check, setCheck] = useState(false);
@@ -397,7 +395,7 @@ export function _ViewDeleteModal(props){
         </TouchableWithoutFeedback>
         <View style={{...styles.modalInCenter, justifyContent: 'space-around', height: '40%'}}>
           <View style={{...styles.container, flex:2, alignSelf: 'stretch'}}>
-            <Text style={{fontSize:itemFontSize+8, color: color.dark_pup}}>Delete Playlist:</Text>
+            <Text style={{fontSize:itemFontSize+8, color: color.dark_pup}}>{my_i18n.t('localModal_dp')}</Text>
           </View>
           <View style={{...styles.container, flex:1, alignSelf: 'stretch'}}>
             <Text numberOfLines={1} style={{fontSize:itemFontSize+4}}>
@@ -407,7 +405,7 @@ export function _ViewDeleteModal(props){
           <View style = {{flex:2, alignSelf: 'stretch', justifyContent:'center'}}>
             <CheckBox
               center
-              title= {`Delete ${count} tracks inside playlist`}
+              title= {my_i18n.t('localModal_dp_ck', {count: count})}
               size = {22}
               checked= {check}
               checkedColor = {color.dark_pup}
@@ -421,12 +419,12 @@ export function _ViewDeleteModal(props){
             height: null
           }}>
             <Button
-              title='Cancel'
+              title={my_i18n.t('cancel_butt')}
               buttonStyle= {{backgroundColor:color.dark_pup}}
               onPress={() => props.setShow(false)}
               />
             <Button
-              title='Check'
+              title={my_i18n.t('check')}
               onPress={() => {
                 db.transaction(tx => {
                   if (check){
@@ -450,7 +448,7 @@ export function _ViewDeleteModal(props){
                     () => {
                       console.log('Playlists deleted successful')
                       showMessage({
-                        message: "Delete Success",
+                        message: my_i18n.t('localModal_dp_mes'),
                         type: "success"}
                       );
                     },

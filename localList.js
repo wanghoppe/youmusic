@@ -9,7 +9,7 @@ import Constants from 'expo-constants';
 import { Storage, Auth } from 'aws-amplify';
 import { SearchBar, CheckBox } from 'react-native-elements';
 
-import {color, styles, itemHeight, db, TRACK_DIR, itemFontSize} from './styleConst';
+import {color, styles, itemHeight, db, TRACK_DIR, itemFontSize, my_i18n} from './styleConst';
 import {login} from './utils'
 import {AddToLstModal, DeleteModal, AddPlstModal} from './localModal'
 
@@ -168,7 +168,7 @@ export function LocalList(props){
 
   const onDeleteClick = useCallback(() => {
     if (select_set_ref.current.size == 0){
-      Alert.alert('No track was selected!')
+      Alert.alert(my_i18n.t('localList_alt'))
     }else {
       setModalDel(true);
     }
@@ -176,7 +176,7 @@ export function LocalList(props){
 
   const onAdd2PlstClick = useCallback(() => {
     if (select_set_ref.current.size == 0){
-      Alert.alert('No track was selected!')
+      Alert.alert(my_i18n.t('localList_alt'))
     }else {
       setModalPlaylist(true);
     }
@@ -229,20 +229,20 @@ export function LocalList(props){
               style = {{...styles.pupContainer, flex:1}}
               onPress={onAdd2PlstClick}
             >
-              <Text style={{fontSize:itemFontSize+2, color:color.primary}}>Add To</Text>
+              <Text style={{fontSize:itemFontSize+2, color:color.primary}}>{my_i18n.t('localList_at')}</Text>
             </TouchableOpacity>
           }
           <TouchableOpacity
             style = {{...styles.pupContainer, flex:1}}
             onPress={onDeleteClick}
           >
-            <Text style={{fontSize:itemFontSize+2, color:color.primary}}>Delete</Text>
+            <Text style={{fontSize:itemFontSize+2, color:color.primary}}>{my_i18n.t('delete')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style = {{...styles.pupContainer, flex:1}}
             onPress={exitSelectMode}
           >
-            <Text style={{fontSize:itemFontSize+2, color:color.dark_pup}}>Cancel</Text>
+            <Text style={{fontSize:itemFontSize+2, color:color.dark_pup}}>{my_i18n.t('cancel_butt')}</Text>
           </TouchableOpacity>
         </View>
         <TouchableOpacity
@@ -278,7 +278,7 @@ export function LocalList(props){
             all_ref.current &&
             <View style = {{alignSelf:'stretch'}}>
               <IconText
-                title = 'Add to Playlist'
+                title = {my_i18n.t('localList_atp')}
                 iconName = 'playlist-add'
                 iconColor = {color.primary}
                 onItemClick = {()=> {
@@ -290,7 +290,7 @@ export function LocalList(props){
             </View>
           }
           <IconText
-            title = 'Delete Track'
+            title = {my_i18n.t('localList_dt')}
             iconName = 'delete'
             onItemClick = {()=> {
               setModalDel(true);
@@ -365,7 +365,7 @@ export function LocalList(props){
             fontSize: itemFontSize + 2,
             // color: 'black'
           }}
-          placeholder="Search Here..."
+          placeholder={my_i18n.t('list_sr')}
           onChangeText={text => setFilTx(text)}
           value={filter_txt}
         />
@@ -382,7 +382,7 @@ export function LocalList(props){
           <Text style = {{
             color: color.primary,
             fontSize: itemFontSize+2,
-          }}>{['Name↓','Date↓'][order_idex]}</Text>
+          }}>{[my_i18n.t('list_name'),my_i18n.t('list_date')][order_idex]}</Text>
         </TouchableOpacity>
       </View>
       <View style = {{
@@ -488,7 +488,7 @@ function _Item(props){
 
   const navigateToPlay = useCallback(() => {
     console.log(props.index);
-    props.navigation.navigate('Play', {init_data: {
+    props.navigation.navigate('play', {init_data: {
       playlst: props.data_lst_ref.current,
       init_index: index_ref.current
     }})

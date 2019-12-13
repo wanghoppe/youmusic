@@ -32,26 +32,27 @@ first_run();
 
 const TabNavigator = createMaterialTopTabNavigator(
   {
-    Explore: ExploreView,
-    [my_i18n.t('cloud')]: CloudList,
-    Local: LocalHome,
-    Play: PlayingComp
+    explore: ExploreView,
+    cloud: CloudList,
+    local: LocalHome,
+    play: PlayingComp
   },
   {
     lazy : true,
     swipeEnabled: false,
     tabBarPosition: 'bottom',
     defaultNavigationOptions: ({ navigation }) => ({
+      title: my_i18n.t(navigation.state.routeName),
       tabBarIcon: ({ focused, horizontal, tintColor }) => {
         const { routeName } = navigation.state;
         let iconName;
-        if (routeName === 'Explore') {
+        if (routeName === 'explore') {
           iconName = `explore`;
-        } else if (routeName === 'Cloud') {
+        } else if (routeName === 'cloud') {
           iconName = `cloud-circle`;
-        } else if (routeName === 'Local') {
+        } else if (routeName === 'local') {
           iconName = `library-music`;
-        } else if (routeName === 'Play'){
+        } else if (routeName === 'play'){
           iconName = `video-library`;
         }
         return <Icon name={iconName} size={25} color={tintColor} iconStyle={`${focused ? '' : 'outline'}`}/>;

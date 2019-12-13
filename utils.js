@@ -1,6 +1,7 @@
 import { showMessage, hideMessage } from "react-native-flash-message";
 import {Alert} from 'react-native';
 import { Storage, Auth } from 'aws-amplify';
+import {my_i18n} from './styleConst'
 
 export async function login(){
   try{
@@ -25,7 +26,7 @@ export async function login(){
 export async function process_upload_json(json_res){
   if (json_res.message){
     showMessage({
-      message: "Failed",
+      message: my_i18n.t('failed'),
       description: json_res.message,
       type: "danger"}
     )
@@ -34,25 +35,25 @@ export async function process_upload_json(json_res){
   }
   if (json_res.success){
     showMessage({
-      message: "Success",
-      description: res_json.download + " is downloaded to cloud",
+      message: my_i18n.t('success'),
+      description: my_i18n.t('utils_ds', {song: res_json.download}),
       type: "success"})
       console.log(res_json.download + " is downloaded to cloud")
   }else{
     if (json_res.error_code == 1){
       Alert.alert(
-        'Download Failed',
-        `${json_res.download} is longer than 90 minutes`
+        my_i18n.t('utils_df'),
+        my_i18n.t('utils_df_mes1', {song: res_json.download})
       )
     }else if (json_res.error_code == 2){
       Alert.alert(
-        'Download Failed',
-        `${json_res.download} is already in the cloud`
+        my_i18n.t('utils_df'),
+        my_i18n.t('utils_df_mes2', {song: res_json.download})
       )
     }else if (json_res.error_code == 3){
       Alert.alert(
-        'Download Failed',
-        `Maximum 55 songs can be stored in cloud`
+        my_i18n.t('utils_df'),
+        my_i18n.t('utils_df_mes3', {song: res_json.download})
       )
     }
   }
