@@ -69,7 +69,49 @@ const TabNavigator = createBottomTabNavigator(
       style: {
         paddingTop: 2,
         backgroundColor: color.light_grey,
-        // height: Platform.OS === 'ios' ? 72 : 55,
+        height: 52,
+      },
+      tabStyle:{
+        paddingBottom: 2
+      }
+    },
+  }
+);
+
+const TabNavigatorOffline = createBottomTabNavigator(
+  {
+    local: LocalHome,
+    play: PlayingComp
+  },
+  {
+    // lazy : true,
+    // swipeEnabled: false,
+    // tabBarPosition: 'bottom',
+    defaultNavigationOptions: ({ navigation }) => ({
+      title: my_i18n.t(navigation.state.routeName),
+      tabBarIcon: ({ focused, horizontal, tintColor }) => {
+        const { routeName } = navigation.state;
+        let iconName;
+        if (routeName === 'local') {
+          iconName = `library-music`;
+        } else if (routeName === 'play'){
+          iconName = `video-library`;
+        }
+        return <Icon name={iconName} size={25} color={tintColor} iconStyle={`${focused ? '' : 'outline'}`}/>;
+      },
+    }),
+    tabBarOptions: {
+      renderIndicator: () => (null),
+      showIcon: true,
+      activeTintColor: color.dark_pup,
+      inactiveTintColor: 'gray',
+      labelStyle: {
+        fontSize: 12,
+      },
+      style: {
+        paddingTop: 2,
+        backgroundColor: color.light_grey,
+        height: 52,
       },
       tabStyle:{
         paddingBottom: 2
@@ -83,6 +125,7 @@ const SwitchNavigator = createSwitchNavigator(
     {
       AuthLoading: AuthLoadingScreen,
       App: TabNavigator,
+      AppOffline: TabNavigatorOffline,
       Auth: LoginView,
     },
     {

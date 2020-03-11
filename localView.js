@@ -44,6 +44,10 @@ export function LocalView(props){
     {length: itemHeight, offset: itemHeight * index, index}
   ),[]);
 
+  const onBackSignIn = useCallback(() => {
+    props.navigation.navigate('Auth');
+  }, [])
+
   useEffect(() => {
     fetch_pllst();
   },[props.isFocused])
@@ -92,6 +96,14 @@ export function LocalView(props){
   return (
     <View style={styles.allView} behavior={'padding'}>
       <View style = {styles.statusBar}>
+        {props.navigation.dangerouslyGetParent().dangerouslyGetParent().getParam('offline', false) &&
+          <TouchableOpacity
+            style = {{position: 'absolute', left: 20, bottom: 7}}
+            onPress = {onBackSignIn}
+          >
+            <Text style={{fontWeight: "bold", fontSize: itemFontSize+2, color: color.primary}}>{'← ' + my_i18n.t('signin')}</Text>
+          </TouchableOpacity>
+        }
         <Text style={{fontWeight: "bold", fontSize: itemFontSize+2}}>{my_i18n.t('local')}</Text>
       </View>
       {MainView}

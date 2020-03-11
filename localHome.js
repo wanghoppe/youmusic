@@ -22,20 +22,19 @@ export const LocalHome = createStackNavigator(
     LocalList: LocalList,
   },
   {
-    defaultNavigationOptions:{
+    defaultNavigationOptions: ({navigation}) => ({
       headerStyle: {
         height: 35,
         backgroundColor: color.light_pup_header,
       },
       headerLeftContainerStyle:{
-        paddingBottom: 5
+        justifyContent: 'flex-end',
       },
       headerTitleStyle: {
         fontWeight: "bold",
         fontSize: itemFontSize+2,
-        paddingBottom: 5
       },
       headerBackTitle: my_i18n.t('header_back')
-    }
+    })
   }
 );

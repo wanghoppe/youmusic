@@ -40,7 +40,7 @@ const en = {
   youtube: 'YouTube',
   comfirm: 'Comfirm',
   stream_music: 'Streaming Music',
-  check: 'check',
+  check: 'Check',
   success: 'Success',
   download: 'Download',
   delete: 'Delete',
@@ -100,7 +100,8 @@ const en = {
   utils_df: 'Download Failed',
   utils_df_mes1: '"{{song}}" is longer than 90 minutes',
   utils_df_mes2: '"{{song}}" is already in the cloud',
-  utils_df_mes3: 'Maximum limit reached in the cloud, please try to delete some non-important tracks'
+  utils_df_mes3: 'Maximum limit reached in the cloud, please try to delete some non-important tracks',
+  offline_use: 'Use Offline'
 };
 const zh = {
   ok_butt: '确定',
@@ -173,7 +174,8 @@ const zh = {
   utils_df: '下载失败',
   utils_df_mes1: '“{{song}}”长于90分钟',
   utils_df_mes2: '“{{song}}”已经在云端',
-  utils_df_mes3: '云端存储已满，请尝试删除一些不需要的歌曲'
+  utils_df_mes3: '云端存储已满，请尝试删除一些不需要的歌曲',
+  offline_use: '离线使用'
 };
 
 i18n.fallbacks = true;
@@ -192,7 +194,7 @@ export const styles = StyleSheet.create({
     height: Constants.statusBarHeight + 35,
     justifyContent: 'flex-end',
     alignItems: 'center',
-    paddingBottom: 10
+    paddingBottom: 7
   },
 
   afterStatus: {

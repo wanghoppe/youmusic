@@ -28,7 +28,7 @@ export const ExploreView = createMaterialTopTabNavigator(
       labelStyle: {fontWeight: "bold", fontSize: itemFontSize+2, color:'black'},
       style: {
         flexDirection:'column-reverse',
-        paddingBottom:5,
+        paddingBottom:2,
         backgroundColor: color.light_pup_header,
         height: Constants.statusBarHeight + 35,
       },

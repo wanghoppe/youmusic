@@ -13,7 +13,7 @@ import { Button, Icon } from 'react-native-elements'
 
 import { createStackNavigator } from 'react-navigation-stack';
 import { withNavigationFocus } from 'react-navigation';
-import {process_upload_json} from './utils'
+import {process_upload_json, displayTitle} from './utils'
 
 
 import {
@@ -296,7 +296,7 @@ function _CloudList(props){
 
   useEffect(() => {
     focuse_ref.current = props.isFocused;
-    // console.log({focus: props.isFocused}) 
+    // console.log({focus: props.isFocused})
     if (props.isFocused){
       onRefresh();
     }
@@ -793,7 +793,7 @@ function _ItemText(props){
           onPress = {onItemTextPress}
         >
           <View style = {{justifyContent: 'flex-end',flex: 4}}>
-            <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{title}</Text>
+            <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{displayTitle(title)}</Text>
           </View>
           <View style = {{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flex: 3}}>
             <Text style={{color: 'rgba(0,0,0,0.6)', fontSize:itemFontSize-4}}>{date}</Text>

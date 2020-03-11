@@ -10,7 +10,7 @@ import { Storage, Auth } from 'aws-amplify';
 import { SearchBar, CheckBox } from 'react-native-elements';
 
 import {color, styles, itemHeight, db, TRACK_DIR, itemFontSize, my_i18n} from './styleConst';
-import {login} from './utils'
+import {displayTitle} from './utils'
 import {AddToLstModal, DeleteModal, AddPlstModal} from './localModal'
 
 import { Button, Icon } from 'react-native-elements';
@@ -538,7 +538,7 @@ function _Item(props){
       borderColor: color.light_pup
     }}>
       <ItemTextView
-        title={props.title}
+        title={displayTitle(props.title)}
         date={props.date}
         onLongPressEvent={onLongPressEvent}
         onItemTextPress={onItemTextPress}

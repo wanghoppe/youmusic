@@ -58,3 +58,8 @@ export async function process_upload_json(json_res){
     }
   }
 }
+
+export function displayTitle(title){
+  // return title.match(/(.*)(-\w*.mp3$)/)[1]
+  return title.substring(0, title.length - 16)
+}

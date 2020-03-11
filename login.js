@@ -132,7 +132,14 @@ export function LoginView(props){
         onPress={signInFirst}
       />
     );
-    button2 = null;
+    button2 = (
+      <Button
+        containerStyle = {{flex:1, marginRight:10}}
+        buttonStyle={{backgroundColor:color.dark_pup}}
+        title={my_i18n.t('offline_use').toUpperCase()}
+        onPress={()=> props.navigation.navigate('AppOffline', {offline: true})}
+      />
+    );
     pwText = (<Text style={{fontSize: itemFontSize+6, color: color.dark_pup}}>{my_i18n.t('password') + ':'}</Text>)
   }
 

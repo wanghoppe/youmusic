@@ -15,6 +15,20 @@ import { withNavigationFocus } from 'react-navigation';
 import { IconText } from './utilsComp';
 import {process_upload_json} from './utils'
 
+function transform_views(view_num){
+  var lst = view_num.split(',');
+  if (lst.length == 1){
+    return view_num
+  }else if(lst.length == 2){
+    return lst[0] + 'K views'
+  }else if (lst.length == 3){
+    return lst[0] + 'M views'
+  }else if (lst.length == 4){
+    return lst[0] + 'B views'
+  }else{
+    return view_num
+  }
+}
 
 export function ExploreLambda(props){
 
@@ -48,7 +62,7 @@ export function ExploreLambda(props){
       })
     });
     res_json = await response.json();
-    setDataLst(res_json.result_lst.map(item => ({...item, key:item.you_id})));
+    setDataLst(res_json.result_lst.map(item => ({...item, key:item.you_id, view_num: transform_views(item.view_num)})));
     // setRefresh(false);
   }
 
@@ -237,7 +251,7 @@ function _Item(props){
         onPress = {onItemClick}>
         <View style = {{marginRight:itemFontSize/2}}>
           <Image
-            style={{width: itemHeight*2*1.45, height: itemHeight*2}}
+            style={{width: itemHeight*2*1.5, height: itemHeight*2}}
             source={{uri: props.img_src}}
           />
           <View style = {{
@@ -257,10 +271,10 @@ function _Item(props){
             <Text numberOfLines={3} style={{fontSize:itemFontSize}}>{props.title}</Text>
           </View>
           <View style={styles.wrapText}>
-            <Text numberOfLines={1} style={{fontSize:itemFontSize-2, color:'rgba(0,0,0,0.3)'}}>{props.channel}</Text>
+            <Text numberOfLines={1} style={{fontSize:itemFontSize-2, color:'rgba(0,0,0,0.6)'}}>{props.channel}</Text>
           </View>
           <View style={styles.wrapText}>
-            <Text numberOfLines={1} style={{fontSize:itemFontSize-3, color:'rgba(0,0,0,0.3)'}}>{`${props.view_num} • ${props.upload_time}`}</Text>
+            <Text numberOfLines={1} style={{fontSize:itemFontSize-3, color:'rgba(0,0,0,0.6)'}}>{`${props.view_num} • ${props.upload_time}`}</Text>
           </View>
         </View>
       </TouchableOpacity>

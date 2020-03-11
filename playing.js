@@ -10,6 +10,7 @@ import {color, styles, itemHeight, TRACK_DIR, itemFontSize, flatlist_getItemLayo
 import { Button, Icon, Slider } from 'react-native-elements';
 import { Storage } from 'aws-amplify';
 import * as FileSystem from 'expo-file-system';
+import {displayTitle} from './utils'
 
 
 export function PlayingComp(props){
@@ -32,6 +33,9 @@ export function PlayingComp(props){
 
   const [loading_id, _setLoadingId] = useState(0);
   const loading_id_ref = useRef(loading_id);
+
+  //looping
+  const force_next = useRef(false);
 
   // const [appStatus, setAppStatus] = useState(AppState.currentState)
   const setLoadingId = useCallback((id)=>{
@@ -62,7 +66,11 @@ export function PlayingComp(props){
     }else if(play_mode_ref.current == 1){
       return Math.floor(Math.random() * initdata_ref.current.playlst.length);
     }else if(play_mode_ref.current == 2){
-      return play_index_ref.current;
+      if (force_next.current){
+        return (play_index_ref.current + 1) % initdata_ref.current.playlst.length;
+      }else{
+        return play_index_ref.current;
+      }
     }
   }, [])
 
@@ -99,7 +107,9 @@ export function PlayingComp(props){
     // console.log({playing: playing});
     try{
       await sound_ref.current.loadAsync(source, init_status, downloadFirst = false);
+      force_next.current = false
     }catch{
+      force_next.current = true
       nextTrack()
     }
     // await sound_ref.current.playAsync()
@@ -525,7 +535,7 @@ function _Item(props){
         }}
       >
         <View style = {{justifyContent: 'center',flex: 1}}>
-          <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{props.title}</Text>
+          <Text numberOfLines={1} style={{fontSize:itemFontSize}}>{displayTitle(props.title)}</Text>
         </View>
       </View>
     </TouchableOpacity>
